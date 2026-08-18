@@ -1,15 +1,9 @@
 import { expect, test } from '@playwright/test';
-import {
-  deleteSlide,
-  duplicateSlide,
-  editorCanvas,
-  openSlide,
-  readSlideSource,
-} from './helpers.ts';
+import { deleteDoc, duplicateDoc, editorCanvas, openPdf, readDocSource } from './helpers.ts';
 
-test.describe('slide viewer', () => {
+test.describe('doc viewer', () => {
   test('opens on page one with the deck title in the toolbar', async ({ page }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await expect(editorCanvas(page).getByText('Alpha page one')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Alpha Deck' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Go to page 1' })).toHaveAttribute(
@@ -19,7 +13,7 @@ test.describe('slide viewer', () => {
   });
 
   test('arrow keys navigate pages and update the url', async ({ page }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await page.keyboard.press('ArrowRight');
     await expect(page).toHaveURL(/[?&]p=2/);
     await expect(editorCanvas(page).getByText('Alpha page two')).toBeVisible();
@@ -33,15 +27,15 @@ test.describe('slide viewer', () => {
   });
 
   test('deep links clamp the page query param', async ({ page }) => {
-    await openSlide(page, 'alpha', '?p=999');
+    await openPdf(page, 'alpha', '?p=999');
     await expect(editorCanvas(page).getByText('Alpha page three')).toBeVisible();
 
-    await openSlide(page, 'alpha', '?p=0');
+    await openPdf(page, 'alpha', '?p=0');
     await expect(editorCanvas(page).getByText('Alpha page one')).toBeVisible();
   });
 
   test('clicking a thumbnail jumps to that page', async ({ page }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await page.getByRole('button', { name: 'Go to page 2' }).click();
     await expect(page).toHaveURL(/[?&]p=2/);
     await expect(page.getByRole('button', { name: 'Go to page 2' })).toHaveAttribute(
@@ -51,11 +45,11 @@ test.describe('slide viewer', () => {
   });
 
   test('overview grid opens, navigates with the keyboard, and closes', async ({ page }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await page.keyboard.press('o');
-    const overview = page.getByRole('dialog', { name: 'Slide overview' });
+    const overview = page.getByRole('dialog', { name: 'Doc overview' });
     await expect(overview).toBeVisible();
-    await expect(overview.getByRole('button', { name: 'Go to slide 1' })).toHaveAttribute(
+    await expect(overview.getByRole('button', { name: 'Go to doc 1' })).toHaveAttribute(
       'aria-current',
       'true',
     );
@@ -72,33 +66,33 @@ test.describe('slide viewer', () => {
   });
 
   test('wheel scrolling navigates pages', async ({ page }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await editorCanvas(page).hover();
     await page.mouse.wheel(0, 120);
     await expect(page).toHaveURL(/[?&]p=2/);
   });
 
-  test('unknown slide ids show the load-failed state', async ({ page }) => {
+  test('unknown doc ids show the load-failed state', async ({ page }) => {
     await page.goto('/s/does-not-exist');
-    await expect(page.getByText('Failed to load slide')).toBeVisible();
+    await expect(page.getByText('Failed to load doc')).toBeVisible();
   });
 
   test('back link returns to the home browser', async ({ page }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await page.getByRole('link', { name: 'Back to home' }).click();
     await expect(page.locator('li h3')).toHaveCount(4);
   });
 
   test('steps render fully revealed in the editor', async ({ page }) => {
-    await openSlide(page, 'steps', '?p=2');
+    await openPdf(page, 'steps', '?p=2');
     await expect(editorCanvas(page).locator('[data-osd-step="revealed"]')).toHaveCount(2);
     await expect(editorCanvas(page).locator('[data-osd-step="pending"]')).toHaveCount(0);
   });
 
   test('thumbnail context menu duplicates and deletes a page', async ({ page, request }) => {
     try {
-      await duplicateSlide(request, 'alpha', 'thumb-ops');
-      await openSlide(page, 'thumb-ops');
+      await duplicateDoc(request, 'alpha', 'thumb-ops');
+      await openPdf(page, 'thumb-ops');
       await expect(page.getByRole('button', { name: 'Go to page 3' })).toBeVisible();
 
       await page.getByRole('button', { name: 'Go to page 1' }).click({ button: 'right' });
@@ -109,31 +103,31 @@ test.describe('slide viewer', () => {
       await page.getByRole('menuitem', { name: 'Delete' }).click();
       await expect(page.getByRole('button', { name: 'Go to page 4' })).toHaveCount(0);
     } finally {
-      await deleteSlide(request, 'thumb-ops');
+      await deleteDoc(request, 'thumb-ops');
     }
   });
 
   test('toolbar title editor renames the deck and saves to disk', async ({ page, request }) => {
     try {
-      await duplicateSlide(request, 'edit-target', 'rename-ui');
-      await openSlide(page, 'rename-ui');
+      await duplicateDoc(request, 'edit-target', 'rename-ui');
+      await openPdf(page, 'rename-ui');
 
-      const titleButton = page.getByRole('button', { name: 'Rename slide' });
+      const titleButton = page.getByRole('button', { name: 'Rename doc' });
       await titleButton.click();
       await page.keyboard.type('Renamed Deck');
       await page.keyboard.press('Enter');
 
       await expect(titleButton).toContainText('Renamed Deck');
-      await expect.poll(() => readSlideSource('rename-ui')).toContain('Renamed Deck');
+      await expect.poll(() => readDocSource('rename-ui')).toContain('Renamed Deck');
     } finally {
-      await deleteSlide(request, 'rename-ui');
+      await deleteDoc(request, 'rename-ui');
     }
   });
 
-  test('notes drawer autosaves speaker notes to the slide source', async ({ page, request }) => {
+  test('notes drawer autosaves speaker notes to the doc source', async ({ page, request }) => {
     try {
-      await duplicateSlide(request, 'edit-target', 'notes-ui');
-      await openSlide(page, 'notes-ui');
+      await duplicateDoc(request, 'edit-target', 'notes-ui');
+      await openPdf(page, 'notes-ui');
       const toggle = page.getByRole('button', { name: /Notes/ });
       await expect(toggle).toHaveAttribute('aria-expanded', 'false');
       await toggle.click();
@@ -142,11 +136,11 @@ test.describe('slide viewer', () => {
       const saved = page.waitForResponse(
         (res) => res.url().includes('/__notes') && res.request().method() === 'PUT',
       );
-      await page.getByPlaceholder('Write speaker notes for this slide…').fill('Drawer note text');
+      await page.getByPlaceholder('Write speaker notes for this doc…').fill('Drawer note text');
       expect((await saved).status()).toBe(200);
-      await expect.poll(() => readSlideSource('notes-ui')).toContain('Drawer note text');
+      await expect.poll(() => readDocSource('notes-ui')).toContain('Drawer note text');
     } finally {
-      await deleteSlide(request, 'notes-ui');
+      await deleteDoc(request, 'notes-ui');
     }
   });
 });

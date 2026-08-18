@@ -15,7 +15,7 @@ import { shuffleDesign } from '../../lib/design-presets';
 import { useDesign as useDesignFetch } from './use-design';
 
 type DesignCtx = {
-  slideId: string;
+  docId: string;
   loaded: boolean;
   exists: boolean;
   warning: string | null;
@@ -42,8 +42,8 @@ function clone<T>(d: T): T {
   return JSON.parse(JSON.stringify(d)) as T;
 }
 
-export function DesignProvider({ slideId, children }: { slideId: string; children: ReactNode }) {
-  const { design, exists, warning, loaded, save } = useDesignFetch(slideId);
+export function DesignProvider({ docId, children }: { docId: string; children: ReactNode }) {
+  const { design, exists, warning, loaded, save } = useDesignFetch(docId);
   const [draft, setDraft] = useState<DesignSystem | null>(null);
   const [committing, setCommitting] = useState(false);
   const history = useHistory();
@@ -110,7 +110,7 @@ export function DesignProvider({ slideId, children }: { slideId: string; childre
     });
   }, [history]);
 
-  // SlideCanvas emits its design vars inline on the canvas root, so a draft
+  // DocCanvas emits its design vars inline on the canvas root, so a draft
   // overlay must use `!important` to outrank those inline styles.
   const previewCss = useMemo(() => {
     if (!dirty || !draft) return '';
@@ -121,7 +121,7 @@ export function DesignProvider({ slideId, children }: { slideId: string; childre
   }, [dirty, draft]);
 
   const value: DesignCtx = {
-    slideId,
+    docId,
     loaded,
     exists,
     warning,

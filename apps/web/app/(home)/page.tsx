@@ -18,7 +18,7 @@ import { appName, gitConfig, siteUrl } from '@/lib/shared';
 
 const repoUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}`;
 const description =
-  'A React-first slide framework authored by AI agents. Each page is arbitrary code on a 1920×1080 canvas — versioned, reviewable, yours.';
+  'A React-first doc framework authored by AI agents. Each page is arbitrary code on a 1920×1080 canvas — versioned, reviewable, yours.';
 
 const jsonLd = [
   {
@@ -33,11 +33,11 @@ const jsonLd = [
     '@type': 'Organization',
     name: appName,
     url: siteUrl,
-    logo: `${siteUrl}/open-slide.png`,
+    logo: `${siteUrl}/open-pdf.png`,
     sameAs: [
       repoUrl,
-      'https://www.npmjs.com/package/@open-slide/core',
-      'https://www.npmjs.com/package/@open-slide/cli',
+      'https://www.npmjs.com/package/@open-pdf/core',
+      'https://www.npmjs.com/package/@open-pdf/cli',
     ],
   },
   {
@@ -69,9 +69,9 @@ const jsonLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'HowTo',
-    name: 'Author a slide deck with open-slide',
+    name: 'Author a doc deck with open-pdf',
     description:
-      'Scaffold an open-slide workspace, ask an AI agent to draft slides, then iterate visually in the browser.',
+      'Scaffold an open-pdf workspace, ask an AI agent to draft docs, then iterate visually in the browser.',
     totalTime: 'PT2M',
     supply: [
       { '@type': 'HowToSupply', name: 'Node.js 18+' },
@@ -82,19 +82,19 @@ const jsonLd = [
         '@type': 'HowToStep',
         position: 1,
         name: 'Spin up a workspace',
-        text: 'Run npx @open-slide/cli init my-deck to scaffold the slide workspace. Every future deck lives inside it.',
+        text: 'Run npx @open-pdf/cli init my-deck to scaffold the doc workspace. Every future deck lives inside it.',
       },
       {
         '@type': 'HowToStep',
         position: 2,
         name: 'Ask your agent',
-        text: 'Use a slash command like /create-slide and your agent drafts slides as arbitrary React components.',
+        text: 'Use a slash command like /create-doc and your agent drafts docs as arbitrary React components.',
       },
       {
         '@type': 'HowToStep',
         position: 3,
         name: 'Edit, comment, apply',
-        text: 'Click any element to tweak it visually, or leave an @slide-comment marker and run /apply-comments to let the agent rewrite the source.',
+        text: 'Click any element to tweak it visually, or leave an @pdf-comment marker and run /apply-comments to let the agent rewrite the source.',
       },
     ],
   },

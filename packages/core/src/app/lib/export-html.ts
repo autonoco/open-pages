@@ -1,18 +1,18 @@
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { designToCssVars } from './design';
-import { SlidePageProvider } from './page-context';
-import type { SlideModule } from './sdk';
+import { DocPageProvider } from './page-context';
+import type { DocModule } from './sdk';
 
 type AssetEntry = { name: string; bytes: Uint8Array };
 
 const ASSET_EXT_RE =
   /\.(?:png|jpe?g|gif|svg|webp|avif|mp4|webm|mov|woff2?|ttf|otf|mp3|wav|ogg)(?:\?[^#]*)?(?:#.*)?$/i;
 
-export async function exportSlideAsHtml(slide: SlideModule, slideId: string): Promise<void> {
-  const pages = slide.default ?? [];
+export async function exportDocAsHtml(doc: DocModule, docId: string): Promise<void> {
+  const pages = doc.default ?? [];
   if (pages.length === 0) return;
-  const title = slide.meta?.title ?? slideId;
+  const title = doc.meta?.title ?? docId;
 
   const pagesHtml = await renderPagesToHtml(pages);
   const bundledCss = collectCss();
@@ -46,29 +46,29 @@ export async function exportSlideAsHtml(slide: SlideModule, slideId: string): Pr
     pagesHtml: rewrittenPages,
     bundledCss: rewrittenCss,
     externalLinks,
-    design: slide.design,
+    design: doc.design,
   });
 
   const htmlBytes = new TextEncoder().encode(html);
 
   if (assets.size === 0) {
-    downloadBlob(new Blob([htmlBytes as BlobPart], { type: 'text/html' }), `${slideId}.html`);
+    downloadBlob(new Blob([htmlBytes as BlobPart], { type: 'text/html' }), `${docId}.html`);
     return;
   }
 
   const { zipSync } = await import('fflate');
   const zipTree: Record<string, Uint8Array | Record<string, Uint8Array>> = {
-    [`${slideId}.html`]: htmlBytes,
+    [`${docId}.html`]: htmlBytes,
     assets: {},
   };
   for (const { name, bytes } of assets.values()) {
     (zipTree.assets as Record<string, Uint8Array>)[name] = bytes;
   }
   const zipped = zipSync(zipTree as Parameters<typeof zipSync>[0]);
-  downloadBlob(new Blob([zipped as BlobPart], { type: 'application/zip' }), `${slideId}.zip`);
+  downloadBlob(new Blob([zipped as BlobPart], { type: 'application/zip' }), `${docId}.zip`);
 }
 
-async function renderPagesToHtml(pages: NonNullable<SlideModule['default']>): Promise<string[]> {
+async function renderPagesToHtml(pages: NonNullable<DocModule['default']>): Promise<string[]> {
   const container = document.createElement('div');
   container.setAttribute('aria-hidden', 'true');
   Object.assign(container.style, {
@@ -92,7 +92,7 @@ async function renderPagesToHtml(pages: NonNullable<SlideModule['default']>): Pr
       container.appendChild(host);
       const root = createRoot(host);
       root.render(
-        createElement(SlidePageProvider, { index: i, total: pages.length }, createElement(Page)),
+        createElement(DocPageProvider, { index: i, total: pages.length }, createElement(Page)),
       );
       await nextPaint();
       await nextPaint();
@@ -236,7 +236,7 @@ function buildHtml(opts: {
   pagesHtml: string[];
   bundledCss: string;
   externalLinks: string;
-  design: SlideModule['design'];
+  design: DocModule['design'];
 }): string {
   const pagesMarkup = opts.pagesHtml
     .map(

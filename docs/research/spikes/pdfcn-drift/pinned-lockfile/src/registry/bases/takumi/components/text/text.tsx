@@ -1,19 +1,13 @@
-import {
-  usePdfcnTheme,
-  useSafeMemo,
-} from "@/registry/bases/takumi/components/theme-provider";
-import {
-  Text as PDFText,
-  StyleSheet,
-} from "@/registry/bases/takumi/lib/pdf-primitives";
-import type { Style } from "@/registry/bases/takumi/lib/pdf-primitives";
-import { resolveColor } from "@/registry/bases/takumi/lib/resolve-color";
-import type { PDFComponentProps } from "@/registry/types/pdf-components";
-import type { PdfcnTheme } from "@/registry/types/pdf-themes";
+import { usePdfcnTheme, useSafeMemo } from '@/registry/bases/takumi/components/theme-provider';
+import type { Style } from '@/registry/bases/takumi/lib/pdf-primitives';
+import { Text as PDFText, StyleSheet } from '@/registry/bases/takumi/lib/pdf-primitives';
+import { resolveColor } from '@/registry/bases/takumi/lib/resolve-color';
+import type { PDFComponentProps } from '@/registry/types/pdf-components';
+import type { PdfcnTheme } from '@/registry/types/pdf-themes';
 
-export type TextVariant = "xs" | "sm" | "base" | "lg" | "xl" | "2xl" | "3xl";
-export type TextWeight = "normal" | "medium" | "semibold" | "bold";
-export type TextDecoration = "underline" | "line-through" | "none";
+export type TextVariant = 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl';
+export type TextWeight = 'normal' | 'medium' | 'semibold' | 'bold';
+export type TextDecoration = 'underline' | 'line-through' | 'none';
 
 /**
  * Body text with typography scale, alignment, and decoration options.
@@ -28,7 +22,7 @@ export interface TextProps extends PDFComponentProps {
   /**
    * @default 'left'
    */
-  align?: "left" | "center" | "right" | "justify";
+  align?: 'left' | 'center' | 'right' | 'justify';
   color?: string;
   /**
    * @default 'normal'
@@ -42,7 +36,7 @@ export interface TextProps extends PDFComponentProps {
    * @default 'none'
    */
   decoration?: TextDecoration;
-  transform?: "uppercase" | "lowercase" | "capitalize";
+  transform?: 'uppercase' | 'lowercase' | 'capitalize';
   /**
    * @default false
    */
@@ -59,22 +53,22 @@ const createTextStyles = (t: PdfcnTheme) => {
     marginTop: 0,
   };
   return StyleSheet.create({
-    "2xl": { ...base, fontSize: t.primitives.typography["2xl"] },
-    "3xl": { ...base, fontSize: t.primitives.typography["3xl"] },
+    '2xl': { ...base, fontSize: t.primitives.typography['2xl'] },
+    '3xl': { ...base, fontSize: t.primitives.typography['3xl'] },
     base: { ...base, fontSize: t.primitives.typography.base },
-    capitalize: { textTransform: "capitalize" },
-    decorationNone: { textDecoration: "none" },
-    italic: { fontStyle: "italic" },
+    capitalize: { textTransform: 'capitalize' },
+    decorationNone: { textDecoration: 'none' },
+    italic: { fontStyle: 'italic' },
     lg: { ...base, fontSize: t.primitives.typography.lg },
-    lineThrough: { textDecoration: "line-through" },
-    lowercase: { textTransform: "lowercase" },
+    lineThrough: { textDecoration: 'line-through' },
+    lowercase: { textTransform: 'lowercase' },
     noMargin: { marginBottom: 0, marginTop: 0 },
     sm: { ...base, fontSize: t.primitives.typography.sm },
     text: { ...base, fontSize: t.typography.body.fontSize },
-    underline: { textDecoration: "underline" },
+    underline: { textDecoration: 'underline' },
     uppercase: {
       letterSpacing: letterSpacing.wider * 10,
-      textTransform: "uppercase",
+      textTransform: 'uppercase',
     },
     weightBold: { fontWeight: fontWeights.bold },
     weightMedium: { fontWeight: fontWeights.medium },
@@ -106,7 +100,7 @@ export const Text = ({
     semibold: styles.weightSemibold,
   };
   const decorationMap = {
-    "line-through": styles.lineThrough,
+    'line-through': styles.lineThrough,
     none: styles.decorationNone,
     underline: styles.underline,
   };

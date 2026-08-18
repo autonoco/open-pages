@@ -28,7 +28,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Toggle } from '@/components/ui/toggle';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { findSlideSource } from '@/lib/inspector/fiber';
+import { findDocSource } from '@/lib/inspector/fiber';
 import type { EditOp } from '@/lib/inspector/use-editor';
 import { useAgentSocketConnected } from '@/lib/use-agent-socket';
 import { useLocale } from '@/lib/use-locale';
@@ -61,8 +61,8 @@ type RangeStylePreview = {
   values: StylePreview;
 };
 
-function resolveSelectedTarget(target: SelectedTarget, slideId: string): SelectedTarget {
-  const hit = findSlideSource(target.anchor, slideId, { hostOnly: true });
+function resolveSelectedTarget(target: SelectedTarget, docId: string): SelectedTarget {
+  const hit = findDocSource(target.anchor, docId, { hostOnly: true });
   if (!hit) return target;
   if (hit.line === target.line && hit.column === target.column && hit.anchor === target.anchor) {
     return target;
@@ -71,7 +71,7 @@ function resolveSelectedTarget(target: SelectedTarget, slideId: string): Selecte
 }
 
 export function InspectorPanel() {
-  const { active, slideId, selected, setSelected, bufferOps, pendingCount, add, applyEdit } =
+  const { active, docId, selected, setSelected, bufferOps, pendingCount, add, applyEdit } =
     useInspector();
   const [snapshot, setSnapshot] = useState<ElementSnapshot | null>(null);
   const [contentSelection, setContentSelection] = useState<ContentSelection | null>(null);
@@ -94,7 +94,7 @@ export function InspectorPanel() {
     }
     let anchor = selected.anchor;
     if (!anchor.isConnected) {
-      const next = findElementByLine(slideId, selected.line, selected.column);
+      const next = findElementByLine(docId, selected.line, selected.column);
       if (next) {
         anchor = next;
         setSelected({ ...selected, anchor: next });
@@ -103,9 +103,9 @@ export function InspectorPanel() {
       }
     }
     setSnapshot(readSnapshot(anchor));
-  }, [selected, setSelected, slideId, reloadCounter, pendingCount]);
+  }, [selected, setSelected, docId, reloadCounter, pendingCount]);
 
-  // Freeze slide animations while editing so commits don't replay motion.
+  // Freeze doc animations while editing so commits don't replay motion.
   useEffect(() => {
     if (!active) return;
     const root = document.querySelector<HTMLElement>('[data-inspector-root]');
@@ -132,12 +132,12 @@ export function InspectorPanel() {
   const apply = useCallback(
     (ops: EditOp[]) => {
       if (!selected) return;
-      const target = resolveSelectedTarget(selected, slideId);
+      const target = resolveSelectedTarget(selected, docId);
       if (target !== selected) setSelected(target);
       bufferOps(target.line, target.column, target.anchor, ops);
       if (target.anchor.isConnected) setSnapshot(readSnapshot(target.anchor));
     },
-    [selected, setSelected, slideId, bufferOps],
+    [selected, setSelected, docId, bufferOps],
   );
 
   // `pinned` keeps the last selection rendered through the close-out
@@ -174,7 +174,7 @@ export function InspectorPanel() {
     : pinSnapshot;
   const applyTextStyle = (ops: EditOp[]) => {
     const styleOps = ops.flatMap((op) => (op.kind === 'set-style' ? [op] : []));
-    const target = resolveSelectedTarget(pinSelected, slideId);
+    const target = resolveSelectedTarget(pinSelected, docId);
     if (target !== pinSelected) setSelected(target);
     if (
       contentRange &&
@@ -317,7 +317,7 @@ export function InspectorPanel() {
           <Separator />
           <Section title={t.inspector.imagePlaceholderSection}>
             <PlaceholderField
-              slideId={slideId}
+              docId={docId}
               hint={pinSnapshot.placeholder.hint}
               line={pinSelected.line}
               column={pinSelected.column}
@@ -783,13 +783,13 @@ function ImageField({ src, anchor }: { src: string; anchor: HTMLElement }) {
 }
 
 function PlaceholderField({
-  slideId,
+  docId,
   hint,
   line,
   column,
   applyEdit,
 }: {
-  slideId: string;
+  docId: string;
   hint: string;
   line: number;
   column: number;
@@ -817,7 +817,7 @@ function PlaceholderField({
       </Button>
       {open && (
         <AssetPickerDialog
-          slideId={slideId}
+          docId={docId}
           onClose={() => setOpen(false)}
           onPick={async (asset, scope) => {
             setOpen(false);
@@ -954,7 +954,7 @@ function readSnapshot(el: HTMLElement): ElementSnapshot {
     el.tagName === 'IMG'
       ? (el as HTMLImageElement).currentSrc || (el as HTMLImageElement).src || null
       : null;
-  const ph = el.dataset.slidePlaceholder ?? null;
+  const ph = el.dataset.docPlaceholder ?? null;
   const placeholder =
     ph !== null
       ? {
@@ -1093,14 +1093,14 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-function findElementByLine(slideId: string, line: number, column: number): HTMLElement | null {
+function findElementByLine(docId: string, line: number, column: number): HTMLElement | null {
   const root = document.querySelector('[data-inspector-root]');
   if (!root) return null;
-  const tagged = root.querySelector<HTMLElement>(`[data-slide-loc="${line}:${column}"]`);
+  const tagged = root.querySelector<HTMLElement>(`[data-pdf-loc="${line}:${column}"]`);
   if (tagged) return tagged;
   const candidates = root.querySelectorAll<HTMLElement>('*');
   for (const el of candidates) {
-    const hit = findSlideSource(el, slideId, { hostOnly: true });
+    const hit = findDocSource(el, docId, { hostOnly: true });
     if (hit && hit.line === line) return hit.anchor;
   }
   return null;

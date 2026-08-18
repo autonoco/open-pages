@@ -8,17 +8,17 @@ export function Footer() {
         <div className="col-span-12 lg:col-span-4 flex flex-col gap-4">
           <div className="flex items-center gap-2.5 text-[14px] font-medium">
             <Image
-              src="/open-slide.png"
+              src="/open-pdf.png"
               alt=""
               aria-hidden
               width={24}
               height={24}
               className="h-6 w-6 rounded-[4px]"
             />
-            <span className="tracking-[-0.01em]">open-slide</span>
+            <span className="tracking-[-0.01em]">open-pdf</span>
           </div>
           <p className="text-[14px] leading-[1.6] text-[color:var(--color-muted)] max-w-[38ch]">
-            A React-first slide framework authored by AI agents. Free and open source under the MIT
+            A React-first doc framework authored by AI agents. Free and open source under the MIT
             license.
           </p>
         </div>
@@ -34,16 +34,16 @@ export function Footer() {
         <FooterCol
           title="Packages"
           links={[
-            ['@open-slide/core', 'https://www.npmjs.com/package/@open-slide/core'],
-            ['@open-slide/cli', 'https://www.npmjs.com/package/@open-slide/cli'],
+            ['@open-pdf/core', 'https://www.npmjs.com/package/@open-pdf/core'],
+            ['@open-pdf/cli', 'https://www.npmjs.com/package/@open-pdf/cli'],
           ]}
         />
         <FooterCol
           title="Elsewhere"
           links={[
-            ['GitHub', 'https://github.com/1weiho/open-slide'],
-            ['npm', 'https://www.npmjs.com/package/@open-slide/core'],
-            ['Issues', 'https://github.com/1weiho/open-slide/issues'],
+            ['GitHub', 'https://github.com/autonoco/open-pdf'],
+            ['npm', 'https://www.npmjs.com/package/@open-pdf/core'],
+            ['Issues', 'https://github.com/autonoco/open-pdf/issues'],
           ]}
         />
       </div>

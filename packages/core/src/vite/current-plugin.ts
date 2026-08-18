@@ -1,20 +1,20 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { Plugin, ViteDevServer } from 'vite';
-import { SLIDE_ID_RE } from '../editing/slide-ops.ts';
+import { DOC_ID_RE } from '../editing/doc-ops.ts';
 
 const TEXT_SNIPPET_MAX = 120;
 
 export type CurrentPluginOptions = {
   userCwd: string;
-  slidesDir?: string;
+  docsDir?: string;
 };
 
 type IncomingPayload = {
-  slideId?: unknown;
+  docId?: unknown;
   pageIndex?: unknown;
   totalPages?: unknown;
-  slideTitle?: unknown;
+  docTitle?: unknown;
   view?: unknown;
   selection?: unknown;
 };
@@ -34,12 +34,12 @@ type Selection = {
 };
 
 type Cached = {
-  slideId: string;
+  docId: string;
   pageIndex: number;
   pageNumber: number;
   totalPages: number;
-  slideTitle: string;
-  view: 'slides' | 'assets';
+  docTitle: string;
+  view: 'docs' | 'assets';
   pagePath: string;
   selection: Selection | null;
 };
@@ -65,33 +65,33 @@ function parseSelection(raw: unknown): Selection | null {
 
 export function currentPlugin(opts: CurrentPluginOptions): Plugin {
   const userCwd = opts.userCwd;
-  const slidesDir = opts.slidesDir ?? 'slides';
-  const outDir = path.join(userCwd, 'node_modules', '.open-slide');
+  const docsDir = opts.docsDir ?? 'docs';
+  const outDir = path.join(userCwd, 'node_modules', '.open-pdf');
   const outFile = path.join(outDir, 'current.json');
   const tmpFile = `${outFile}.tmp`;
 
   let cached: Cached | null = null;
 
   return {
-    name: 'open-slide:current',
+    name: 'open-pdf:current',
     apply: 'serve',
     configureServer(server: ViteDevServer) {
-      server.ws.on('open-slide:current', async (raw: IncomingPayload) => {
+      server.ws.on('open-pdf:current', async (raw: IncomingPayload) => {
         const next: Cached = cached
           ? { ...cached }
           : {
-              slideId: '',
+              docId: '',
               pageIndex: 0,
               pageNumber: 1,
               totalPages: 1,
-              slideTitle: '',
-              view: 'slides',
+              docTitle: '',
+              view: 'docs',
               pagePath: '',
               selection: null,
             };
 
-        if (typeof raw?.slideId === 'string') {
-          if (!SLIDE_ID_RE.test(raw.slideId)) return;
+        if (typeof raw?.docId === 'string') {
+          if (!DOC_ID_RE.test(raw.docId)) return;
 
           const totalPages =
             typeof raw.totalPages === 'number' &&
@@ -104,19 +104,19 @@ export function currentPlugin(opts: CurrentPluginOptions): Plugin {
               ? Math.floor(raw.pageIndex)
               : 0;
           const pageIndex = Math.max(0, Math.min(totalPages - 1, rawIndex));
-          const slideTitle = typeof raw.slideTitle === 'string' ? raw.slideTitle : raw.slideId;
-          const view = raw.view === 'assets' ? 'assets' : 'slides';
-          const pagePath = path.join(slidesDir, raw.slideId, 'index.tsx').split(path.sep).join('/');
+          const docTitle = typeof raw.docTitle === 'string' ? raw.docTitle : raw.docId;
+          const view = raw.view === 'assets' ? 'assets' : 'docs';
+          const pagePath = path.join(docsDir, raw.docId, 'index.tsx').split(path.sep).join('/');
 
-          if (cached?.slideId !== raw.slideId || cached?.pageIndex !== pageIndex) {
+          if (cached?.docId !== raw.docId || cached?.pageIndex !== pageIndex) {
             next.selection = null;
           }
 
-          next.slideId = raw.slideId;
+          next.docId = raw.docId;
           next.pageIndex = pageIndex;
           next.pageNumber = pageIndex + 1;
           next.totalPages = totalPages;
-          next.slideTitle = slideTitle;
+          next.docTitle = docTitle;
           next.view = view;
           next.pagePath = pagePath;
         }
@@ -125,7 +125,7 @@ export function currentPlugin(opts: CurrentPluginOptions): Plugin {
           next.selection = parseSelection(raw.selection);
         }
 
-        if (!next.slideId) return;
+        if (!next.docId) return;
 
         cached = next;
 

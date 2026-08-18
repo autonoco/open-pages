@@ -5,23 +5,23 @@ import { useNotes } from '@/lib/inspector/use-notes';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 
-const STORAGE_KEY = 'open-slide:notes-drawer-open';
+const STORAGE_KEY = 'open-pdf:notes-drawer-open';
 const DRAWER_CONTENT_H = 166;
 
 type Props = {
-  slideId: string;
+  docId: string;
   index: number;
   total: number;
   initial: string | undefined;
 };
 
-export function NotesDrawer({ slideId, index, total, initial }: Props) {
+export function NotesDrawer({ docId, index, total, initial }: Props) {
   const t = useLocale();
   const [open, setOpen] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem(STORAGE_KEY) === '1';
   });
-  const { value, setValue, status, flush } = useNotes(slideId, index, initial);
+  const { value, setValue, status, flush } = useNotes(docId, index, initial);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const { mounted, animVisible } = usePanelMount(open);
 

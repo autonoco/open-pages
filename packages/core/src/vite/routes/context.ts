@@ -1,12 +1,12 @@
 import type { ServerResponse } from 'node:http';
 import path from 'node:path';
 import type { Connect } from 'vite';
-import { SLIDE_ID_RE } from '../../editing/slide-ops.ts';
+import { DOC_ID_RE } from '../../editing/doc-ops.ts';
 
 export type ApiContext = {
   userCwd: string;
-  slidesDir: string;
-  slidesRoot: string;
+  docsDir: string;
+  docsRoot: string;
   globalAssetsRoot: string;
   manifestPath: string;
   coreVersion: string;
@@ -14,22 +14,22 @@ export type ApiContext = {
 
 export type ApiPluginOptions = {
   userCwd: string;
-  slidesDir?: string;
+  docsDir?: string;
   assetsDir?: string;
   coreVersion: string;
 };
 
 export function makeContext(opts: ApiPluginOptions): ApiContext {
   const userCwd = opts.userCwd;
-  const slidesDir = opts.slidesDir ?? 'slides';
+  const docsDir = opts.docsDir ?? 'docs';
   const assetsDir = opts.assetsDir ?? 'assets';
-  const slidesRoot = path.resolve(userCwd, slidesDir);
+  const docsRoot = path.resolve(userCwd, docsDir);
   const globalAssetsRoot = path.resolve(userCwd, assetsDir);
-  const manifestPath = path.join(slidesRoot, '.folders.json');
+  const manifestPath = path.join(docsRoot, '.folders.json');
   return {
     userCwd,
-    slidesDir,
-    slidesRoot,
+    docsDir,
+    docsRoot,
     globalAssetsRoot,
     manifestPath,
     coreVersion: opts.coreVersion,
@@ -59,18 +59,14 @@ export function json(res: ServerResponse, status: number, body: unknown) {
   res.end(JSON.stringify(body));
 }
 
-export function resolveSlidePath(
-  userCwd: string,
-  slidesDir: string,
-  slideId: string,
-): string | null {
-  if (!SLIDE_ID_RE.test(slideId)) return null;
-  const slidesRoot = path.resolve(userCwd, slidesDir);
-  const full = path.resolve(slidesRoot, slideId, 'index.tsx');
-  if (!full.startsWith(slidesRoot + path.sep)) return null;
+export function resolveDocPath(userCwd: string, docsDir: string, docId: string): string | null {
+  if (!DOC_ID_RE.test(docId)) return null;
+  const docsRoot = path.resolve(userCwd, docsDir);
+  const full = path.resolve(docsRoot, docId, 'index.tsx');
+  if (!full.startsWith(docsRoot + path.sep)) return null;
   return full;
 }
 
-export function resolveSlideEntryPath(ctx: ApiContext, slideId: string): string | null {
-  return resolveSlidePath(ctx.userCwd, ctx.slidesDir, slideId);
+export function resolveDocEntryPath(ctx: ApiContext, docId: string): string | null {
+  return resolveDocPath(ctx.userCwd, ctx.docsDir, docId);
 }

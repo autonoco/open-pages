@@ -18,10 +18,10 @@ const steps: Step[] = [
     num: '01',
     kicker: 'scaffold',
     title: 'Spin up a workspace',
-    body: 'Creates the slide workspace. Every future deck you author lives inside it.',
+    body: 'Creates the doc workspace. Every future deck you author lives inside it.',
     code: {
       prompt: '$',
-      line: 'npx @open-slide/cli init my-deck',
+      line: 'npx @open-pdf/cli init my-deck',
       tail: '✓ ready in 3s',
     },
   },
@@ -32,7 +32,7 @@ const steps: Step[] = [
     body: 'Your agent drafts pages as arbitrary React components. You guide with prompts.',
     code: {
       prompt: '›',
-      line: '/create-slide for Q2 roadmap',
+      line: '/create-doc for Q2 roadmap',
       tail: <AgentIconList />,
     },
   },
@@ -78,7 +78,7 @@ export function HowItWorks() {
           data-reveal="blur"
           className="text-[32px] sm:text-[44px] lg:text-[60px] leading-[1.1] sm:leading-[1.05] tracking-[-0.035em] font-medium max-w-[820px] mb-14 sm:mb-20"
         >
-          Slides as code.
+          Docs as code.
           <br />
           <span className="font-[family-name:var(--font-pixel)] text-[color:var(--color-muted)]">
             Crafted by agents.

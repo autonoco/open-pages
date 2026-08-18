@@ -1,10 +1,10 @@
-export type SlideSourceHit = {
+export type DocSourceHit = {
   line: number;
   column: number;
   anchor: HTMLElement;
 };
 
-export type FindSlideSourceOptions = {
+export type FindDocSourceOptions = {
   // Visual editor uses this: skip component-invocation JSX (`<MyComp/>`)
   // since most components don't forward `style`. Comments leave it off
   // so any JSX can be annotated.
@@ -34,16 +34,16 @@ function normalizeDebugFileName(fileName: string): string {
   return fileName.split(/[?#]/)[0].replace(/\\/g, '/');
 }
 
-export function findSlideSource(
+export function findDocSource(
   el: HTMLElement,
-  slideId: string,
-  opts?: FindSlideSourceOptions,
-): SlideSourceHit | null {
-  // Primary path: the `data-slide-loc` attribute injected by the
+  docId: string,
+  opts?: FindDocSourceOptions,
+): DocSourceHit | null {
+  // Primary path: the `data-pdf-loc` attribute injected by the
   // loc-tags Vite plugin. Immune to HMR-stale fiber state.
-  const tagged = el.closest<HTMLElement>('[data-slide-loc]');
+  const tagged = el.closest<HTMLElement>('[data-pdf-loc]');
   if (tagged) {
-    const loc = tagged.dataset.slideLoc;
+    const loc = tagged.dataset.docLoc;
     if (loc) {
       const idx = loc.indexOf(':');
       if (idx > 0) {
@@ -58,7 +58,7 @@ export function findSlideSource(
 
   // Fallback for JSX rendered from imported component files (which the
   // loc-tags plugin doesn't transform).
-  const needle = `/slides/${slideId}/index.tsx`;
+  const needle = `/docs/${docId}/index.tsx`;
   let fiber = getFiber(el);
   let anchor: HTMLElement = el;
   while (fiber) {

@@ -6,13 +6,13 @@ import { validateMutationRequest } from '../../http/request-guard.ts';
 import { type ApiContext, json } from './context.ts';
 
 // GET /__update-check  → { current, latest, outdated }
-//   Compares the running @open-slide/core version against the npm `latest`
+//   Compares the running @open-pdf/core version against the npm `latest`
 //   dist-tag. Network/parse failures degrade to { latest: null, outdated: false }.
 // POST /__update-package → { packageManager, command, latest, message }
-//   Installs @open-slide/core@latest with the detected package manager, then
-//   runs `open-slide sync:skills`.
+//   Installs @open-pdf/core@latest with the detected package manager, then
+//   runs `open-pdf sync:skills`.
 
-const PKG = '@open-slide/core';
+const PKG = '@open-pdf/core';
 const CACHE_TTL_MS = 10 * 60 * 1000;
 const COMMAND_TIMEOUT_MS = 300_000;
 
@@ -100,8 +100,8 @@ export function updateCommandFor(packageManager: PackageManager): CommandSpec {
   }
 }
 
-function localOpenSlideCommand(cwd: string): CommandSpec {
-  const bin = process.platform === 'win32' ? 'open-slide.cmd' : 'open-slide';
+function localOpenPdfCommand(cwd: string): CommandSpec {
+  const bin = process.platform === 'win32' ? 'open-pdf.cmd' : 'open-pdf';
   return { cmd: path.join(cwd, 'node_modules', '.bin', bin), args: ['sync:skills'] };
 }
 
@@ -146,7 +146,7 @@ async function runCommand(spec: CommandSpec, cwd: string): Promise<void> {
 async function updatePackage(ctx: ApiContext): Promise<UpdateResult> {
   const packageManager = await detectPackageManager(ctx.userCwd);
   const updateCommand = updateCommandFor(packageManager);
-  const syncCommand = localOpenSlideCommand(ctx.userCwd);
+  const syncCommand = localOpenPdfCommand(ctx.userCwd);
 
   await runCommand(updateCommand, ctx.userCwd);
   await runCommand(syncCommand, ctx.userCwd);
@@ -155,9 +155,9 @@ async function updatePackage(ctx: ApiContext): Promise<UpdateResult> {
   const latest = await fetchLatest(Date.now());
   return {
     packageManager,
-    command: `${formatCommand(updateCommand)} && open-slide sync:skills`,
+    command: `${formatCommand(updateCommand)} && open-pdf sync:skills`,
     latest,
-    message: 'Updated @open-slide/core and synced skills.',
+    message: 'Updated @open-pdf/core and synced skills.',
   };
 }
 

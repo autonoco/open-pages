@@ -1,23 +1,23 @@
 ---
 title: Introduction
-description: A slide framework built for agents.
+description: A doc framework built for agents.
 ---
 
-![open-slide editor showing a deck with the inspector and assets panel docked alongside the canvas](/assets/screenshots/open-slide-cover.webp)
+![open-pdf editor showing a deck with the inspector and assets panel docked alongside the canvas](/assets/screenshots/open-pdf-cover.webp)
 
-**open-slide** is a slide framework for the agent era. You describe a deck in
-natural language; your coding agent writes the React. open-slide handles the
+**open-pdf** is a doc framework for the agent era. You describe a deck in
+natural language; your coding agent writes the React. open-pdf handles the
 canvas, scaling, navigation, hot reload, present mode, and export so the agent
 can focus on content.
 
-Every page renders into a fixed **1920 × 1080** canvas. Slides are arbitrary
+Every page renders into a fixed **1920 × 1080** canvas. Docs are arbitrary
 React components — not a constrained DSL.
 
 ```npm
-npx @open-slide/cli init
+npx @open-pdf/cli init
 ```
 
-## Why open-slide
+## Why open-pdf
 
 - **Agent-native authoring.** Ships with skills that any Claude Code, Codex,
   or Cursor session can call.
@@ -30,23 +30,23 @@ npx @open-slide/cli init
 - **Export to static HTML or PDF.** Self-contained output — share without a
   server.
 
-## A slide is a file
+## A doc is a file
 
-Each deck lives under `slides/<kebab-case-id>/`. The entry is
-`slides/<id>/index.tsx`. Assets sit alongside in `slides/<id>/assets/`.
+Each deck lives under `docs/<kebab-case-id>/`. The entry is
+`docs/<id>/index.tsx`. Assets sit alongside in `docs/<id>/assets/`.
 
-```tsx title="slides/getting-started/index.tsx"
-import type { Page, SlideMeta } from '@open-slide/core';
+```tsx title="docs/getting-started/index.tsx"
+import type { Page, DocMeta } from '@open-pdf/core';
 
 const Cover: Page = () => (
   <div style={{ width: '100%', height: '100%', background: '#08090a', color: '#f7f8f8' }}>
     <h1 style={{ fontSize: 188, letterSpacing: '-0.04em' }}>
-      Hello, <em style={{ color: '#7170ff' }}>open-slide</em>.
+      Hello, <em style={{ color: '#7170ff' }}>open-pdf</em>.
     </h1>
   </div>
 );
 
-export const meta: SlideMeta = { title: 'Getting started', theme: 'corporate' };
+export const meta: DocMeta = { title: 'Getting started', theme: 'corporate' };
 export default [Cover] satisfies Page[];
 ```
 
@@ -56,7 +56,7 @@ each component fills its container (`width: '100%'` / `height: '100%'`).
 ## The 1920 × 1080 canvas
 
 The runtime scales the canvas uniformly to fit the viewport, so the same
-slide looks identical on a phone, a 4K monitor, and a beamer — every pixel
+doc looks identical on a phone, a 4K monitor, and a beamer — every pixel
 coordinate you write is the coordinate that ships, in preview, present mode,
 and export.
 
@@ -64,6 +64,6 @@ and export.
 
 <Cards>
   <Card title="Get started" href="/docs/getting-started" />
-  <Card title="Create a slide" href="/docs/skills/create-slide" />
+  <Card title="Create a doc" href="/docs/skills/create-doc" />
   <Card title="Inspector & comments" href="/docs/core-feature/inspector" />
 </Cards>

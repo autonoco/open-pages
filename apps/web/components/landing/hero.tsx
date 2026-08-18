@@ -11,7 +11,7 @@ export function Hero() {
         <div className="flex flex-col gap-10 sm:gap-14 max-w-[920px]">
           <div className="flex flex-col items-start gap-6 sm:gap-8">
             <a
-              href="https://x.com/1weiho/status/2078505891247329700"
+              href="https://x.com/autonoco/status/2078505891247329700"
               target="_blank"
               rel="noopener noreferrer"
               className="group pressable inline-flex items-center gap-2.5 rounded-full border border-[color:var(--color-rule)] bg-[color:var(--color-panel)]/70 py-1.5 pl-3.5 pr-3 text-[13px] font-medium text-[color:var(--color-text-soft)] backdrop-blur hover:border-[color:var(--color-dim)] hover:text-[color:var(--color-text)] rise"
@@ -34,7 +34,7 @@ export function Hero() {
               className="text-sheen text-[42px] sm:text-[68px] lg:text-[92px] leading-[1.05] sm:leading-[1.0] tracking-[-0.045em] font-medium text-[color:var(--color-text)] rise-blur"
               style={{ animationDelay: '120ms' }}
             >
-              The slide framework
+              The doc framework
               <br />
               <span className="font-[family-name:var(--font-pixel)]">
                 built for{' '}
@@ -47,7 +47,7 @@ export function Hero() {
             className="max-w-[600px] text-[18px] sm:text-[20px] leading-[1.6] text-[color:var(--color-text-soft)] rise-blur"
             style={{ animationDelay: '240ms' }}
           >
-            A React-first slide framework. Every page is arbitrary code on a 1920×1080 canvas. No
+            A React-first doc framework. Every page is arbitrary code on a 1920×1080 canvas. No
             layout to fight. Design anything you can imagine.
           </p>
 

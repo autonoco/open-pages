@@ -1,37 +1,37 @@
-declare module 'virtual:open-slide/slides' {
-  import type { SlideModule } from './lib/sdk';
-  export const slideIds: string[];
-  export const slideThemes: Record<string, string>;
-  export const slideCreatedAt: Record<string, number>;
-  export function loadSlide(id: string): Promise<SlideModule>;
+declare module 'virtual:open-pdf/docs' {
+  import type { DocModule } from './lib/sdk';
+  export const docIds: string[];
+  export const docThemes: Record<string, string>;
+  export const docCreatedAt: Record<string, number>;
+  export function loadDoc(id: string): Promise<DocModule>;
 }
 
-declare module 'virtual:open-slide/config' {
+declare module 'virtual:open-pdf/config' {
   import type { Locale } from '../locale/types';
 
   const config: {
     base?: string;
-    slidesDir?: string;
+    docsDir?: string;
     port?: number;
     locale?: Locale;
     version: string;
     build: {
-      showSlideBrowser: boolean;
-      showSlideUi: boolean;
+      showDocBrowser: boolean;
+      showDocUi: boolean;
       allowHtmlDownload: boolean;
     };
   };
   export default config;
 }
 
-declare module 'virtual:open-slide/folders' {
+declare module 'virtual:open-pdf/folders' {
   import type { FoldersManifest } from './lib/sdk';
 
   const manifest: FoldersManifest;
   export default manifest;
 }
 
-declare module 'virtual:open-slide/themes' {
+declare module 'virtual:open-pdf/themes' {
   import type { DesignSystem } from './lib/design';
   import type { Page } from './lib/sdk';
 

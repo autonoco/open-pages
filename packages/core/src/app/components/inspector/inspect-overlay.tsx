@@ -2,12 +2,12 @@ import { Crop, ImageIcon } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { PANEL_TRANSITION_MS } from '@/components/panel/panel-shell';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { findSlideSource, type SlideSourceHit } from '@/lib/inspector/fiber';
+import { type DocSourceHit, findDocSource } from '@/lib/inspector/fiber';
 import { useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import { useInspector } from './inspector-provider';
 
-type Highlight = { hit: SlideSourceHit };
+type Highlight = { hit: DocSourceHit };
 
 type RelRect = { left: number; top: number; width: number; height: number };
 
@@ -16,7 +16,7 @@ const FRAME_MORPH_MS = 180;
 const LAYOUT_TRACK_MS = PANEL_TRANSITION_MS + FRAME_MORPH_MS;
 
 export function InspectOverlay() {
-  const { active, slideId, selected, setSelected, cancel, openCrop } = useInspector();
+  const { active, docId, selected, setSelected, cancel, openCrop } = useInspector();
   const overlayRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<Highlight | null>(null);
 
@@ -38,7 +38,7 @@ export function InspectOverlay() {
       if (!isInspectableEventTarget(e.target)) return setHover(null);
       const el = pickInspectorTarget(pickElement(e.clientX, e.clientY));
       if (!el) return setHover(null);
-      const hit = findSlideSource(el, slideId, { hostOnly: true });
+      const hit = findDocSource(el, docId, { hostOnly: true });
       if (!hit) return setHover(null);
       setHover({ hit });
     };
@@ -47,7 +47,7 @@ export function InspectOverlay() {
       if (!isInspectableEventTarget(e.target)) return;
       const el = pickInspectorTarget(pickElement(e.clientX, e.clientY));
       if (!el) return;
-      const hit = findSlideSource(el, slideId, { hostOnly: true });
+      const hit = findDocSource(el, docId, { hostOnly: true });
       if (!hit) return;
       e.preventDefault();
       e.stopPropagation();
@@ -59,7 +59,7 @@ export function InspectOverlay() {
       if (!isInspectableEventTarget(e.target)) return;
       const el = pickInspectorTarget(pickElement(e.clientX, e.clientY));
       if (!el) return;
-      const hit = findSlideSource(el, slideId, { hostOnly: true });
+      const hit = findDocSource(el, docId, { hostOnly: true });
       if (!hit) return;
       if (!(hit.anchor instanceof HTMLImageElement)) return;
       e.preventDefault();
@@ -78,7 +78,7 @@ export function InspectOverlay() {
       window.removeEventListener('dblclick', onDblClick, true);
       window.removeEventListener('keydown', onKey, true);
     };
-  }, [active, slideId, setSelected, cancel, openCrop]);
+  }, [active, docId, setSelected, cancel, openCrop]);
 
   const hoverAnchor = hover?.hit.anchor.isConnected ? hover.hit.anchor : null;
   const selectedAnchor = selected?.anchor.isConnected ? selected.anchor : null;
@@ -310,10 +310,10 @@ function sameRect(a: RelRect | null, b: RelRect): boolean {
   );
 }
 
-// Only inspect events that originate inside the slide root. Portaled UI
+// Only inspect events that originate inside the doc root. Portaled UI
 // (dialogs, tooltips, toasts) mounts on `document.body`, outside the root;
 // without this guard the capture-phase window listeners swallow clicks
-// meant for a dialog and select the slide element behind it instead.
+// meant for a dialog and select the doc element behind it instead.
 function isInspectableEventTarget(target: EventTarget | null): boolean {
   if (!(target instanceof Element)) return false;
   if (target.closest('[data-inspector-ui]')) return false;

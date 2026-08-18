@@ -4,11 +4,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import type { DesignSystem } from '../lib/design';
-import { SlidePageProvider } from '../lib/page-context';
+import { DocPageProvider } from '../lib/page-context';
 import type { Page } from '../lib/sdk';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../lib/sdk';
-import type { SlideTransition } from '../lib/transition';
-import { SlideCanvas } from './slide-canvas';
+import type { DocTransition } from '../lib/transition';
+import { DocCanvas } from './doc-canvas';
 
 const THUMB_W = 320;
 const THUMB_H = (THUMB_W * CANVAS_HEIGHT) / CANVAS_WIDTH;
@@ -23,7 +23,7 @@ type Props = {
   onClose: () => void;
   onSelect: (index: number) => void;
   variant?: OverviewVariant;
-  moduleTransition?: SlideTransition;
+  moduleTransition?: DocTransition;
   tooltipContainer?: HTMLElement | null;
 };
 
@@ -190,7 +190,7 @@ function OverviewThumb({
   isFocused: boolean;
   isCurrent: boolean;
   styles: OverviewStyles;
-  moduleTransition?: SlideTransition;
+  moduleTransition?: DocTransition;
   tooltipContainer?: HTMLElement | null;
   onFocus: () => void;
   onSelect: () => void;
@@ -229,17 +229,11 @@ function OverviewThumb({
         )}
         style={{ height: THUMB_H }}
       >
-        <SlideCanvas
-          scale={THUMB_W / CANVAS_WIDTH}
-          center={false}
-          flat
-          freezeMotion
-          design={design}
-        >
-          <SlidePageProvider index={index} total={total}>
+        <DocCanvas scale={THUMB_W / CANVAS_WIDTH} center={false} flat freezeMotion design={design}>
+          <DocPageProvider index={index} total={total}>
             <PageComp />
-          </SlidePageProvider>
-        </SlideCanvas>
+          </DocPageProvider>
+        </DocCanvas>
         {isCurrent && (
           <span
             aria-hidden

@@ -1,15 +1,15 @@
 ---
-title: open-slide.config.ts
+title: open-pdf.config.ts
 description: Workspace-level configuration.
 ---
 
 The config lives at the workspace root and is fully optional — every field
 has a sensible default.
 
-```ts title="open-slide.config.ts"
-import type { OpenSlideConfig } from '@open-slide/core';
+```ts title="open-pdf.config.ts"
+import type { OpenPdfConfig } from '@open-pdf/core';
 
-const config: OpenSlideConfig = {};
+const config: OpenPdfConfig = {};
 
 export default config;
 ```
@@ -23,9 +23,9 @@ export default config;
       default: "'/'",
       description: 'Base public path for subpath hosting (leading + trailing slash).',
     },
-    slidesDir: {
+    docsDir: {
       type: 'string',
-      default: "'slides'",
+      default: "'docs'",
       description: 'Folder that contains your decks.',
     },
     themesDir: {
@@ -49,7 +49,7 @@ export default config;
       description: 'Hostnames the dev/preview server responds to. `true` allows any host.',
     },
     build: {
-      type: 'OpenSlideBuildConfig',
+      type: 'OpenPdfBuildConfig',
       default: 'all toggles on',
       description: 'Build-time UI toggles (see below).',
     },
@@ -68,12 +68,12 @@ dev server always shows the full UI.
 
 <TypeTable
   type={{
-    showSlideBrowser: {
+    showDocBrowser: {
       type: 'boolean',
       default: 'true',
-      description: 'Show the deck index (the slide browser) in the static build.',
+      description: 'Show the deck index (the doc browser) in the static build.',
     },
-    showSlideUi: {
+    showDocUi: {
       type: 'boolean',
       default: 'true',
       description: 'Show on-canvas UI (toolbar, hints) in the static build.',
@@ -90,7 +90,7 @@ dev server always shows the full UI.
 
 ### Public share
 
-Hide the slide browser, on-canvas UI, and export menu with the `build`
+Hide the doc browser, on-canvas UI, and export menu with the `build`
 toggles — see [Export](/docs/core-feature/export) for the annotated
 example.
 
@@ -101,8 +101,8 @@ root — GitHub Pages project sites, a reverse-proxy folder, an intranet path.
 Use a leading and trailing slash:
 
 ```ts
-const config: OpenSlideConfig = {
-  base: '/my-slides/',
+const config: OpenPdfConfig = {
+  base: '/my-docs/',
 };
 ```
 
@@ -117,7 +117,7 @@ a generated domain, so Vite blocks the request with
 — a leading dot matches every subdomain:
 
 ```ts
-const config: OpenSlideConfig = {
+const config: OpenPdfConfig = {
   allowedHosts: ['.my-workspace.example.com'],
 };
 ```
@@ -126,10 +126,10 @@ Or set `allowedHosts: true` to accept any host. Only do this on a trusted
 network — it disables Vite's DNS-rebinding protection. The value is passed
 straight to Vite's
 [`server.allowedHosts`](https://vite.dev/config/server-options#server-allowedhosts)
-and also applies to `open-slide preview`.
+and also applies to `open-pdf preview`.
 
 ### Organizing many decks
 
-`slidesDir` is a single path and decks must sit directly inside it
-(`slides/<id>/index.tsx` — nested folders are not discovered). To group
-decks, use the in-app sidebar folders (stored in `slides/.folders.json`).
+`docsDir` is a single path and decks must sit directly inside it
+(`docs/<id>/index.tsx` — nested folders are not discovered). To group
+decks, use the in-app sidebar folders (stored in `docs/.folders.json`).

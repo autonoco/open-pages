@@ -4,11 +4,11 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
-import { SlidePageProvider } from '../../lib/page-context';
-import type { SlideModule } from '../../lib/sdk';
-import { loadSlide, slidesByTheme } from '../../lib/slides';
+import { docsByTheme, loadDoc } from '../../lib/docs';
+import { DocPageProvider } from '../../lib/page-context';
+import type { DocModule } from '../../lib/sdk';
 import { loadThemeDemo, type ThemeDemoModule, themes } from '../../lib/themes';
-import { SlideCanvas } from '../slide-canvas';
+import { DocCanvas } from '../doc-canvas';
 
 export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () => void }) {
   const t = useLocale();
@@ -33,7 +33,7 @@ export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () =
 
   const pages = demo?.default ?? [];
   const totalPages = pages.length;
-  const usedBySlideIds = useMemo(() => (theme ? slidesByTheme(theme.id) : []), [theme]);
+  const usedByDocIds = useMemo(() => (theme ? docsByTheme(theme.id) : []), [theme]);
 
   const promptRef = useRef<HTMLPreElement>(null);
   const [promptExpanded, setPromptExpanded] = useState(false);
@@ -106,11 +106,11 @@ export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () =
                   {t.common.loading}
                 </div>
               ) : Current ? (
-                <SlideCanvas flat freezeMotion design={demo.design}>
-                  <SlidePageProvider index={pageIndex} total={totalPages}>
+                <DocCanvas flat freezeMotion design={demo.design}>
+                  <DocPageProvider index={pageIndex} total={totalPages}>
                     <Current />
-                  </SlidePageProvider>
-                </SlideCanvas>
+                  </DocPageProvider>
+                </DocCanvas>
               ) : null}
             </div>
 
@@ -182,19 +182,19 @@ export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () =
         <aside className="flex min-w-0 flex-col gap-4">
           <div className="flex flex-wrap items-baseline gap-3">
             <span className="eyebrow">{t.themes.usedBy}</span>
-            {usedBySlideIds.length > 0 ? (
-              <span className="folio">{usedBySlideIds.length.toString().padStart(2, '0')}</span>
+            {usedByDocIds.length > 0 ? (
+              <span className="folio">{usedByDocIds.length.toString().padStart(2, '0')}</span>
             ) : null}
           </div>
-          {usedBySlideIds.length === 0 ? (
+          {usedByDocIds.length === 0 ? (
             <p className="text-[12.5px] leading-relaxed text-muted-foreground">
               {t.themes.usedByEmpty}
             </p>
           ) : (
             <ul className="flex flex-col gap-5">
-              {usedBySlideIds.map((id) => (
+              {usedByDocIds.map((id) => (
                 <li key={id}>
-                  <ThemeSlideCard id={id} />
+                  <ThemeDocCard id={id} />
                 </li>
               ))}
             </ul>
@@ -205,15 +205,15 @@ export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () =
   );
 }
 
-function ThemeSlideCard({ id }: { id: string }) {
+function ThemeDocCard({ id }: { id: string }) {
   const t = useLocale();
-  const [slide, setSlide] = useState<SlideModule | null>(null);
+  const [doc, setDoc] = useState<DocModule | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    loadSlide(id)
+    loadDoc(id)
       .then((mod) => {
-        if (!cancelled) setSlide(mod);
+        if (!cancelled) setDoc(mod);
       })
       .catch(() => {});
     return () => {
@@ -221,19 +221,19 @@ function ThemeSlideCard({ id }: { id: string }) {
     };
   }, [id]);
 
-  const FirstPage = slide?.default[0];
-  const displayTitle = slide?.meta?.title ?? id;
+  const FirstPage = doc?.default[0];
+  const displayTitle = doc?.meta?.title ?? id;
 
   return (
     <Link to={`/s/${id}`} className="group block focus-visible:outline-none">
       <div className="relative aspect-video overflow-hidden rounded-[6px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04] group-hover:shadow-floating group-hover:ring-foreground/20 motion-safe:transition-[box-shadow,--tw-ring-color] motion-safe:duration-200">
         {FirstPage ? (
           <div className="h-full w-full motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]">
-            <SlideCanvas flat freezeMotion design={slide?.design}>
-              <SlidePageProvider index={0} total={slide?.default.length ?? 1}>
+            <DocCanvas flat freezeMotion design={doc?.design}>
+              <DocPageProvider index={0} total={doc?.default.length ?? 1}>
                 <FirstPage />
-              </SlidePageProvider>
-            </SlideCanvas>
+              </DocPageProvider>
+            </DocCanvas>
           </div>
         ) : (
           <div className="grid h-full w-full place-items-center text-[10px] tracking-[0.08em] uppercase text-muted-foreground/60">

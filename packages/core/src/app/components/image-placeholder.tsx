@@ -50,16 +50,16 @@ export function ImagePlaceholder({
           const file = pickImageFile(e.dataTransfer.files);
           if (!file) return;
           const root = e.currentTarget;
-          const slideId = root.closest<HTMLElement>('[data-slide-id]')?.dataset.slideId;
-          const loc = root.dataset.slideLoc;
-          if (!slideId || !loc) return;
+          const docId = root.closest<HTMLElement>('[data-doc-id]')?.dataset.docId;
+          const loc = root.dataset.docLoc;
+          if (!docId || !loc) return;
           const idx = loc.indexOf(':');
           if (idx <= 0) return;
           const line = Number(loc.slice(0, idx));
           const column = Number(loc.slice(idx + 1));
           if (!Number.isFinite(line) || !Number.isFinite(column)) return;
           setUploading(true);
-          handleDrop(slideId, file, line, column)
+          handleDrop(docId, file, line, column)
             .catch(() => toast.error(t.imagePlaceholder.uploadFailed))
             .finally(() => setUploading(false));
         },
@@ -70,7 +70,7 @@ export function ImagePlaceholder({
     <div
       {...rest}
       {...dndProps}
-      data-slide-placeholder={hint}
+      data-doc-placeholder={hint}
       data-placeholder-w={width}
       data-placeholder-h={height}
       role="img"
@@ -203,14 +203,14 @@ function pickImageFile(files: FileList): File | null {
   return null;
 }
 
-async function handleDrop(slideId: string, file: File, line: number, column: number) {
-  const { ok, entry } = await uploadWithAutoRename(slideId, file);
+async function handleDrop(docId: string, file: File, line: number, column: number) {
+  const { ok, entry } = await uploadWithAutoRename(docId, file);
   if (!ok || !entry) throw new Error('upload failed');
   const res = await fetch('/__edit', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      slideId,
+      docId,
       line,
       column,
       ops: [{ kind: 'replace-placeholder-with-image', assetPath: `./assets/${entry.name}` }],

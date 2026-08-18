@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { SLIDE_ID_RE } from '../editing/slide-ops.ts';
+import { DOC_ID_RE } from '../editing/doc-ops.ts';
 
 export const GLOBAL_SCOPE = '@global';
 export const ASSET_MAX_BYTES = 25 * 1024 * 1024;
@@ -54,17 +54,17 @@ export function validateAssetName(v: unknown): string | null {
   return trimmed;
 }
 
-export function resolveAssetsDir(slidesRoot: string, slideId: string): string | null {
-  if (!SLIDE_ID_RE.test(slideId)) return null;
-  const slideDir = path.resolve(slidesRoot, slideId);
-  if (!slideDir.startsWith(slidesRoot + path.sep)) return null;
-  const assetsDir = path.resolve(slideDir, 'assets');
-  if (assetsDir !== path.join(slideDir, 'assets')) return null;
+export function resolveAssetsDir(docsRoot: string, docId: string): string | null {
+  if (!DOC_ID_RE.test(docId)) return null;
+  const docDir = path.resolve(docsRoot, docId);
+  if (!docDir.startsWith(docsRoot + path.sep)) return null;
+  const assetsDir = path.resolve(docDir, 'assets');
+  if (assetsDir !== path.join(docDir, 'assets')) return null;
   return assetsDir;
 }
 
-function resolveAssetFile(slidesRoot: string, slideId: string, filename: string): string | null {
-  const assetsDir = resolveAssetsDir(slidesRoot, slideId);
+function resolveAssetFile(docsRoot: string, docId: string, filename: string): string | null {
+  const assetsDir = resolveAssetsDir(docsRoot, docId);
   if (!assetsDir) return null;
   if (!validateAssetName(filename)) return null;
   const file = path.resolve(assetsDir, filename);
@@ -73,16 +73,16 @@ function resolveAssetFile(slidesRoot: string, slideId: string, filename: string)
 }
 
 export function resolveScopedAssetsDir(
-  slidesRoot: string,
+  docsRoot: string,
   globalAssetsRoot: string,
   scope: string,
 ): string | null {
   if (scope === GLOBAL_SCOPE) return globalAssetsRoot;
-  return resolveAssetsDir(slidesRoot, scope);
+  return resolveAssetsDir(docsRoot, scope);
 }
 
 export function resolveScopedAssetFile(
-  slidesRoot: string,
+  docsRoot: string,
   globalAssetsRoot: string,
   scope: string,
   filename: string,
@@ -93,5 +93,5 @@ export function resolveScopedAssetFile(
     if (!file.startsWith(globalAssetsRoot + path.sep)) return null;
     return file;
   }
-  return resolveAssetFile(slidesRoot, scope, filename);
+  return resolveAssetFile(docsRoot, scope, filename);
 }

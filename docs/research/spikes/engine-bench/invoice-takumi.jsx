@@ -1,25 +1,33 @@
 // takumi-pdf implementation of the benchmark invoice.
 // Idiomatic: HTML <table> markup with Tailwind classes, footer option with
 // PageNumber/TotalPages primitives, repeating <thead> handled by the engine.
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { render } from "takumi-pdf";
-import { PageNumber, TotalPages } from "takumi-pdf/primitives";
-import { COMPANY, BILL_TO, META, money, totals } from "./data.mjs";
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { render } from 'takumi-pdf';
+import { PageNumber, TotalPages } from 'takumi-pdf/primitives';
+import { BILL_TO, COMPANY, META, money, totals } from './data.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const interDir = path.join(here, "node_modules/@fontsource/inter/files");
+const interDir = path.join(here, 'node_modules/@fontsource/inter/files');
 
 // Font bytes loaded once at module scope so render timing excludes disk IO.
 const fonts = [
-  { name: "Inter", weight: 400, data: await readFile(path.join(interDir, "inter-latin-400-normal.woff2")) },
-  { name: "Inter", weight: 700, data: await readFile(path.join(interDir, "inter-latin-700-normal.woff2")) },
+  {
+    name: 'Inter',
+    weight: 400,
+    data: await readFile(path.join(interDir, 'inter-latin-400-normal.woff2')),
+  },
+  {
+    name: 'Inter',
+    weight: 700,
+    data: await readFile(path.join(interDir, 'inter-latin-700-normal.woff2')),
+  },
 ];
 
 function LineItemsTable({ items }) {
   return (
-    <table tw="w-full border border-slate-300 text-[12px]" style={{ borderCollapse: "collapse" }}>
+    <table tw="w-full border border-slate-300 text-[12px]" style={{ borderCollapse: 'collapse' }}>
       <thead>
         <tr tw="bg-slate-100 font-bold">
           <th tw="p-2 text-left border-b border-slate-300">SKU</th>
@@ -31,7 +39,7 @@ function LineItemsTable({ items }) {
       </thead>
       <tbody>
         {items.map((it, i) => (
-          <tr key={i} tw="border-b border-slate-200" style={{ breakInside: "avoid" }}>
+          <tr key={i} tw="border-b border-slate-200" style={{ breakInside: 'avoid' }}>
             <td tw="p-2 align-top">{it.sku}</td>
             <td tw="p-2 align-top">
               <div tw="flex flex-col">
@@ -84,7 +92,7 @@ function Invoice({ items }) {
 
       <LineItemsTable items={items} />
 
-      <div tw="flex justify-end mt-4" style={{ breakInside: "avoid" }}>
+      <div tw="flex justify-end mt-4" style={{ breakInside: 'avoid' }}>
         <div tw="flex flex-col w-[290px]">
           <div tw="flex justify-between py-1">
             <span>Subtotal</span>
@@ -102,9 +110,9 @@ function Invoice({ items }) {
       </div>
 
       <p tw="mt-6 text-slate-600">
-        Payment is due within 30 days of the invoice date. Please reference the invoice
-        number on all remittances. ACH details available on request. A 1.5% monthly
-        finance charge applies to past-due balances.
+        Payment is due within 30 days of the invoice date. Please reference the invoice number on
+        all remittances. ACH details available on request. A 1.5% monthly finance charge applies to
+        past-due balances.
       </p>
     </main>
   );
@@ -112,11 +120,15 @@ function Invoice({ items }) {
 
 export async function renderInvoice(items) {
   return render(<Invoice items={items} />, {
-    size: "a4",
+    size: 'a4',
     margin: { top: 48, right: 53, bottom: 64, left: 53 },
     fonts,
-    fontFamilies: ["Inter"],
-    metadata: { title: `Invoice ${META.number}`, authors: [COMPANY.name], creationDate: "2026-08-17" },
+    fontFamilies: ['Inter'],
+    metadata: {
+      title: `Invoice ${META.number}`,
+      authors: [COMPANY.name],
+      creationDate: '2026-08-17',
+    },
     footer: (
       <div tw="flex w-full justify-center text-[10px] text-slate-400">
         Page <PageNumber /> of <TotalPages />

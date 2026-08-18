@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
  * orients themselves.
  *
  * Keyboard input is intentionally excluded — during a talk the presenter
- * drives slides with arrow keys, and we want the cursor to stay hidden
+ * drives docs with arrow keys, and we want the cursor to stay hidden
  * while they do.
  *
  * Pass `enabled = false` to short-circuit (useful when the player is

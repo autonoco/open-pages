@@ -12,7 +12,8 @@
       "!**/node_modules",
       "!**/*.tsbuildinfo",
       "!**/*.svg",
-      "!packages/core/src/app/components/ui"
+      "!packages/core/src/app/components/ui",
+      "!docs"
     ]
   },
   "formatter": {
@@ -29,7 +30,7 @@
   },
   "overrides": [
     {
-      "includes": ["**/slides/**", "apps/web/components/landing/**"],
+      "includes": ["**/docs/**", "apps/web/components/landing/**"],
       "linter": {
         "rules": {
           "a11y": {

@@ -1,12 +1,12 @@
 import { Image as ImageIcon, Palette, Presentation } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDocTitles } from '@/lib/use-doc-titles';
 import { useLocale } from '@/lib/use-locale';
-import { useSlideTitles } from '@/lib/use-slide-titles';
+import { docIds } from '../../lib/docs';
 import type { Folder } from '../../lib/sdk';
-import { slideIds } from '../../lib/slides';
 import { FolderIconChip } from '../sidebar/folder-item';
-import { ALL_SLIDES_ID, ASSETS_ID, DRAFT_ID, THEMES_ID } from '../sidebar/sidebar';
+import { ALL_DOCS_ID, ASSETS_ID, DRAFT_ID, THEMES_ID } from '../sidebar/sidebar';
 import { type CommandGroupSpec, CommandMenu, type CommandSpec } from './command-menu';
 
 export function HomeCommandMenu({
@@ -24,11 +24,11 @@ export function HomeCommandMenu({
 }) {
   const t = useLocale();
   const navigate = useNavigate();
-  const loadedTitles = useSlideTitles(open);
+  const loadedTitles = useDocTitles(open);
 
   const groups = useMemo<CommandGroupSpec[]>(() => {
-    const slides: CommandSpec[] = slideIds.map((id) => ({
-      id: `slide-${id}`,
+    const docs: CommandSpec[] = docIds.map((id) => ({
+      id: `doc-${id}`,
       label: titleMap[id] ?? loadedTitles[id] ?? id,
       icon: <Presentation />,
       keywords: [id],
@@ -37,11 +37,11 @@ export function HomeCommandMenu({
 
     const folderItems: CommandSpec[] = [
       {
-        id: `view-${ALL_SLIDES_ID}`,
-        label: t.home.slides,
+        id: `view-${ALL_DOCS_ID}`,
+        label: t.home.docs,
         icon: <FolderIconChip icon={{ type: 'emoji', value: '🎞️' }} />,
-        keywords: ['all', 'slides'],
-        run: () => onSelectView(ALL_SLIDES_ID),
+        keywords: ['all', 'docs'],
+        run: () => onSelectView(ALL_DOCS_ID),
       },
       {
         id: `view-${DRAFT_ID}`,
@@ -79,7 +79,7 @@ export function HomeCommandMenu({
     }
 
     return [
-      { id: 'slides', heading: t.commandMenu.groupSlides, items: slides },
+      { id: 'docs', heading: t.commandMenu.groupDocs, items: docs },
       { id: 'folders', heading: t.commandMenu.groupFolders, items: folderItems },
       { id: 'navigation', heading: t.commandMenu.groupNavigation, items: navigation },
     ];

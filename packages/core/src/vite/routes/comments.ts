@@ -9,14 +9,14 @@ import {
   parseMarkers,
 } from '../../editing/comments.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
-import { type ApiContext, json, readBody, resolveSlideEntryPath } from './context.ts';
+import { type ApiContext, json, readBody, resolveDocEntryPath } from './context.ts';
 
-// GET    /__comments        list markers for ?slideId=…
-// POST   /__comments/add    add marker { slideId, line, column?, text, hint? }
+// GET    /__comments        list markers for ?docId=…
+// POST   /__comments/add    add marker { docId, line, column?, text, hint? }
 // DELETE /__comments/:id    remove marker
 
 type AddCommentBody = {
-  slideId?: string;
+  docId?: string;
   line?: number;
   column?: number;
   text?: string;
@@ -30,14 +30,14 @@ export function registerCommentRoutes(server: ViteDevServer, ctx: ApiContext): v
 
     try {
       if (method === 'GET' && url.pathname === '/') {
-        const slideId = url.searchParams.get('slideId') ?? '';
-        const file = resolveSlideEntryPath(ctx, slideId);
-        if (!file) return json(res, 400, { error: 'invalid slideId' });
+        const docId = url.searchParams.get('docId') ?? '';
+        const file = resolveDocEntryPath(ctx, docId);
+        if (!file) return json(res, 400, { error: 'invalid docId' });
         let source: string;
         try {
           source = await fs.readFile(file, 'utf8');
         } catch {
-          return json(res, 404, { error: 'slide not found' });
+          return json(res, 404, { error: 'doc not found' });
         }
         return json(res, 200, { comments: parseMarkers(source) });
       }
@@ -48,9 +48,9 @@ export function registerCommentRoutes(server: ViteDevServer, ctx: ApiContext): v
           return json(res, requestCheck.status, { error: requestCheck.error });
         }
         const body = (await readBody(req)) as AddCommentBody;
-        const slideId = body.slideId ?? '';
-        const file = resolveSlideEntryPath(ctx, slideId);
-        if (!file) return json(res, 400, { error: 'invalid slideId' });
+        const docId = body.docId ?? '';
+        const file = resolveDocEntryPath(ctx, docId);
+        if (!file) return json(res, 400, { error: 'invalid docId' });
         if (!body.line || body.line < 1) return json(res, 400, { error: 'invalid line' });
         if (!body.text || typeof body.text !== 'string') {
           return json(res, 400, { error: 'missing text' });
@@ -60,7 +60,7 @@ export function registerCommentRoutes(server: ViteDevServer, ctx: ApiContext): v
         try {
           source = await fs.readFile(file, 'utf8');
         } catch {
-          return json(res, 404, { error: 'slide not found' });
+          return json(res, 404, { error: 'doc not found' });
         }
 
         const plan = findInsertion(source, body.line, body.column);
@@ -75,7 +75,7 @@ export function registerCommentRoutes(server: ViteDevServer, ctx: ApiContext): v
         const id = newCommentId();
         const ts = new Date().toISOString();
         const payload = b64urlEncode(JSON.stringify({ note: body.text, hint: body.hint }));
-        const marker = `\n${plan.indent}{/* @slide-comment id="${id}" ts="${ts}" text="${payload}" */}`;
+        const marker = `\n${plan.indent}{/* @pdf-comment id="${id}" ts="${ts}" text="${payload}" */}`;
 
         const next = source.slice(0, plan.offset) + marker + source.slice(plan.offset);
         await fs.writeFile(file, next, 'utf8');
@@ -90,15 +90,15 @@ export function registerCommentRoutes(server: ViteDevServer, ctx: ApiContext): v
         }
         const id = url.pathname.slice(1);
         if (!/^c-[a-f0-9]+$/.test(id)) return json(res, 400, { error: 'invalid id' });
-        const slideId = url.searchParams.get('slideId') ?? '';
-        const file = resolveSlideEntryPath(ctx, slideId);
-        if (!file) return json(res, 400, { error: 'invalid slideId' });
+        const docId = url.searchParams.get('docId') ?? '';
+        const file = resolveDocEntryPath(ctx, docId);
+        if (!file) return json(res, 400, { error: 'invalid docId' });
 
         let source: string;
         try {
           source = await fs.readFile(file, 'utf8');
         } catch {
-          return json(res, 404, { error: 'slide not found' });
+          return json(res, 404, { error: 'doc not found' });
         }
 
         const lines = source.split('\n');

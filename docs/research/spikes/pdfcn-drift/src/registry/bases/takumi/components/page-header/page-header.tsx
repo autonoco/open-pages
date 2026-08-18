@@ -1,34 +1,27 @@
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
-import {
-  usePdfcnTheme,
-  useSafeMemo,
-} from "@/registry/bases/takumi/components/theme-provider";
-import {
-  Text as PDFText,
-  StyleSheet,
-  View,
-} from "@/registry/bases/takumi/lib/pdf-primitives";
-import type { Style } from "@/registry/bases/takumi/lib/pdf-primitives";
-import { resolveColor } from "@/registry/bases/takumi/lib/resolve-color";
-import type { PDFComponentProps } from "@/registry/types/pdf-components";
-import type { PdfcnTheme } from "@/registry/types/pdf-themes";
+import { usePdfcnTheme, useSafeMemo } from '@/registry/bases/takumi/components/theme-provider';
+import type { Style } from '@/registry/bases/takumi/lib/pdf-primitives';
+import { Text as PDFText, StyleSheet, View } from '@/registry/bases/takumi/lib/pdf-primitives';
+import { resolveColor } from '@/registry/bases/takumi/lib/resolve-color';
+import type { PDFComponentProps } from '@/registry/types/pdf-components';
+import type { PdfcnTheme } from '@/registry/types/pdf-themes';
 
 export type PageHeaderVariant =
-  | "simple"
-  | "centered"
-  | "minimal"
-  | "branded"
-  | "logo-left"
-  | "logo-right"
-  | "two-column";
+  | 'simple'
+  | 'centered'
+  | 'minimal'
+  | 'branded'
+  | 'logo-left'
+  | 'logo-right'
+  | 'two-column';
 
 /**
  * Header row with layout variants, logo support, and optional fixed positioning.
  * Props - `title` | `subtitle` | `rightText` | `rightSubText` | `variant` | `background` | `titleColor` | `marginBottom` | `address` | `phone` | `email` | `logo` | `fixed` | `noWrap` | `style`
  * @see {@link PageHeaderProps}
  */
-export interface PageHeaderProps extends Omit<PDFComponentProps, "children"> {
+export interface PageHeaderProps extends Omit<PDFComponentProps, 'children'> {
   title: string;
   subtitle?: string;
   rightText?: string;
@@ -61,20 +54,20 @@ const createPageHeaderStyles = (t: PdfcnTheme) => {
 
   return StyleSheet.create({
     brandedContainer: {
-      alignItems: "center",
+      alignItems: 'center',
       backgroundColor: c.primary,
       borderRadius: borderRadius.sm,
-      display: "flex",
-      flexDirection: "column",
+      display: 'flex',
+      flexDirection: 'column',
       padding: spacing[6],
     },
     centeredContainer: {
-      alignItems: "center",
+      alignItems: 'center',
       borderBottomColor: c.border,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: spacing[0.5],
-      display: "flex",
-      flexDirection: "column",
+      display: 'flex',
+      flexDirection: 'column',
       paddingBottom: spacing[4],
     },
     contactInfo: {
@@ -82,7 +75,7 @@ const createPageHeaderStyles = (t: PdfcnTheme) => {
       fontFamily: body.fontFamily,
       fontSize: t.primitives.typography.xs,
       marginTop: spacing[0.5],
-      textAlign: "right",
+      textAlign: 'right',
     },
 
     logoContainer: {
@@ -92,34 +85,34 @@ const createPageHeaderStyles = (t: PdfcnTheme) => {
     },
 
     logoContent: {
-      display: "flex",
+      display: 'flex',
       flex: 1,
-      flexDirection: "column",
+      flexDirection: 'column',
     },
     logoLeftContainer: {
-      alignItems: "center",
+      alignItems: 'center',
       borderBottomColor: c.border,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: spacing[0.5],
-      display: "flex",
-      flexDirection: "row",
+      display: 'flex',
+      flexDirection: 'row',
       paddingBottom: spacing[4],
     },
     logoRightContainer: {
-      alignItems: "center",
+      alignItems: 'center',
       borderBottomColor: c.border,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: spacing[0.5],
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "space-between",
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       paddingBottom: spacing[4],
     },
 
     logoRightContent: {
-      display: "flex",
+      display: 'flex',
       flex: 1,
-      flexDirection: "column",
+      flexDirection: 'column',
     },
 
     logoRightLogoContainer: {
@@ -128,20 +121,20 @@ const createPageHeaderStyles = (t: PdfcnTheme) => {
       width: 48,
     },
     minimalContainer: {
-      alignItems: "center",
+      alignItems: 'center',
       borderBottomColor: c.primary,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: spacing[1],
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "space-between",
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       paddingBottom: spacing[3],
     },
     minimalLeft: {
       flex: 1,
     },
     minimalRight: {
-      alignItems: "flex-end",
+      alignItems: 'flex-end',
     },
 
     rightSubText: {
@@ -149,35 +142,35 @@ const createPageHeaderStyles = (t: PdfcnTheme) => {
       fontFamily: body.fontFamily,
       fontSize: t.primitives.typography.xs,
       marginTop: spacing[1],
-      textAlign: "right",
+      textAlign: 'right',
     },
     rightText: {
       color: c.foreground,
       fontFamily: body.fontFamily,
       fontSize: body.fontSize,
       fontWeight: fontWeights.medium,
-      textAlign: "right",
+      textAlign: 'right',
     },
     simpleContainer: {
-      alignItems: "flex-start",
+      alignItems: 'flex-start',
       borderBottomColor: c.border,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: spacing[0.5],
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "space-between",
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       paddingBottom: spacing[4],
     },
 
     simpleLeft: {
-      display: "flex",
+      display: 'flex',
       flex: 1,
-      flexDirection: "column",
+      flexDirection: 'column',
     },
     simpleRight: {
-      alignItems: "flex-end",
-      display: "flex",
-      flexDirection: "column",
+      alignItems: 'flex-end',
+      display: 'flex',
+      flexDirection: 'column',
     },
 
     subtitle: {
@@ -192,7 +185,7 @@ const createPageHeaderStyles = (t: PdfcnTheme) => {
       marginTop: spacing[1],
     },
     subtitleCentered: {
-      textAlign: "center",
+      textAlign: 'center',
     },
 
     title: {
@@ -207,7 +200,7 @@ const createPageHeaderStyles = (t: PdfcnTheme) => {
       color: c.primaryForeground,
     },
     titleCentered: {
-      textAlign: "center",
+      textAlign: 'center',
     },
 
     titleMinimal: {
@@ -215,24 +208,24 @@ const createPageHeaderStyles = (t: PdfcnTheme) => {
       fontWeight: fontWeights.bold,
     },
     twoColumnContainer: {
-      alignItems: "flex-start",
+      alignItems: 'flex-start',
       borderBottomColor: c.border,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: spacing[0.5],
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "space-between",
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       paddingBottom: spacing[4],
     },
     twoColumnLeft: {
-      display: "flex",
+      display: 'flex',
       flex: 1,
-      flexDirection: "column",
+      flexDirection: 'column',
     },
     twoColumnRight: {
-      alignItems: "flex-end",
-      display: "flex",
-      flexDirection: "column",
+      alignItems: 'flex-end',
+      display: 'flex',
+      flexDirection: 'column',
     },
   });
 };
@@ -260,7 +253,7 @@ const buildContainerStyles = (
 const buildTitleStyles = (
   base: Style[],
   titleColor: string | undefined,
-  theme: PdfcnTheme
+  theme: PdfcnTheme,
 ): Style[] => {
   if (!titleColor) {
     return base;
@@ -274,15 +267,11 @@ const renderBranded = (
   titleStyles: Style[],
   title: string,
   subtitle: string | undefined,
-  noWrap: boolean
+  noWrap: boolean,
 ) => (
   <View wrap={!noWrap} style={containerStyles}>
     <PDFText style={titleStyles}>{title}</PDFText>
-    {subtitle && (
-      <PDFText style={[styles.subtitle, styles.subtitleBranded]}>
-        {subtitle}
-      </PDFText>
-    )}
+    {subtitle && <PDFText style={[styles.subtitle, styles.subtitleBranded]}>{subtitle}</PDFText>}
   </View>
 );
 
@@ -292,15 +281,11 @@ const renderCentered = (
   titleStyles: Style[],
   title: string,
   subtitle: string | undefined,
-  noWrap: boolean
+  noWrap: boolean,
 ) => (
   <View wrap={!noWrap} style={containerStyles}>
     <PDFText style={titleStyles}>{title}</PDFText>
-    {subtitle && (
-      <PDFText style={[styles.subtitle, styles.subtitleCentered]}>
-        {subtitle}
-      </PDFText>
-    )}
+    {subtitle && <PDFText style={[styles.subtitle, styles.subtitleCentered]}>{subtitle}</PDFText>}
   </View>
 );
 
@@ -311,7 +296,7 @@ const renderLogoRight = (
   title: string,
   subtitle: string | undefined,
   logo: ReactNode | undefined,
-  noWrap: boolean
+  noWrap: boolean,
 ) => (
   <View wrap={!noWrap} style={containerStyles}>
     <View style={styles.logoRightContent}>
@@ -331,7 +316,7 @@ const renderLogoLeft = (
   logo: ReactNode | undefined,
   rightText: string | undefined,
   rightSubText: string | undefined,
-  noWrap: boolean
+  noWrap: boolean,
 ) => (
   <View wrap={!noWrap} style={containerStyles}>
     {logo && <View style={styles.logoContainer}>{logo}</View>}
@@ -342,9 +327,7 @@ const renderLogoLeft = (
     {(rightText || rightSubText) && (
       <View style={styles.simpleRight}>
         {rightText && <PDFText style={styles.rightText}>{rightText}</PDFText>}
-        {rightSubText && (
-          <PDFText style={styles.rightSubText}>{rightSubText}</PDFText>
-        )}
+        {rightSubText && <PDFText style={styles.rightSubText}>{rightSubText}</PDFText>}
       </View>
     )}
   </View>
@@ -359,7 +342,7 @@ const renderTwoColumn = (
   address: string | undefined,
   phone: string | undefined,
   email: string | undefined,
-  noWrap: boolean
+  noWrap: boolean,
 ) => (
   <View wrap={!noWrap} style={containerStyles}>
     <View style={styles.twoColumnLeft}>
@@ -384,7 +367,7 @@ const renderMinimal = (
   subtitle: string | undefined,
   rightText: string | undefined,
   rightSubText: string | undefined,
-  noWrap: boolean
+  noWrap: boolean,
 ) => (
   <View wrap={!noWrap} style={containerStyles}>
     <View style={styles.minimalLeft}>
@@ -394,9 +377,7 @@ const renderMinimal = (
     {(rightText || rightSubText) && (
       <View style={styles.minimalRight}>
         {rightText && <PDFText style={styles.rightText}>{rightText}</PDFText>}
-        {rightSubText && (
-          <PDFText style={styles.rightSubText}>{rightSubText}</PDFText>
-        )}
+        {rightSubText && <PDFText style={styles.rightSubText}>{rightSubText}</PDFText>}
       </View>
     )}
   </View>
@@ -410,7 +391,7 @@ const renderSimple = (
   subtitle: string | undefined,
   rightText: string | undefined,
   rightSubText: string | undefined,
-  noWrap: boolean
+  noWrap: boolean,
 ) => (
   <View wrap={!noWrap} style={containerStyles}>
     <View style={styles.simpleLeft}>
@@ -420,9 +401,7 @@ const renderSimple = (
     {(rightText || rightSubText) && (
       <View style={styles.simpleRight}>
         {rightText && <PDFText style={styles.rightText}>{rightText}</PDFText>}
-        {rightSubText && (
-          <PDFText style={styles.rightSubText}>{rightSubText}</PDFText>
-        )}
+        {rightSubText && <PDFText style={styles.rightSubText}>{rightSubText}</PDFText>}
       </View>
     )}
   </View>
@@ -433,7 +412,7 @@ export const PageHeader = ({
   subtitle,
   rightText,
   rightSubText,
-  variant = "simple",
+  variant = 'simple',
   background,
   titleColor,
   marginBottom,
@@ -452,130 +431,80 @@ export const PageHeader = ({
     branded: () =>
       renderBranded(
         styles,
-        buildContainerStyles(
-          styles.brandedContainer,
-          mb,
-          background,
-          theme,
-          style
-        ),
+        buildContainerStyles(styles.brandedContainer, mb, background, theme, style),
         buildTitleStyles(
           [styles.title, styles.titleBranded, styles.titleCentered],
           titleColor,
-          theme
+          theme,
         ),
         title,
         subtitle,
-        noWrap
+        noWrap,
       ),
     centered: () =>
       renderCentered(
         styles,
-        buildContainerStyles(
-          styles.centeredContainer,
-          mb,
-          background,
-          theme,
-          style
-        ),
-        buildTitleStyles(
-          [styles.title, styles.titleCentered],
-          titleColor,
-          theme
-        ),
+        buildContainerStyles(styles.centeredContainer, mb, background, theme, style),
+        buildTitleStyles([styles.title, styles.titleCentered], titleColor, theme),
         title,
         subtitle,
-        noWrap
+        noWrap,
       ),
-    "logo-left": () =>
+    'logo-left': () =>
       renderLogoLeft(
         styles,
-        buildContainerStyles(
-          styles.logoLeftContainer,
-          mb,
-          background,
-          theme,
-          style
-        ),
+        buildContainerStyles(styles.logoLeftContainer, mb, background, theme, style),
         buildTitleStyles([styles.title], titleColor, theme),
         title,
         subtitle,
         logo,
         rightText,
         rightSubText,
-        noWrap
+        noWrap,
       ),
-    "logo-right": () =>
+    'logo-right': () =>
       renderLogoRight(
         styles,
-        buildContainerStyles(
-          styles.logoRightContainer,
-          mb,
-          background,
-          theme,
-          style
-        ),
+        buildContainerStyles(styles.logoRightContainer, mb, background, theme, style),
         buildTitleStyles([styles.title], titleColor, theme),
         title,
         subtitle,
         logo,
-        noWrap
+        noWrap,
       ),
     minimal: () =>
       renderMinimal(
         styles,
-        buildContainerStyles(
-          styles.minimalContainer,
-          mb,
-          background,
-          theme,
-          style
-        ),
-        buildTitleStyles(
-          [styles.title, styles.titleMinimal],
-          titleColor,
-          theme
-        ),
+        buildContainerStyles(styles.minimalContainer, mb, background, theme, style),
+        buildTitleStyles([styles.title, styles.titleMinimal], titleColor, theme),
         title,
         subtitle,
         rightText,
         rightSubText,
-        noWrap
+        noWrap,
       ),
     simple: () =>
       renderSimple(
         styles,
-        buildContainerStyles(
-          styles.simpleContainer,
-          mb,
-          background,
-          theme,
-          style
-        ),
+        buildContainerStyles(styles.simpleContainer, mb, background, theme, style),
         buildTitleStyles([styles.title], titleColor, theme),
         title,
         subtitle,
         rightText,
         rightSubText,
-        noWrap
+        noWrap,
       ),
-    "two-column": () =>
+    'two-column': () =>
       renderTwoColumn(
         styles,
-        buildContainerStyles(
-          styles.twoColumnContainer,
-          mb,
-          background,
-          theme,
-          style
-        ),
+        buildContainerStyles(styles.twoColumnContainer, mb, background, theme, style),
         buildTitleStyles([styles.title], titleColor, theme),
         title,
         subtitle,
         address,
         phone,
         email,
-        noWrap
+        noWrap,
       ),
   };
 

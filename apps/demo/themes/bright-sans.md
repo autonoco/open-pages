@@ -62,10 +62,10 @@ const Title = ({ children }: { children: React.ReactNode }) => (
 ### Footer
 
 ```tsx
-import { useSlidePageNumber } from '@open-slide/core';
+import { useDocPageNumber } from '@open-pdf/core';
 
 const Footer = () => {
-  const { current, total } = useSlidePageNumber();
+  const { current, total } = useDocPageNumber();
   return (
     <div
       style={{
@@ -141,7 +141,7 @@ Apply to the hero block on the cover and to each card on the content page. Foote
 
 ## Aesthetic
 
-A friendly product update — bright white, generous breathing room, one calm geometric sans across the whole deck, four primary colours rationed across the slides. Cards are soft-cornered but flat (no shadow). Avoid: gradients, glow, dark mode, drop shadows, decorative emoji unrelated to a feature, photography that breaks the white canvas. If a slide could appear above the fold of a clean product page, it is on theme.
+A friendly product update — bright white, generous breathing room, one calm geometric sans across the whole deck, four primary colours rationed across the docs. Cards are soft-cornered but flat (no shadow). Avoid: gradients, glow, dark mode, drop shadows, decorative emoji unrelated to a feature, photography that breaks the white canvas. If a doc could appear above the fold of a clean product page, it is on theme.
 
 ## Example usage
 

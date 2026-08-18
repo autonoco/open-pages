@@ -1,23 +1,23 @@
 import type { Locale } from './locale/types';
 
-export type OpenSlideBuildConfig = {
-  showSlideBrowser?: boolean;
-  showSlideUi?: boolean;
+export type OpenPdfBuildConfig = {
+  showDocBrowser?: boolean;
+  showDocUi?: boolean;
   allowHtmlDownload?: boolean;
 };
 
-export type OpenSlideConfig = {
+export type OpenPdfConfig = {
   base?: string;
-  slidesDir?: string;
+  docsDir?: string;
   themesDir?: string;
   assetsDir?: string;
   port?: number;
   allowedHosts?: string[] | true;
   /**
-   * @deprecated Pick the UI language from the language switcher in the slide UI
+   * @deprecated Pick the UI language from the language switcher in the doc UI
    * instead. When set, this only seeds the initial language until the user
    * chooses one (their choice is then remembered locally).
    */
   locale?: Locale;
-  build?: OpenSlideBuildConfig;
+  build?: OpenPdfBuildConfig;
 };

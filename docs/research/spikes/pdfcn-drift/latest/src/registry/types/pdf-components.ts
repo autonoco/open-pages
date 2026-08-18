@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
 /** CSS-like style object compatible with both Takumi and Forme */
 export type Style = Record<string, unknown>;

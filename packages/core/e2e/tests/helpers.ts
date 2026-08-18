@@ -15,12 +15,12 @@ export const coreRoot = path.resolve(here, '..', '..');
 export const coreBin = path.join(coreRoot, 'bin.js');
 export const devScratchDir = path.join(coreRoot, 'e2e', '.scratch', 'dev');
 
-export function slideSourcePath(slideId: string, projectDir = devScratchDir): string {
-  return path.join(projectDir, 'slides', slideId, 'index.tsx');
+export function docSourcePath(docId: string, projectDir = devScratchDir): string {
+  return path.join(projectDir, 'docs', docId, 'index.tsx');
 }
 
-export function readSlideSource(slideId: string, projectDir = devScratchDir): Promise<string> {
-  return fs.readFile(slideSourcePath(slideId, projectDir), 'utf8');
+export function readDocSource(docId: string, projectDir = devScratchDir): Promise<string> {
+  return fs.readFile(docSourcePath(docId, projectDir), 'utf8');
 }
 
 export function editorCanvas(page: Page): Locator {
@@ -28,11 +28,11 @@ export function editorCanvas(page: Page): Locator {
 }
 
 // The first visit per page load holds an asset-warm loading gate (up to 15s).
-// A slide duplicated moments earlier can also 404 until the slides virtual
+// A doc duplicated moments earlier can also 404 until the docs virtual
 // module refreshes (watcher debounce), and the server's full-reload broadcast
 // can fire before this page's HMR socket connects — so retry with a reload.
-export async function openSlide(page: Page, slideId: string, query = ''): Promise<void> {
-  await page.goto(`/s/${slideId}${query}`);
+export async function openPdf(page: Page, docId: string, query = ''): Promise<void> {
+  await page.goto(`/s/${docId}${query}`);
   for (let attempt = 0; ; attempt++) {
     try {
       await expect(editorCanvas(page)).toBeVisible({ timeout: 15_000 });
@@ -49,39 +49,39 @@ export async function enterPlayMode(page: Page): Promise<void> {
   await expect(editorCanvas(page)).toBeHidden();
 }
 
-// The dev server's file watcher does not pick up newly created slide
-// directories on Linux, so the slides virtual module stays stale after a deck
+// The dev server's file watcher does not pick up newly created doc
+// directories on Linux, so the docs virtual module stays stale after a deck
 // is created on disk.
-export async function refreshSlidesModule(expectedSlideId: string): Promise<void> {
-  const watchedFile = slideSourcePath('edit-target');
+export async function refreshDocsModule(expectedDocId: string): Promise<void> {
+  const watchedFile = docSourcePath('edit-target');
   await fs.writeFile(watchedFile, await fs.readFile(watchedFile, 'utf8'));
   await expect
     .poll(
       async () => {
-        const res = await fetch(`${devServerUrl}/@id/__x00__virtual:open-slide/slides`);
+        const res = await fetch(`${devServerUrl}/@id/__x00__virtual:open-pdf/docs`);
         return res.ok ? await res.text() : '';
       },
       { timeout: 15_000 },
     )
-    .toContain(`"${expectedSlideId}"`);
+    .toContain(`"${expectedDocId}"`);
 }
 
 // Deleting first makes the call retry-safe: a CI retry that runs after a
-// half-completed attempt would otherwise hit 409 "slide already exists".
-export async function duplicateSlide(
+// half-completed attempt would otherwise hit 409 "doc already exists".
+export async function duplicateDoc(
   request: APIRequestContext,
   sourceId: string,
   newId: string,
 ): Promise<void> {
-  await deleteSlide(request, newId);
-  const res = await request.post(`/__slides/${sourceId}/duplicate`, { data: { newId } });
+  await deleteDoc(request, newId);
+  const res = await request.post(`/__docs/${sourceId}/duplicate`, { data: { newId } });
   expect(res.ok()).toBe(true);
-  await refreshSlidesModule(newId);
+  await refreshDocsModule(newId);
 }
 
-export async function deleteSlide(request: APIRequestContext, slideId: string): Promise<void> {
-  const res = await request.delete(`/__slides/${slideId}`);
-  expect(res.ok() || res.status() === 404, `delete ${slideId} -> ${res.status()}`).toBe(true);
+export async function deleteDoc(request: APIRequestContext, docId: string): Promise<void> {
+  const res = await request.delete(`/__docs/${docId}`);
+  expect(res.ok() || res.status() === 404, `delete ${docId} -> ${res.status()}`).toBe(true);
 }
 
 export const TINY_PNG = Buffer.from(
@@ -99,7 +99,7 @@ export function runCli(args: string[], cwd: string, timeoutMs = 180_000): Promis
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [coreBin, ...args], {
       cwd,
-      env: { ...process.env, OPEN_SLIDE_SKIP_SKILLS_CHECK: '1' },
+      env: { ...process.env, OPEN_PDF_SKIP_SKILLS_CHECK: '1' },
     });
     let stdout = '';
     let stderr = '';
@@ -111,7 +111,7 @@ export function runCli(args: string[], cwd: string, timeoutMs = 180_000): Promis
     });
     const timer = setTimeout(() => {
       child.kill('SIGKILL');
-      reject(new Error(`open-slide ${args.join(' ')} timed out after ${timeoutMs}ms\n${stderr}`));
+      reject(new Error(`open-pdf ${args.join(' ')} timed out after ${timeoutMs}ms\n${stderr}`));
     }, timeoutMs);
     child.on('error', (err) => {
       clearTimeout(timer);
@@ -128,7 +128,7 @@ export function startCliServer(args: string[], cwd: string): ChildProcess {
   return spawn(process.execPath, [coreBin, ...args], {
     cwd,
     stdio: 'ignore',
-    env: { ...process.env, OPEN_SLIDE_SKIP_SKILLS_CHECK: '1' },
+    env: { ...process.env, OPEN_PDF_SKIP_SKILLS_CHECK: '1' },
   });
 }
 

@@ -1,31 +1,24 @@
-import {
-  usePdfcnTheme,
-  useSafeMemo,
-} from "@/registry/bases/takumi/components/theme-provider";
-import {
-  Text as PDFText,
-  StyleSheet,
-  View,
-} from "@/registry/bases/takumi/lib/pdf-primitives";
-import type { Style } from "@/registry/bases/takumi/lib/pdf-primitives";
-import { resolveColor } from "@/registry/bases/takumi/lib/resolve-color";
-import type { PDFComponentProps } from "@/registry/types/pdf-components";
-import type { PdfcnTheme } from "@/registry/types/pdf-themes";
+import { usePdfcnTheme, useSafeMemo } from '@/registry/bases/takumi/components/theme-provider';
+import type { Style } from '@/registry/bases/takumi/lib/pdf-primitives';
+import { Text as PDFText, StyleSheet, View } from '@/registry/bases/takumi/lib/pdf-primitives';
+import { resolveColor } from '@/registry/bases/takumi/lib/resolve-color';
+import type { PDFComponentProps } from '@/registry/types/pdf-components';
+import type { PdfcnTheme } from '@/registry/types/pdf-themes';
 
 export type PageFooterVariant =
-  | "simple"
-  | "centered"
-  | "branded"
-  | "minimal"
-  | "three-column"
-  | "detailed";
+  | 'simple'
+  | 'centered'
+  | 'branded'
+  | 'minimal'
+  | 'three-column'
+  | 'detailed';
 
 /**
  * Footer row with layout variants, optional sticky or fixed positioning, and contact info support.
  * Props - `leftText` | `rightText` | `centerText` | `variant` | `background` | `textColor` | `marginTop` | `address` | `phone` | `email` | `website` | `fixed` | `sticky` | `pagePadding` | `noWrap` | `style`
  * @see {@link PageFooterProps}
  */
-export interface PageFooterProps extends Omit<PDFComponentProps, "children"> {
+export interface PageFooterProps extends Omit<PDFComponentProps, 'children'> {
   leftText?: string;
   rightText?: string;
   centerText?: string;
@@ -72,22 +65,22 @@ const createPageFooterStyles = (t: PdfcnTheme) => {
 
   return StyleSheet.create({
     brandedContainer: {
-      alignItems: "center",
+      alignItems: 'center',
       backgroundColor: c.primary,
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "space-between",
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       paddingHorizontal: spacing[4],
       paddingVertical: spacing[3],
     },
 
     centeredContainer: {
-      alignItems: "center",
+      alignItems: 'center',
       borderTopColor: c.border,
-      borderTopStyle: "solid",
+      borderTopStyle: 'solid',
       borderTopWidth: spacing[0.5],
-      display: "flex",
-      flexDirection: "column",
+      display: 'flex',
+      flexDirection: 'column',
       paddingTop: spacing[3],
     },
 
@@ -107,58 +100,58 @@ const createPageFooterStyles = (t: PdfcnTheme) => {
       ...textBase,
       fontSize: t.primitives.typography.xs - 1,
       marginTop: spacing[0.5],
-      textAlign: "center",
+      textAlign: 'center',
     },
     detailedContainer: {
       borderTopColor: c.border,
-      borderTopStyle: "solid",
+      borderTopStyle: 'solid',
       borderTopWidth: spacing[1],
-      display: "flex",
-      flexDirection: "column",
+      display: 'flex',
+      flexDirection: 'column',
       paddingTop: spacing[3],
     },
     detailedLeft: {
-      display: "flex",
+      display: 'flex',
       flex: 1,
-      flexDirection: "column",
+      flexDirection: 'column',
     },
     detailedPageNumber: {
       ...textBase,
       borderTopColor: c.border,
-      borderTopStyle: "solid",
+      borderTopStyle: 'solid',
       borderTopWidth: spacing[0.5],
       paddingTop: spacing[2],
-      textAlign: "center",
+      textAlign: 'center',
     },
     detailedRight: {
-      alignItems: "flex-end",
-      display: "flex",
-      flexDirection: "column",
+      alignItems: 'flex-end',
+      display: 'flex',
+      flexDirection: 'column',
     },
     detailedTopRow: {
-      alignItems: "flex-start",
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "space-between",
+      alignItems: 'flex-start',
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       marginBottom: spacing[2],
     },
 
     minimalContainer: {
-      alignItems: "center",
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "space-between",
+      alignItems: 'center',
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       paddingBottom: spacing[1],
       paddingTop: spacing[1],
     },
     simpleContainer: {
-      alignItems: "center",
+      alignItems: 'center',
       borderTopColor: c.border,
-      borderTopStyle: "solid",
+      borderTopStyle: 'solid',
       borderTopWidth: spacing[0.5],
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "space-between",
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       paddingTop: spacing[3],
     },
     textBranded: {
@@ -169,17 +162,17 @@ const createPageFooterStyles = (t: PdfcnTheme) => {
     textBrandedRight: {
       ...textBase,
       color: c.primaryForeground,
-      textAlign: "right",
+      textAlign: 'right',
     },
     textCenter: {
       ...textBase,
       flex: 1,
-      textAlign: "center",
+      textAlign: 'center',
     },
     textCenteredVariant: {
       ...textBase,
       marginBottom: spacing[1],
-      textAlign: "center",
+      textAlign: 'center',
     },
 
     textLeft: {
@@ -188,44 +181,41 @@ const createPageFooterStyles = (t: PdfcnTheme) => {
     },
     textRight: {
       ...textBase,
-      textAlign: "right",
+      textAlign: 'right',
     },
     threeColumnCenter: {
-      alignItems: "center",
-      display: "flex",
+      alignItems: 'center',
+      display: 'flex',
       flex: 1,
-      flexDirection: "column",
+      flexDirection: 'column',
     },
     threeColumnContainer: {
-      alignItems: "flex-start",
+      alignItems: 'flex-start',
       borderTopColor: c.border,
-      borderTopStyle: "solid",
+      borderTopStyle: 'solid',
       borderTopWidth: spacing[0.5],
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "space-between",
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       paddingTop: spacing[3],
     },
     threeColumnLeft: {
-      display: "flex",
+      display: 'flex',
       flex: 1,
-      flexDirection: "column",
+      flexDirection: 'column',
     },
     threeColumnRight: {
-      alignItems: "flex-end",
-      display: "flex",
+      alignItems: 'flex-end',
+      display: 'flex',
       flex: 1,
-      flexDirection: "column",
+      flexDirection: 'column',
     },
   });
 };
 
 type Styles = ReturnType<typeof createPageFooterStyles>;
 
-const applyTextColor = (
-  styles: Style[],
-  color: string | undefined
-): Style[] => {
+const applyTextColor = (styles: Style[], color: string | undefined): Style[] => {
   if (!color) {
     return styles;
   }
@@ -239,7 +229,7 @@ const renderBranded = (
   rightStyle: Style[],
   leftText: string | undefined,
   rightText: string | undefined,
-  noWrap: boolean
+  noWrap: boolean,
 ) => (
   <View wrap={!noWrap} style={containerStyles}>
     {leftText && <PDFText style={leftStyle}>{leftText}</PDFText>}
@@ -253,7 +243,7 @@ const renderCentered = (
   textStyle: Style[],
   leftText: string | undefined,
   rightText: string | undefined,
-  noWrap: boolean
+  noWrap: boolean,
 ) => (
   <View wrap={!noWrap} style={containerStyles}>
     {leftText && <PDFText style={textStyle}>{leftText}</PDFText>}
@@ -273,7 +263,7 @@ const renderThreeColumn = (
   phone: string | undefined,
   email: string | undefined,
   website: string | undefined,
-  noWrap: boolean
+  noWrap: boolean,
 ) => (
   <View wrap={!noWrap} style={containerStyles}>
     <View style={styles.threeColumnLeft}>
@@ -304,7 +294,7 @@ const renderDetailed = (
   phone: string | undefined,
   email: string | undefined,
   website: string | undefined,
-  noWrap: boolean
+  noWrap: boolean,
 ) => (
   <View wrap={!noWrap} style={containerStyles}>
     <View style={styles.detailedTopRow}>
@@ -329,7 +319,7 @@ const renderMinimal = (
   rightStyle: Style[],
   leftText: string | undefined,
   rightText: string | undefined,
-  noWrap: boolean
+  noWrap: boolean,
 ) => (
   <View wrap={!noWrap} style={containerStyles}>
     {leftText && <PDFText style={leftStyle}>{leftText}</PDFText>}
@@ -346,7 +336,7 @@ const renderSimple = (
   leftText: string | undefined,
   centerText: string | undefined,
   rightText: string | undefined,
-  noWrap: boolean
+  noWrap: boolean,
 ) => (
   <View wrap={!noWrap} style={containerStyles}>
     {leftText && <PDFText style={leftStyle}>{leftText}</PDFText>}
@@ -359,7 +349,7 @@ export const PageFooter = ({
   leftText,
   rightText,
   centerText,
-  variant = "simple",
+  variant = 'simple',
   background,
   textColor,
   marginTop,
@@ -377,14 +367,12 @@ export const PageFooter = ({
   const styles = useSafeMemo(() => createPageFooterStyles(theme), [theme]);
   const _isFixed = fixed || sticky;
   const mt = sticky ? 0 : (marginTop ?? theme.spacing.sectionGap);
-  const resolvedTextColor = textColor
-    ? resolveColor(textColor, theme.colors)
-    : undefined;
+  const resolvedTextColor = textColor ? resolveColor(textColor, theme.colors) : undefined;
   const stickyStyle: Style = sticky
     ? {
         bottom: pagePadding,
         left: pagePadding,
-        position: "absolute",
+        position: 'absolute',
         right: pagePadding,
       }
     : {};
@@ -411,7 +399,7 @@ export const PageFooter = ({
         applyTextColor([styles.textBrandedRight], resolvedTextColor),
         leftText,
         rightText,
-        noWrap
+        noWrap,
       ),
     centered: () =>
       renderCentered(
@@ -420,7 +408,7 @@ export const PageFooter = ({
         applyTextColor([styles.textCenteredVariant], resolvedTextColor),
         leftText,
         rightText,
-        noWrap
+        noWrap,
       ),
     detailed: () =>
       renderDetailed(
@@ -436,7 +424,7 @@ export const PageFooter = ({
         phone,
         email,
         website,
-        noWrap
+        noWrap,
       ),
     minimal: () =>
       renderMinimal(
@@ -446,7 +434,7 @@ export const PageFooter = ({
         applyTextColor([styles.textRight], resolvedTextColor),
         leftText,
         rightText,
-        noWrap
+        noWrap,
       ),
     simple: () =>
       renderSimple(
@@ -458,9 +446,9 @@ export const PageFooter = ({
         leftText,
         centerText,
         rightText,
-        noWrap
+        noWrap,
       ),
-    "three-column": () =>
+    'three-column': () =>
       renderThreeColumn(
         styles,
         applyOverrides([styles.threeColumnContainer, { marginTop: mt }]),
@@ -473,7 +461,7 @@ export const PageFooter = ({
         phone,
         email,
         website,
-        noWrap
+        noWrap,
       ),
   };
 

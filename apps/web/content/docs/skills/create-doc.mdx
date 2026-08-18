@@ -1,0 +1,32 @@
+---
+title: /create-doc
+description: Drafts a deck end-to-end from a one-line prompt.
+---
+
+`/create-doc` is the entry-point skill for any new deck.
+
+## What it does
+
+1. **Theme** — if `themes/` contains any themes, asks you to pick one (or
+   none). A picked theme settles the visual direction. See
+   [Themes](/docs/core-feature/themes).
+2. **Scoping** — asks four questions: aesthetic direction (skipped when a
+   theme is picked), page count, text density, motion vs. static.
+3. **ID & structure** — picks a kebab-case id, plans the page list.
+4. **Authoring** — writes `docs/<id>/index.tsx` page by page, deferring
+   to [`/doc-authoring`](/docs/skills/doc-authoring) for the *how*.
+
+## When to use it
+
+For any new deck. Even if you plan to hand-author, kick off with
+`/create-doc` to seed the folder, the page array, and the meta block.
+
+```text
+/create-doc for "Q2 launch — 3 chapters, mixed text density, subtle motion, dark aesthetic"
+```
+
+## What you get
+
+A working `docs/<id>/index.tsx` with one component per page, a `meta`
+export, and assets imported from `docs/<id>/assets/`. Drop into the dev
+server and iterate from there.

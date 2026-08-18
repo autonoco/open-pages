@@ -1,8 +1,8 @@
 // Isolate the intra-word gap defect: live googleFonts vs cached rehydrated fonts.
-import { writeFile } from "node:fs/promises";
-import { googleFonts } from "@takumi-rs/helpers";
-import { render } from "takumi-pdf";
-import { loadFonts } from "./takumi-invoice.js";
+import { writeFile } from 'node:fs/promises';
+import { googleFonts } from '@takumi-rs/helpers';
+import { render } from 'takumi-pdf';
+import { loadFonts } from './takumi-invoice.js';
 
 const doc = (
   <main tw="flex flex-col text-[16px]">
@@ -11,10 +11,16 @@ const doc = (
   </main>
 );
 
-const live = await googleFonts([{ name: "Inter", weight: [400, 700] }]);
-await writeFile("gap-live.pdf", await render(doc, { size: "a4", fonts: live, fontFamilies: ["Inter", "sans-serif"] }));
+const live = await googleFonts([{ name: 'Inter', weight: [400, 700] }]);
+await writeFile(
+  'gap-live.pdf',
+  await render(doc, { size: 'a4', fonts: live, fontFamilies: ['Inter', 'sans-serif'] }),
+);
 
 const cached = await loadFonts();
-await writeFile("gap-cached.pdf", await render(doc, { size: "a4", fonts: cached, fontFamilies: ["Inter", "sans-serif"] }));
+await writeFile(
+  'gap-cached.pdf',
+  await render(doc, { size: 'a4', fonts: cached, fontFamilies: ['Inter', 'sans-serif'] }),
+);
 
-console.log("done");
+console.log('done');

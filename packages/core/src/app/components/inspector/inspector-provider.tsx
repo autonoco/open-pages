@@ -12,7 +12,7 @@ import {
 import { toast } from 'sonner';
 import { useHistory } from '@/components/history-provider';
 import { Button } from '@/components/ui/button';
-import { type SlideComment, useComments } from '@/lib/inspector/use-comments';
+import { type DocComment, useComments } from '@/lib/inspector/use-comments';
 import { type Edit, type EditOp, type EditResult, useEditor } from '@/lib/inspector/use-editor';
 import { useLocale } from '@/lib/use-locale';
 import { AssetPickerDialog } from './asset-picker-dialog';
@@ -43,7 +43,7 @@ type Bucket = {
   rangeStyleOps: Map<string, Sequenced<TextRangeStyleOp>>;
   // Text edits are scoped per DOM instance: a reused component renders
   // the same JSX `<h2>{title}</h2>` at multiple call sites with the same
-  // `data-slide-loc`, but each call site's prop literal is independent.
+  // `data-pdf-loc`, but each call site's prop literal is independent.
   // Style/attr ops stay shared because they edit the JSX definition.
   textOps: Map<string /* instanceId */, Sequenced<{ value: string }>>;
   attrOps: Map<string, Sequenced<AssetAttrOp>>;
@@ -55,7 +55,7 @@ type Bucket = {
   origAttrs: Map<string, string | null>;
 };
 
-const INSTANCE_ID_ATTR = 'data-slide-instance-id';
+const INSTANCE_ID_ATTR = 'data-doc-instance-id';
 
 function readInstanceId(el: HTMLElement): string | null {
   return el.getAttribute(INSTANCE_ID_ATTR);
@@ -242,11 +242,11 @@ function replayDomTextRangeStyles(el: HTMLElement, html: string, ops: TextRangeS
 }
 
 type InspectorCtx = {
-  slideId: string;
+  docId: string;
   active: boolean;
   toggle: () => void;
   cancel: () => void;
-  comments: SlideComment[];
+  comments: DocComment[];
   error: string | null;
   refetch: () => Promise<void>;
   add: (line: number, column: number, text: string) => Promise<void>;
@@ -276,18 +276,18 @@ export function useInspector(): InspectorCtx {
 }
 
 export function InspectorProvider({
-  slideId,
+  docId,
   pageIndex,
   children,
 }: {
-  slideId: string;
+  docId: string;
   pageIndex: number;
   children: ReactNode;
 }) {
   const [active, setActive] = useState(false);
   const [selected, setSelected] = useState<SelectedTarget | null>(null);
-  const { comments, error, refetch, add, remove } = useComments(slideId);
-  const { applyEdit, applyEdits } = useEditor(slideId);
+  const { comments, error, refetch, add, remove } = useComments(docId);
+  const { applyEdit, applyEdits } = useEditor(docId);
   const history = useHistory();
 
   const pendingRef = useRef<Map<string, Bucket>>(new Map());
@@ -347,7 +347,7 @@ export function InspectorProvider({
       const byInstance = root.querySelector<HTMLElement>(`[${INSTANCE_ID_ATTR}="${instanceId}"]`);
       if (byInstance) return byInstance;
     }
-    return root.querySelector<HTMLElement>(`[data-slide-loc="${line}:${column}"]`);
+    return root.querySelector<HTMLElement>(`[data-pdf-loc="${line}:${column}"]`);
   }, []);
 
   // Mutate bucket + DOM without recording history. Shared by `bufferOps`
@@ -405,7 +405,7 @@ export function InspectorProvider({
           }
         } else if (op.kind === 'set-text') {
           // Reused JSX renders multiple DOM nodes with the same
-          // `data-slide-loc` but distinct call-site literals; without an
+          // `data-pdf-loc` but distinct call-site literals; without an
           // anchor we can't tell which instance to route to, so skip.
           if (!anchor) continue;
           const instanceId = ensureInstanceId(anchor);
@@ -789,7 +789,7 @@ export function InspectorProvider({
     }
     const root = document.querySelector<HTMLElement>('[data-inspector-root]');
     for (const b of pendingRef.current.values()) {
-      const sharedEl = root?.querySelector<HTMLElement>(`[data-slide-loc="${b.line}:${b.column}"]`);
+      const sharedEl = root?.querySelector<HTMLElement>(`[data-pdf-loc="${b.line}:${b.column}"]`);
       if (sharedEl) {
         const style = sharedEl.style as unknown as Record<string, string>;
         for (const [k, v] of b.origStyle) style[k] = v;
@@ -830,8 +830,8 @@ export function InspectorProvider({
     };
   }, []);
 
-  // Re-apply buffered ops onto any `[data-slide-loc]` element that gets
-  // (re)mounted in the slide canvas. Without this, navigating to a
+  // Re-apply buffered ops onto any `[data-pdf-loc]` element that gets
+  // (re)mounted in the doc canvas. Without this, navigating to a
   // different page and back drops the optimistic styles, since the
   // page's DOM nodes are torn down on unmount even though the buffer
   // (keyed by source line:col) survives.
@@ -840,7 +840,7 @@ export function InspectorProvider({
     if (!root) return;
 
     const applyBuffered = (el: HTMLElement) => {
-      const loc = el.dataset.slideLoc;
+      const loc = el.dataset.docLoc;
       if (!loc) return;
       const bucket = pendingRef.current.get(loc);
       if (!bucket) return;
@@ -850,7 +850,7 @@ export function InspectorProvider({
         if (style[key] !== v) style[key] = v;
       }
       // Text replays per-instance: only the originally clicked DOM node
-      // (stamped with its `data-slide-instance-id`) gets the buffered
+      // (stamped with its `data-doc-instance-id`) gets the buffered
       // value, so siblings of a reused component aren't clobbered.
       const instanceId = readInstanceId(el);
       if (instanceId) {
@@ -876,7 +876,7 @@ export function InspectorProvider({
     const replayAll = () => {
       if (pendingRef.current.size === 0) return;
       observer?.disconnect();
-      root.querySelectorAll<HTMLElement>('[data-slide-loc]').forEach(applyBuffered);
+      root.querySelectorAll<HTMLElement>('[data-pdf-loc]').forEach(applyBuffered);
       observer?.observe(root, { childList: true, subtree: true });
     };
 
@@ -902,7 +902,7 @@ export function InspectorProvider({
     const revalidate = () => {
       if (selected.anchor.isConnected) return;
       const next = root.querySelector<HTMLElement>(
-        `[data-slide-loc="${selected.line}:${selected.column}"]`,
+        `[data-pdf-loc="${selected.line}:${selected.column}"]`,
       );
       if (next && next !== selected.anchor) {
         setSelected({ ...selected, anchor: next });
@@ -928,7 +928,7 @@ export function InspectorProvider({
   }, []);
 
   const openReplace = useCallback((anchor: HTMLElement) => {
-    const loc = anchor.dataset.slideLoc;
+    const loc = anchor.dataset.docLoc;
     if (!loc) return;
     const [lineStr, columnStr] = loc.split(':');
     const line = Number(lineStr);
@@ -949,7 +949,7 @@ export function InspectorProvider({
   }, [toggle]);
 
   const openCrop = useCallback((anchor: HTMLImageElement) => {
-    const loc = anchor.dataset.slideLoc;
+    const loc = anchor.dataset.docLoc;
     if (!loc) return;
     const [lineStr, columnStr] = loc.split(':');
     const line = Number(lineStr);
@@ -971,7 +971,7 @@ export function InspectorProvider({
 
   const value = useMemo<InspectorCtx>(
     () => ({
-      slideId,
+      docId,
       active,
       toggle,
       cancel,
@@ -993,7 +993,7 @@ export function InspectorProvider({
       openReplace,
     }),
     [
-      slideId,
+      docId,
       active,
       toggle,
       cancel,
@@ -1020,7 +1020,7 @@ export function InspectorProvider({
       {children}
       {replaceTarget && (
         <AssetPickerDialog
-          slideId={slideId}
+          docId={docId}
           onClose={() => setReplaceTarget(null)}
           onPick={(asset, scope) => {
             const { line, column, anchor } = replaceTarget;

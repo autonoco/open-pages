@@ -1,61 +1,84 @@
 // @react-pdf/renderer implementation of the benchmark invoice.
 // Idiomatic: hand-rolled flex table, fixed footer with render prop, wrap pagination.
-import {
-  Document, Page, View, Text, StyleSheet, Font, renderToBuffer,
-} from "@react-pdf/renderer";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { COMPANY, BILL_TO, META, money, totals } from "./data.mjs";
+
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { Document, Font, Page, renderToBuffer, StyleSheet, Text, View } from '@react-pdf/renderer';
+import { BILL_TO, COMPANY, META, money, totals } from './data.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const interDir = path.join(here, "node_modules/@fontsource/inter/files");
+const interDir = path.join(here, 'node_modules/@fontsource/inter/files');
 
 Font.register({
-  family: "Inter",
+  family: 'Inter',
   fonts: [
-    { src: path.join(interDir, "inter-latin-400-normal.woff"), fontWeight: 400 },
-    { src: path.join(interDir, "inter-latin-700-normal.woff"), fontWeight: 700 },
+    { src: path.join(interDir, 'inter-latin-400-normal.woff'), fontWeight: 400 },
+    { src: path.join(interDir, 'inter-latin-700-normal.woff'), fontWeight: 700 },
   ],
 });
 
 const styles = StyleSheet.create({
-  page: { paddingTop: 36, paddingHorizontal: 40, paddingBottom: 56, fontSize: 9, fontFamily: "Inter", color: "#1a202c" },
-  headerRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 18 },
-  companyName: { fontSize: 16, fontWeight: 700 },
-  muted: { color: "#64748b" },
-  logoBox: {
-    width: 54, height: 54, borderWidth: 1, borderColor: "#94a3b8", borderStyle: "dashed",
-    alignItems: "center", justifyContent: "center",
+  page: {
+    paddingTop: 36,
+    paddingHorizontal: 40,
+    paddingBottom: 56,
+    fontSize: 9,
+    fontFamily: 'Inter',
+    color: '#1a202c',
   },
-  metaRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 16 },
-  h2: { fontSize: 10, fontWeight: 700, marginBottom: 4, color: "#334155" },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18 },
+  companyName: { fontSize: 16, fontWeight: 700 },
+  muted: { color: '#64748b' },
+  logoBox: {
+    width: 54,
+    height: 54,
+    borderWidth: 1,
+    borderColor: '#94a3b8',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  metaRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
+  h2: { fontSize: 10, fontWeight: 700, marginBottom: 4, color: '#334155' },
   invoiceTitle: { fontSize: 20, fontWeight: 700, marginBottom: 6 },
 
   // ---- table ----
-  table: { borderWidth: 1, borderColor: "#cbd5e1" },
+  table: { borderWidth: 1, borderColor: '#cbd5e1' },
   thead: {
-    flexDirection: "row", backgroundColor: "#f1f5f9", borderBottomWidth: 1,
-    borderBottomColor: "#cbd5e1", fontWeight: 700,
+    flexDirection: 'row',
+    backgroundColor: '#f1f5f9',
+    borderBottomWidth: 1,
+    borderBottomColor: '#cbd5e1',
+    fontWeight: 700,
   },
-  tr: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: "#e2e8f0" },
+  tr: { flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: '#e2e8f0' },
   colSku: { flex: 1.4, padding: 6 },
   colDesc: { flex: 5, padding: 6 },
-  colQty: { flex: 1, padding: 6, textAlign: "right" },
-  colUnit: { flex: 1.8, padding: 6, textAlign: "right" },
-  colAmount: { flex: 1.8, padding: 6, textAlign: "right" },
-  detail: { color: "#64748b", fontSize: 8, marginTop: 2 },
+  colQty: { flex: 1, padding: 6, textAlign: 'right' },
+  colUnit: { flex: 1.8, padding: 6, textAlign: 'right' },
+  colAmount: { flex: 1.8, padding: 6, textAlign: 'right' },
+  detail: { color: '#64748b', fontSize: 8, marginTop: 2 },
 
-  totalsWrap: { flexDirection: "row", justifyContent: "flex-end", marginTop: 14 },
+  totalsWrap: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 14 },
   totalsBox: { width: 220 },
-  totalsRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 3 },
+  totalsRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3 },
   grandTotal: {
-    borderTopWidth: 1, borderTopColor: "#334155", marginTop: 3, paddingTop: 5,
-    fontWeight: 700, fontSize: 11,
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
+    marginTop: 3,
+    paddingTop: 5,
+    fontWeight: 700,
+    fontSize: 11,
   },
-  terms: { marginTop: 20, color: "#475569" },
+  terms: { marginTop: 20, color: '#475569' },
   footer: {
-    position: "absolute", bottom: 24, left: 40, right: 40, textAlign: "center",
-    fontSize: 8, color: "#94a3b8",
+    position: 'absolute',
+    bottom: 24,
+    left: 40,
+    right: 40,
+    textAlign: 'center',
+    fontSize: 8,
+    color: '#94a3b8',
   },
 });
 
@@ -139,9 +162,9 @@ function Invoice({ items }) {
         </View>
 
         <Text style={styles.terms}>
-          Payment is due within 30 days of the invoice date. Please reference the invoice
-          number on all remittances. ACH details available on request. A 1.5% monthly
-          finance charge applies to past-due balances.
+          Payment is due within 30 days of the invoice date. Please reference the invoice number on
+          all remittances. ACH details available on request. A 1.5% monthly finance charge applies
+          to past-due balances.
         </Text>
 
         <Text

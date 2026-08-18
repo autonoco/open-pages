@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { enterPlayMode, openSlide } from './helpers.ts';
+import { enterPlayMode, openPdf } from './helpers.ts';
 
 test.describe('presenter view', () => {
   test('standalone presenter shows notes and the not-linked badge', async ({ page }) => {
@@ -10,7 +10,7 @@ test.describe('presenter view', () => {
   });
 
   test('presenter popup links to the player and drives it', async ({ page, context }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await enterPlayMode(page);
 
     const popupPromise = context.waitForEvent('page');
@@ -26,12 +26,12 @@ test.describe('presenter view', () => {
     await popup.getByRole('button', { name: 'Next', exact: true }).click();
     await expect(page).toHaveURL(/[?&]p=2/);
     await expect(popup.getByText('02 / 03')).toBeVisible();
-    await expect(popup.getByText('No speaker notes for this slide.')).toBeVisible();
+    await expect(popup.getByText('No speaker notes for this doc.')).toBeVisible();
 
     await popup.keyboard.press('ArrowRight');
     await expect(page).toHaveURL(/[?&]p=3/);
     await expect(popup.getByText('03 / 03')).toBeVisible();
-    await expect(popup.getByText('Last slide')).toBeVisible();
+    await expect(popup.getByText('Last doc')).toBeVisible();
     await expect(popup.getByText('End of deck')).toBeVisible();
     await expect(popup.getByRole('button', { name: 'Next', exact: true })).toBeDisabled();
 
@@ -46,7 +46,7 @@ test.describe('presenter view', () => {
   });
 
   test('blackout round-trips between presenter and player', async ({ page, context }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await enterPlayMode(page);
 
     const popupPromise = context.waitForEvent('page');

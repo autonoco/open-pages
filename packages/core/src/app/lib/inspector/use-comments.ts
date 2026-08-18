@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-export type SlideComment = {
+export type DocComment = {
   id: string;
   line: number;
   ts: string;
@@ -8,16 +8,16 @@ export type SlideComment = {
   hint?: string;
 };
 
-type ListResponse = { comments: SlideComment[] };
+type ListResponse = { comments: DocComment[] };
 
-export function useComments(slideId: string) {
-  const [comments, setComments] = useState<SlideComment[]>([]);
+export function useComments(docId: string) {
+  const [comments, setComments] = useState<DocComment[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
-    if (!slideId) return;
+    if (!docId) return;
     try {
-      const res = await fetch(`/__comments?slideId=${encodeURIComponent(slideId)}`);
+      const res = await fetch(`/__comments?docId=${encodeURIComponent(docId)}`);
       if (!res.ok) {
         setError(`GET /__comments → ${res.status}`);
         return;
@@ -28,14 +28,14 @@ export function useComments(slideId: string) {
     } catch (e) {
       setError(String((e as Error).message ?? e));
     }
-  }, [slideId]);
+  }, [docId]);
 
   const add = useCallback(
     async (line: number, column: number, text: string) => {
       const res = await fetch('/__comments/add', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ slideId, line, column, text }),
+        body: JSON.stringify({ docId, line, column, text }),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
@@ -43,18 +43,18 @@ export function useComments(slideId: string) {
       }
       await refetch();
     },
-    [slideId, refetch],
+    [docId, refetch],
   );
 
   const remove = useCallback(
     async (id: string) => {
-      const res = await fetch(`/__comments/${id}?slideId=${encodeURIComponent(slideId)}`, {
+      const res = await fetch(`/__comments/${id}?docId=${encodeURIComponent(docId)}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error(`DELETE /__comments/${id} → ${res.status}`);
       await refetch();
     },
-    [slideId, refetch],
+    [docId, refetch],
   );
 
   useEffect(() => {

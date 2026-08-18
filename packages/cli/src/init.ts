@@ -29,7 +29,7 @@ export function sanitizeDirName(value: string): string {
     .replace(/-+/g, '-')
     .replace(/(^-|-$)/g, '')
     .replace(/-*([/\\])-*/g, '$1');
-  if (cleaned === '' || /^[/\\]+$/.test(cleaned)) return 'my-slides';
+  if (cleaned === '' || /^[/\\]+$/.test(cleaned)) return 'my-docs';
   return cleaned;
 }
 
@@ -91,7 +91,7 @@ export async function init(opts: InitOptions): Promise<void> {
 
   if (!existsSync(TEMPLATE_DIR)) {
     throw new Error(
-      `Template missing at ${TEMPLATE_DIR}. If you are running from source, run \`pnpm --filter @open-slide/cli build\` first.`,
+      `Template missing at ${TEMPLATE_DIR}. If you are running from source, run \`pnpm --filter @open-pdf/cli build\` first.`,
     );
   }
 
@@ -113,8 +113,8 @@ export async function init(opts: InitOptions): Promise<void> {
     pkg.name = name ?? basename(target);
     pkg.version = '0.0.0';
     pkg.private = true;
-    if (pkg.dependencies?.['@open-slide/core']) {
-      pkg.dependencies['@open-slide/core'] = coreVersionRange();
+    if (pkg.dependencies?.['@open-pdf/core']) {
+      pkg.dependencies['@open-pdf/core'] = coreVersionRange();
     }
     await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
   }
@@ -123,7 +123,7 @@ export async function init(opts: InitOptions): Promise<void> {
 
   const cdTarget = dir === '.' ? basename(target) : dir;
   process.stdout.write(
-    `\n${chalk.green.bold('✔ Created open-slide workspace')} ${chalk.dim(`in ${target}`)}\n`,
+    `\n${chalk.green.bold('✔ Created open-pdf workspace')} ${chalk.dim(`in ${target}`)}\n`,
   );
 
   let installed = false;

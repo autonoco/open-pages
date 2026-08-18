@@ -3,13 +3,13 @@ title: Themes
 description: Reusable design systems shared across decks.
 ---
 
-![Open-slide theme editor showing a theme's palette and typography beside its live demo slide](/assets/screenshots/theme.webp)
+![Open-doc theme editor showing a theme's palette and typography beside its live demo doc](/assets/screenshots/theme.webp)
 
 A theme is a **bundle of two paired files** under `themes/`:
 
 - `themes/<id>.md` — agent-facing recipe: palette, typography, layout,
-  fixed components, motion. `create-slide` reads this before authoring.
-- `themes/<id>.demo.tsx` — a runnable mini-slide that demonstrates the
+  fixed components, motion. `create-doc` reads this before authoring.
+- `themes/<id>.demo.tsx` — a runnable mini-doc that demonstrates the
   theme. The dev UI's **Themes** panel imports it and renders it as the
   theme's live preview card.
 
@@ -52,15 +52,15 @@ mode: dark
 
 ## Voice
 - Tight, declarative, never coy.
-- One concept per slide.
+- One concept per doc.
 ```
 
-The demo is a normal slide module — same shape as `slides/<id>/index.tsx`,
+The demo is a normal doc module — same shape as `docs/<id>/index.tsx`,
 just placed under `themes/` so the runtime treats it as preview-only (it
-does not appear in the slides list):
+does not appear in the docs list):
 
 ```tsx title="themes/corporate.demo.tsx"
-import type { Page } from '@open-slide/core';
+import type { Page } from '@open-pdf/core';
 
 const Cover: Page = () => (/* …inline Title / Footer using theme tokens… */);
 const Content: Page = () => (/* … */);
@@ -70,14 +70,14 @@ export default [Cover, Content];
 
 Keep the demo's inline Title/Footer/Eyebrow components verbatim in sync
 with the snippets in the markdown — what authors see in the Themes panel
-should match what `create-slide` will paste into a real slide.
+should match what `create-doc` will paste into a real doc.
 
 ## Using a theme
 
-When you call `/create-slide`, mention the theme by name:
+When you call `/create-doc`, mention the theme by name:
 
 ```text
-/create-slide for "Q3 board update — use the corporate theme"
+/create-doc for "Q3 board update — use the corporate theme"
 ```
 
 The agent loads `themes/corporate.md`, applies the palette and type stack,

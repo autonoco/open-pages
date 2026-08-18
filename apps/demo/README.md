@@ -1,6 +1,6 @@
-# open-slide workspace
+# open-pdf workspace
 
-Slides as React components. Each slide lives under `slides/<id>/index.tsx` and default-exports an array of page components. The `@open-slide/core` runtime handles layout, scaling, navigation, thumbnails, and fullscreen play mode — you just write the pages.
+Docs as React components. Each doc lives under `docs/<id>/index.tsx` and default-exports an array of page components. The `@open-pdf/core` runtime handles layout, scaling, navigation, thumbnails, and fullscreen play mode — you just write the pages.
 
 ## Getting started
 
@@ -9,7 +9,7 @@ pnpm install
 pnpm dev
 ```
 
-Then open the dev server and create a new slide at `slides/<your-slide>/index.tsx`.
+Then open the dev server and create a new doc at `docs/<your-doc>/index.tsx`.
 
 ## Scripts
 
@@ -19,21 +19,21 @@ Then open the dev server and create a new slide at `slides/<your-slide>/index.ts
 | `pnpm build` | Build a static bundle you can deploy. |
 | `pnpm preview` | Preview the built bundle locally. |
 
-## Authoring a slide
+## Authoring a doc
 
 ```tsx
-// slides/my-slide/index.tsx
-import type { Page, SlideMeta } from '@open-slide/core';
+// docs/my-doc/index.tsx
+import type { Page, DocMeta } from '@open-pdf/core';
 
 const Cover: Page = () => (
   <div style={{ width: '100%', height: '100%' }}>Hello</div>
 );
 
-export const meta: SlideMeta = { title: 'My slide' };
+export const meta: DocMeta = { title: 'My doc' };
 export default [Cover] satisfies Page[];
 ```
 
-Every page renders into a fixed **1920 × 1080** canvas — design with absolute pixel values. Put images, videos, and fonts under `slides/<id>/assets/` and import them directly.
+Every page renders into a fixed **1920 × 1080** canvas — design with absolute pixel values. Put images, videos, and fonts under `docs/<id>/assets/` and import them directly.
 
 See [`CLAUDE.md`](./CLAUDE.md) for the full authoring guide.
 
@@ -45,20 +45,20 @@ See [`CLAUDE.md`](./CLAUDE.md) for the full authoring guide.
 
 ## Claude Code integration
 
-This workspace ships with Claude Code skills preconfigured under `.claude/skills/` and `.agents/skills/`. Ask Claude Code to "make slides about X" and the `create-slide` skill takes over. Use `apply-comments` to iterate via inspector-style markers inside your source.
+This workspace ships with Claude Code skills preconfigured under `.claude/skills/` and `.agents/skills/`. Ask Claude Code to "make docs about X" and the `create-doc` skill takes over. Use `apply-comments` to iterate via inspector-style markers inside your source.
 
 ## Config
 
-Optional `open-slide.config.ts` at the workspace root:
+Optional `open-pdf.config.ts` at the workspace root:
 
 ```ts
-import type { OpenSlideConfig } from '@open-slide/core';
+import type { OpenPdfConfig } from '@open-pdf/core';
 
-const openSlideConfig: OpenSlideConfig = {
+const openPdfConfig: OpenPdfConfig = {
   port: 5173,
 };
 
-export default openSlideConfig;
+export default openPdfConfig;
 ```
 
-Supported fields: `slidesDir`, `port`.
+Supported fields: `docsDir`, `port`.

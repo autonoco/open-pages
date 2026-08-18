@@ -1,15 +1,12 @@
-import {
-  usePdfcnTheme,
-  useSafeMemo,
-} from "@/registry/bases/takumi/components/theme-provider";
-import { Text, StyleSheet } from "@/registry/bases/takumi/lib/pdf-primitives";
-import type { Style } from "@/registry/bases/takumi/lib/pdf-primitives";
-import { resolveColor } from "@/registry/bases/takumi/lib/resolve-color";
-import type { PDFComponentProps } from "@/registry/types/pdf-components";
-import type { PdfcnTheme } from "@/registry/types/pdf-themes";
+import { usePdfcnTheme, useSafeMemo } from '@/registry/bases/takumi/components/theme-provider';
+import type { Style } from '@/registry/bases/takumi/lib/pdf-primitives';
+import { StyleSheet, Text } from '@/registry/bases/takumi/lib/pdf-primitives';
+import { resolveColor } from '@/registry/bases/takumi/lib/resolve-color';
+import type { PDFComponentProps } from '@/registry/types/pdf-components';
+import type { PdfcnTheme } from '@/registry/types/pdf-themes';
 
-export type HeadingWeight = "normal" | "medium" | "semibold" | "bold";
-export type HeadingTracking = "tighter" | "tight" | "normal" | "wide" | "wider";
+export type HeadingWeight = 'normal' | 'medium' | 'semibold' | 'bold';
+export type HeadingTracking = 'tighter' | 'tight' | 'normal' | 'wide' | 'wider';
 
 /**
  * PDF heading mapped to h1–h6 font sizes from the theme.
@@ -24,9 +21,9 @@ export interface HeadingProps extends PDFComponentProps {
   /**
    * @default 'left'
    */
-  align?: "left" | "center" | "right";
+  align?: 'left' | 'center' | 'right';
   color?: string;
-  transform?: "uppercase" | "lowercase" | "capitalize";
+  transform?: 'uppercase' | 'lowercase' | 'capitalize';
   /**
    * @default 'bold'
    */
@@ -53,7 +50,7 @@ const createHeadingStyles = (t: PdfcnTheme) => {
     lineHeight: heading.lineHeight,
   };
   return StyleSheet.create({
-    capitalize: { textTransform: "capitalize" },
+    capitalize: { textTransform: 'capitalize' },
     h1: {
       ...base,
       fontSize: heading.fontSize.h1,
@@ -90,7 +87,7 @@ const createHeadingStyles = (t: PdfcnTheme) => {
       marginBottom: spacing[1],
       marginTop: paragraphGap,
     },
-    lowercase: { textTransform: "lowercase" },
+    lowercase: { textTransform: 'lowercase' },
     noMargin: { marginBottom: 0, marginTop: 0 },
     trackingNormal: { letterSpacing: letterSpacing.normal },
     trackingTight: { letterSpacing: letterSpacing.tight * 10 },
@@ -99,7 +96,7 @@ const createHeadingStyles = (t: PdfcnTheme) => {
     trackingWider: { letterSpacing: letterSpacing.wider * 10 },
     uppercase: {
       letterSpacing: letterSpacing.wider * 10,
-      textTransform: "uppercase",
+      textTransform: 'uppercase',
     },
     weightBold: { fontWeight: fontWeights.bold },
     weightMedium: { fontWeight: fontWeights.medium },
@@ -121,13 +118,7 @@ export const Heading = ({
 }: HeadingProps) => {
   const theme = usePdfcnTheme();
   const styles = useSafeMemo(() => createHeadingStyles(theme), [theme]);
-  const safeLevel = Math.min(Math.max(Math.round(level), 1), 6) as
-    | 1
-    | 2
-    | 3
-    | 4
-    | 5
-    | 6;
+  const safeLevel = Math.min(Math.max(Math.round(level), 1), 6) as 1 | 2 | 3 | 4 | 5 | 6;
   const weightMap = {
     bold: styles.weightBold,
     medium: styles.weightMedium,
@@ -146,9 +137,7 @@ export const Heading = ({
     lowercase: styles.lowercase,
     uppercase: styles.uppercase,
   };
-  const styleArray: Style[] = [
-    styles[`h${safeLevel}` as keyof typeof styles] as Style,
-  ];
+  const styleArray: Style[] = [styles[`h${safeLevel}` as keyof typeof styles] as Style];
   if (weight && weight in weightMap) {
     styleArray.push(weightMap[weight]);
   }

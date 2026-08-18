@@ -26,7 +26,7 @@ description: Light, warm-cream developer aesthetic inspired by Replit's IDE — 
 - Body font: `"IBM Plex Sans", system-ui, -apple-system, sans-serif` — weight 400–500.
 - Mono font: `"IBM Plex Mono", ui-monospace, Menlo, monospace` — weight 400–500, used for eyebrows, labels, and code.
 - Google Fonts import: `https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap`
-- Type-scale overrides (only what differs from `slide-authoring` defaults):
+- Type-scale overrides (only what differs from `doc-authoring` defaults):
   - Hero title: 164px, `fontWeight: 700`, `letterSpacing: '-0.04em'`, `lineHeight: 0.96`
   - Section heading: 80px, `fontWeight: 700`, `letterSpacing: '-0.03em'`, `lineHeight: 1.06`
   - Body text: 34–40px
@@ -154,13 +154,13 @@ const Title = ({ children }: { children: React.ReactNode }) => (
 
 ### Footer
 
-Pull the page number from `useSlidePageNumber()` — never hardcode `pageNum` / `total` props.
+Pull the page number from `useDocPageNumber()` — never hardcode `pageNum` / `total` props.
 
 ```tsx
-import { useSlidePageNumber } from '@open-slide/core';
+import { useDocPageNumber } from '@open-pdf/core';
 
 const Footer = () => {
-  const { current, total } = useSlidePageNumber();
+  const { current, total } = useDocPageNumber();
   return (
     <div
       style={{
@@ -243,7 +243,7 @@ const LogoMark = ({ size = 36 }: { size?: number }) => (
 ```
 
 - Stagger delays: `0.05s`, `0.12s`, `0.22s`, `0.32s`, `0.40s` — never exceed `0.5s` on any element.
-- Slide transition: short Y-drift exit (150ms ease-in) + enter (220ms ease-out, 80ms delay).
+- Doc transition: short Y-drift exit (150ms ease-in) + enter (220ms ease-out, 80ms delay).
 
 ## Aesthetic
 

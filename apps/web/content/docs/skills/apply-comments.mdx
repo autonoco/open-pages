@@ -8,20 +8,20 @@ the inspector; the skill resolves them into code edits.
 
 ## What it does
 
-1. Scans the workspace for `@slide-comment` markers.
+1. Scans the workspace for `@pdf-comment` markers.
 2. For each marker, reads the surrounding code and the comment text.
 3. Edits the file to satisfy the comment.
 4. Removes the marker.
 
 ```text
 › /apply-comments
-✓ 3 markers · slides/q2-launch/index.tsx
-✓ 1 marker  · slides/intro/index.tsx
+✓ 3 markers · docs/q2-launch/index.tsx
+✓ 1 marker  · docs/intro/index.tsx
 ```
 
 ## Marker semantics
 
-A `@slide-comment` marker is a normal JSX/JS comment that the inspector
+A `@pdf-comment` marker is a normal JSX/JS comment that the inspector
 inserts next to the element you commented on. It's invisible at runtime —
 the rendered output never changes. The marker carries:
 

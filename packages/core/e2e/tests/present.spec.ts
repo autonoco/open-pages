@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { editorCanvas, enterPlayMode, openSlide } from './helpers.ts';
+import { editorCanvas, enterPlayMode, openPdf } from './helpers.ts';
 
 test.describe('present mode', () => {
   test('windowed play mode navigates and exits back to the editor', async ({ page }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await enterPlayMode(page);
 
     await page.keyboard.press('ArrowRight');
@@ -16,7 +16,7 @@ test.describe('present mode', () => {
   });
 
   test('home and end keys jump to the first and last page', async ({ page }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await enterPlayMode(page);
 
     await page.keyboard.press('End');
@@ -26,7 +26,7 @@ test.describe('present mode', () => {
   });
 
   test('steps reveal one by one before the page advances', async ({ page }) => {
-    await openSlide(page, 'steps');
+    await openPdf(page, 'steps');
     await enterPlayMode(page);
 
     await page.keyboard.press('ArrowRight');
@@ -48,7 +48,7 @@ test.describe('present mode', () => {
   });
 
   test('typing digits jumps to a page', async ({ page }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await enterPlayMode(page);
 
     await page.keyboard.press('3');
@@ -58,7 +58,7 @@ test.describe('present mode', () => {
   });
 
   test('blackout overlays toggle with b and w and clear with escape', async ({ page }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await enterPlayMode(page);
 
     const black = page.locator('div.absolute.inset-0.bg-black');
@@ -77,7 +77,7 @@ test.describe('present mode', () => {
   });
 
   test('laser pointer toggles on with l and follows the cursor', async ({ page }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await enterPlayMode(page);
 
     const viewport = page.viewportSize();
@@ -94,7 +94,7 @@ test.describe('present mode', () => {
   });
 
   test('help overlay lists the keyboard shortcuts', async ({ page }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await enterPlayMode(page);
 
     await page.keyboard.press('?');
@@ -105,26 +105,26 @@ test.describe('present mode', () => {
   });
 
   test('overview grid works while presenting', async ({ page }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await enterPlayMode(page);
 
     await page.keyboard.press('o');
-    const overview = page.getByRole('dialog', { name: 'Slide overview' });
+    const overview = page.getByRole('dialog', { name: 'Doc overview' });
     await expect(overview).toBeVisible();
-    await overview.getByRole('button', { name: 'Go to slide 2' }).click();
+    await overview.getByRole('button', { name: 'Go to doc 2' }).click();
     await expect(overview).toBeHidden();
     await expect(page).toHaveURL(/[?&]p=2/);
   });
 
   test('control bar appears near the bottom edge and navigates', async ({ page }) => {
-    await openSlide(page, 'alpha');
+    await openPdf(page, 'alpha');
     await enterPlayMode(page);
 
     const viewport = page.viewportSize();
     if (!viewport) throw new Error('viewport is not set');
     await page.mouse.move(viewport.width / 2, viewport.height - 10);
 
-    const next = page.getByRole('button', { name: 'Next slide (→)' });
+    const next = page.getByRole('button', { name: 'Next doc (→)' });
     await expect(next).toBeVisible();
     await next.click();
     await expect(page).toHaveURL(/[?&]p=2/);

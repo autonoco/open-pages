@@ -32,12 +32,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
-import { FolderIconChip, SLIDE_DND_MIME } from '../components/sidebar/folder-item';
-import { ALL_SLIDES_ID, DRAFT_ID } from '../components/sidebar/sidebar';
-import { SlideCanvas } from '../components/slide-canvas';
-import { SlidePageProvider } from '../lib/page-context';
-import type { Folder, FolderIcon, SlideModule } from '../lib/sdk';
-import { loadSlide, slideCreatedAt, slideIds } from '../lib/slides';
+import { DocCanvas } from '../components/doc-canvas';
+import { DOC_DND_MIME, FolderIconChip } from '../components/sidebar/folder-item';
+import { ALL_DOCS_ID, DRAFT_ID } from '../components/sidebar/sidebar';
+import { docCreatedAt, docIds, loadDoc } from '../lib/docs';
+import { DocPageProvider } from '../lib/page-context';
+import type { DocModule, Folder, FolderIcon } from '../lib/sdk';
 import type { HomeOutletContext } from './home-shell';
 
 type SortKey = 'created-desc' | 'created-asc' | 'title-asc' | 'title-desc';
@@ -45,7 +45,7 @@ type SortKey = 'created-desc' | 'created-asc' | 'title-asc' | 'title-desc';
 const SORT_KEYS: readonly SortKey[] = ['created-desc', 'created-asc', 'title-asc', 'title-desc'];
 
 const DEFAULT_SORT: SortKey = 'created-desc';
-const SORT_STORAGE_KEY = 'open-slide:home-sort';
+const SORT_STORAGE_KEY = 'open-pdf:home-sort';
 
 function readSortPref(): SortKey {
   if (typeof window === 'undefined') return DEFAULT_SORT;
@@ -73,30 +73,26 @@ export function Home() {
   const {
     manifest,
     loading,
-    draftSlides,
-    slidesByFolder,
+    draftDocs,
+    docsByFolder,
     selectedId,
     selectFolder,
     reportTitle,
     titleMap,
     assign,
-    renameSlide,
-    duplicateSlide,
-    deleteSlide,
+    renameDoc,
+    duplicateDoc,
+    deleteDoc,
   } = useOutletContext<HomeOutletContext>();
   const t = useLocale();
 
-  const isAll = selectedId === ALL_SLIDES_ID;
+  const isAll = selectedId === ALL_DOCS_ID;
   const isDraft = selectedId === DRAFT_ID;
   const selectedFolder =
     isAll || isDraft ? null : (manifest.folders.find((f) => f.id === selectedId) ?? null);
-  const visibleSlides = isAll
-    ? slideIds
-    : isDraft
-      ? draftSlides
-      : (slidesByFolder[selectedId] ?? []);
+  const visibleDocs = isAll ? docIds : isDraft ? draftDocs : (docsByFolder[selectedId] ?? []);
 
-  const title = selectedFolder?.name ?? (isAll ? t.home.slides : t.home.draft);
+  const title = selectedFolder?.name ?? (isAll ? t.home.docs : t.home.draft);
   const headerIcon = selectedFolder?.icon ?? {
     type: 'emoji' as const,
     value: isAll ? '🎞️' : '📝',
@@ -106,16 +102,16 @@ export function Home() {
   const [sortKey, setSortKey] = useSortPref();
 
   const trimmedQuery = query.trim().toLowerCase();
-  const filteredSlides = useMemo(() => {
-    if (!trimmedQuery) return visibleSlides;
-    return visibleSlides.filter((id) => {
+  const filteredDocs = useMemo(() => {
+    if (!trimmedQuery) return visibleDocs;
+    return visibleDocs.filter((id) => {
       if (id.toLowerCase().includes(trimmedQuery)) return true;
       const tl = titleMap[id]?.toLowerCase();
       return tl ? tl.includes(trimmedQuery) : false;
     });
-  }, [visibleSlides, titleMap, trimmedQuery]);
-  const sortedSlides = useMemo(() => {
-    const list = filteredSlides.slice();
+  }, [visibleDocs, titleMap, trimmedQuery]);
+  const sortedDocs = useMemo(() => {
+    const list = filteredDocs.slice();
     const titleOf = (id: string) => titleMap[id] ?? id;
     switch (sortKey) {
       case 'title-asc':
@@ -125,13 +121,13 @@ export function Home() {
         list.sort((a, b) => TITLE_COLLATOR.compare(titleOf(b), titleOf(a)));
         break;
       case 'created-asc':
-        list.sort((a, b) => (slideCreatedAt[a] ?? 0) - (slideCreatedAt[b] ?? 0));
+        list.sort((a, b) => (docCreatedAt[a] ?? 0) - (docCreatedAt[b] ?? 0));
         break;
       default:
-        list.sort((a, b) => (slideCreatedAt[b] ?? 0) - (slideCreatedAt[a] ?? 0));
+        list.sort((a, b) => (docCreatedAt[b] ?? 0) - (docCreatedAt[a] ?? 0));
     }
     return list;
-  }, [filteredSlides, sortKey, titleMap]);
+  }, [filteredDocs, sortKey, titleMap]);
   const isSearching = trimmedQuery.length > 0;
 
   return (
@@ -156,12 +152,12 @@ export function Home() {
             />
             <DropdownMenuContent align="start" className="min-w-[200px]">
               <DropdownMenuItem
-                onClick={() => selectFolder(ALL_SLIDES_ID)}
+                onClick={() => selectFolder(ALL_DOCS_ID)}
                 className={cn(isAll && 'bg-muted text-foreground')}
               >
                 <FolderIconChip icon={{ type: 'emoji', value: '🎞️' }} />
-                <span className="flex-1 truncate">{t.home.slides}</span>
-                <span className="folio">{slideIds.length.toString().padStart(2, '0')}</span>
+                <span className="flex-1 truncate">{t.home.docs}</span>
+                <span className="folio">{docIds.length.toString().padStart(2, '0')}</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => selectFolder(DRAFT_ID)}
@@ -169,7 +165,7 @@ export function Home() {
               >
                 <FolderIconChip icon={{ type: 'emoji', value: '📝' }} />
                 <span className="flex-1 truncate">{t.home.draft}</span>
-                <span className="folio">{draftSlides.length.toString().padStart(2, '0')}</span>
+                <span className="folio">{draftDocs.length.toString().padStart(2, '0')}</span>
               </DropdownMenuItem>
               {manifest.folders.map((f) => (
                 <DropdownMenuItem
@@ -180,7 +176,7 @@ export function Home() {
                   <FolderIconChip icon={f.icon} />
                   <span className="flex-1 truncate">{f.name}</span>
                   <span className="folio">
-                    {(slidesByFolder[f.id]?.length ?? 0).toString().padStart(2, '0')}
+                    {(docsByFolder[f.id]?.length ?? 0).toString().padStart(2, '0')}
                   </span>
                 </DropdownMenuItem>
               ))}
@@ -188,12 +184,10 @@ export function Home() {
           </DropdownMenu>
           {!loading && (
             <span className="folio ml-1 self-end pb-2">
-              {(isSearching ? filteredSlides.length : visibleSlides.length)
-                .toString()
-                .padStart(2, '0')}
+              {(isSearching ? filteredDocs.length : visibleDocs.length).toString().padStart(2, '0')}
               {isSearching && (
                 <span className="opacity-40">
-                  /{visibleSlides.length.toString().padStart(2, '0')}
+                  /{visibleDocs.length.toString().padStart(2, '0')}
                 </span>
               )}
             </span>
@@ -207,35 +201,35 @@ export function Home() {
 
       {loading ? (
         <HomeLoading />
-      ) : visibleSlides.length === 0 ? (
+      ) : visibleDocs.length === 0 ? (
         <EmptyState isDraft={isAll || isDraft} folderName={selectedFolder?.name} />
-      ) : filteredSlides.length === 0 ? (
+      ) : filteredDocs.length === 0 ? (
         <NoResultsState query={query} onClear={() => setQuery('')} />
       ) : (
         <ul className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-x-6 gap-y-9 md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
-          {sortedSlides.map((id) => (
+          {sortedDocs.map((id) => (
             <li key={id}>
-              <SlideCard
+              <DocCard
                 id={id}
                 folders={manifest.folders}
                 currentFolderId={manifest.assignments[id] ?? null}
-                onRename={(name) => renameSlide(id, name)}
+                onRename={(name) => renameDoc(id, name)}
                 onDuplicate={async () => {
-                  const slideName = titleMap[id] ?? id;
+                  const docName = titleMap[id] ?? id;
                   try {
-                    const newSlideId = await duplicateSlide(id);
+                    const newDocId = await duplicateDoc(id);
                     toast.success(
-                      format(t.home.toastSlideDuplicated, {
-                        slide: slideName,
-                        newSlide: newSlideId,
+                      format(t.home.toastDocDuplicated, {
+                        doc: docName,
+                        newDoc: newDocId,
                       }),
                     );
                   } catch {
-                    toast.error(t.home.toastSlideDuplicateFailed);
+                    toast.error(t.home.toastDocDuplicateFailed);
                   }
                 }}
                 onMove={(folderId) => assign(id, folderId)}
-                onDelete={() => deleteSlide(id)}
+                onDelete={() => deleteDoc(id)}
                 onTitleResolved={reportTitle}
               />
             </li>
@@ -334,7 +328,7 @@ function HomeLoading() {
             className="line-loader-bar absolute inset-y-[-0.5px] left-0 w-1/4 bg-foreground"
           />
         </div>
-        <span className="eyebrow text-[11.5px]">{t.slide.loadingEyebrow}</span>
+        <span className="eyebrow text-[11.5px]">{t.doc.loadingEyebrow}</span>
       </div>
     </div>
   );
@@ -379,14 +373,14 @@ function EmptyState({ isDraft, folderName }: { isDraft: boolean; folderName?: st
         {isDraft ? (
           <>
             <p className="mt-4 font-heading text-[15px] font-semibold tracking-tight">
-              {t.home.noSlidesYet}
+              {t.home.noDocsYet}
             </p>
             <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
-              {t.home.createSlideHintPrefix}
+              {t.home.createDocHintPrefix}
               <code className="rounded-[4px] bg-muted px-1.5 py-0.5 font-mono text-[11.5px] text-foreground">
-                /create-slide
+                /create-doc
               </code>
-              {t.home.createSlideHintSuffix}
+              {t.home.createDocHintSuffix}
             </p>
           </>
         ) : (
@@ -449,7 +443,7 @@ function createDragChip(title: string): HTMLElement | null {
 
 type DialogKind = null | 'rename' | 'move' | 'delete';
 
-function SlideCard({
+function DocCard({
   id,
   folders,
   currentFolderId,
@@ -468,16 +462,16 @@ function SlideCard({
   onDelete: () => Promise<void> | void;
   onTitleResolved?: (id: string, title: string) => void;
 }) {
-  const [slide, setSlide] = useState<SlideModule | null>(null);
+  const [doc, setDoc] = useState<DocModule | null>(null);
   const [dragging, setDragging] = useState(false);
   const [dialog, setDialog] = useState<DialogKind>(null);
   const tCard = useLocale();
 
   useEffect(() => {
     let cancelled = false;
-    loadSlide(id)
+    loadDoc(id)
       .then((mod) => {
-        if (!cancelled) setSlide(mod);
+        if (!cancelled) setDoc(mod);
       })
       .catch(() => {});
     return () => {
@@ -485,12 +479,12 @@ function SlideCard({
     };
   }, [id]);
 
-  const FirstPage = slide?.default[0];
-  const displayTitle = slide?.meta?.title ?? id;
+  const FirstPage = doc?.default[0];
+  const displayTitle = doc?.meta?.title ?? id;
 
   useEffect(() => {
-    if (slide && onTitleResolved) onTitleResolved(id, displayTitle);
-  }, [id, slide, displayTitle, onTitleResolved]);
+    if (doc && onTitleResolved) onTitleResolved(id, displayTitle);
+  }, [id, doc, displayTitle, onTitleResolved]);
 
   return (
     <>
@@ -498,7 +492,7 @@ function SlideCard({
       <div
         draggable
         onDragStart={(e) => {
-          e.dataTransfer.setData(SLIDE_DND_MIME, id);
+          e.dataTransfer.setData(DOC_DND_MIME, id);
           e.dataTransfer.effectAllowed = 'move';
           const chip = createDragChip(displayTitle);
           if (chip) {
@@ -511,15 +505,15 @@ function SlideCard({
         className={cn('group relative motion-safe:transition-opacity', dragging && 'opacity-40')}
       >
         <Link to={`/s/${id}`} className="block focus-visible:outline-none">
-          {/* Slide thumb — tight border, grey baseboard, no shadcn rounded-xl */}
+          {/* Doc thumb — tight border, grey baseboard, no shadcn rounded-xl */}
           <div className="relative aspect-video overflow-hidden rounded-[6px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04] group-hover:shadow-floating group-hover:ring-foreground/20 motion-safe:transition-[box-shadow,--tw-ring-color] motion-safe:duration-200">
             {FirstPage ? (
               <div className="h-full w-full motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]">
-                <SlideCanvas flat freezeMotion design={slide?.design}>
-                  <SlidePageProvider index={0} total={slide?.default.length ?? 1}>
+                <DocCanvas flat freezeMotion design={doc?.design}>
+                  <DocPageProvider index={0} total={doc?.default.length ?? 1}>
                     <FirstPage />
-                  </SlidePageProvider>
-                </SlideCanvas>
+                  </DocPageProvider>
+                </DocCanvas>
               </div>
             ) : (
               <div className="grid h-full w-full place-items-center text-[10px] tracking-[0.08em] uppercase text-muted-foreground/60">
@@ -534,13 +528,13 @@ function SlideCard({
               {displayTitle}
             </h3>
           </Link>
-          {slide?.meta?.theme && (
+          {doc?.meta?.theme && (
             <Link
-              to={`/themes/${encodeURIComponent(slide.meta.theme)}`}
+              to={`/themes/${encodeURIComponent(doc.meta.theme)}`}
               className="inline-flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
             >
               <Palette className="size-3" aria-hidden />
-              <span className="max-w-[120px] truncate">{slide.meta.theme}</span>
+              <span className="max-w-[120px] truncate">{doc.meta.theme}</span>
             </Link>
           )}
         </div>
@@ -557,7 +551,7 @@ function SlideCard({
                       e.preventDefault();
                     }}
                     className="flex size-7 items-center justify-center rounded-[5px] bg-card/90 text-foreground shadow-edge ring-1 ring-border opacity-0 backdrop-blur hover:bg-card group-hover:opacity-100 aria-expanded:opacity-100 motion-safe:transition-opacity"
-                    aria-label={tCard.home.slideActions}
+                    aria-label={tCard.home.docActions}
                   >
                     <MoreHorizontal className="size-3.5" />
                   </button>
@@ -597,7 +591,7 @@ function SlideCard({
       />
       <MoveDialog
         open={dialog === 'move'}
-        slideName={displayTitle}
+        docName={displayTitle}
         folders={folders}
         currentFolderId={currentFolderId}
         onOpenChange={(v) => setDialog(v ? 'move' : null)}
@@ -608,7 +602,7 @@ function SlideCard({
       />
       <DeleteDialog
         open={dialog === 'delete'}
-        slideName={displayTitle}
+        docName={displayTitle}
         onOpenChange={(v) => setDialog(v ? 'delete' : null)}
         onConfirm={async () => {
           await onDelete();
@@ -680,7 +674,7 @@ function RenameDialog({
             }
           }}
           maxLength={80}
-          placeholder={t.home.slideNamePlaceholder}
+          placeholder={t.home.docNamePlaceholder}
           className="h-9 w-full rounded-[6px] border border-border bg-background px-3 text-[13px] outline-none focus-visible:border-foreground/40 focus-visible:ring-2 focus-visible:ring-ring/30"
         />
         <DialogFooter>
@@ -698,14 +692,14 @@ function RenameDialog({
 
 function MoveDialog({
   open,
-  slideName,
+  docName,
   folders,
   currentFolderId,
   onOpenChange,
   onSubmit,
 }: {
   open: boolean;
-  slideName: string;
+  docName: string;
   folders: Folder[];
   currentFolderId: string | null;
   onOpenChange: (open: boolean) => void;
@@ -743,7 +737,7 @@ function MoveDialog({
           <DialogTitle>{t.home.moveDialogTitle}</DialogTitle>
           <DialogDescription>
             {t.home.moveDialogDescriptionPrefix}
-            <span className="font-medium text-foreground">{slideName}</span>
+            <span className="font-medium text-foreground">{docName}</span>
             {t.home.moveDialogDescriptionSuffix}
           </DialogDescription>
         </DialogHeader>
@@ -812,12 +806,12 @@ function FolderOption({
 
 function DeleteDialog({
   open,
-  slideName,
+  docName,
   onOpenChange,
   onConfirm,
 }: {
   open: boolean;
-  slideName: string;
+  docName: string;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => Promise<void> | void;
 }) {
@@ -845,7 +839,7 @@ function DeleteDialog({
           <DialogTitle>{t.home.deleteDialogTitle}</DialogTitle>
           <DialogDescription>
             {t.home.deleteDialogDescriptionPrefix}
-            <span className="font-medium text-foreground">{slideName}</span>
+            <span className="font-medium text-foreground">{docName}</span>
             {t.home.deleteDialogDescriptionMid}
             {t.home.deleteDialogDescriptionSuffix}
           </DialogDescription>

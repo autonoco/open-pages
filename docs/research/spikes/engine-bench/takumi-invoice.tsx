@@ -1,16 +1,16 @@
 // takumi-pdf implementation of the invoice.
 // Idiomatic: Tailwind `tw` props, a real <table> with <thead> (repeats across
 // pages), footer option with PageNumber/TotalPages primitives.
-import { readFile } from "node:fs/promises";
-import { render, PdfRenderer } from "takumi-pdf";
-import { PageNumber, TotalPages } from "takumi-pdf/primitives";
-import { LineItem, COMPANY, BILL_TO, money, totals } from "./invoice-data.js";
+import { readFile } from 'node:fs/promises';
+import { PdfRenderer, render } from 'takumi-pdf';
+import { PageNumber, TotalPages } from 'takumi-pdf/primitives';
+import { BILL_TO, COMPANY, type LineItem, money, totals } from './invoice-data.js';
 
 // Rehydrate the locally-cached Google Fonts subsets (no network at bench time).
 export async function loadFonts() {
-  const raw = JSON.parse(await readFile(new URL("./fonts/inter.json", import.meta.url), "utf8"));
+  const raw = JSON.parse(await readFile(new URL('./fonts/inter.json', import.meta.url), 'utf8'));
   return raw.map((f: any) => {
-    const bytes = Buffer.from(f.data, "base64");
+    const bytes = Buffer.from(f.data, 'base64');
     const buf = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
     return { ...f, data: () => Promise.resolve(buf) };
   });
@@ -50,7 +50,7 @@ function Invoice({ items }: { items: LineItem[] }) {
       </div>
 
       {/* Line-item table: real table markup, thead repeats on later pages */}
-      <table tw="w-full border-t border-neutral-900" style={{ borderCollapse: "collapse" }}>
+      <table tw="w-full border-t border-neutral-900" style={{ borderCollapse: 'collapse' }}>
         <thead>
           <tr tw="bg-neutral-100 border-b border-neutral-900 text-[12px]">
             <th tw="py-[8px] pr-[11px] text-left">Description</th>
@@ -61,11 +61,13 @@ function Invoice({ items }: { items: LineItem[] }) {
         </thead>
         <tbody>
           {items.map((it) => (
-            <tr key={it.sku} tw="border-b border-neutral-300" style={{ breakInside: "avoid" }}>
+            <tr key={it.sku} tw="border-b border-neutral-300" style={{ breakInside: 'avoid' }}>
               <td tw="py-[8px] pr-[11px]">
                 <div tw="flex flex-col">
                   <span>{it.description}</span>
-                  <span tw="text-[11px] text-neutral-500 mt-[3px]">{it.sku} — {it.detail}</span>
+                  <span tw="text-[11px] text-neutral-500 mt-[3px]">
+                    {it.sku} — {it.detail}
+                  </span>
                 </div>
               </td>
               <td tw="py-[8px] text-right align-top">{it.qty}</td>
@@ -77,7 +79,7 @@ function Invoice({ items }: { items: LineItem[] }) {
       </table>
 
       {/* Totals */}
-      <div tw="flex justify-end mt-[16px]" style={{ breakInside: "avoid" }}>
+      <div tw="flex justify-end mt-[16px]" style={{ breakInside: 'avoid' }}>
         <div tw="flex w-[293px] flex-col">
           <div tw="flex justify-between py-[4px]">
             <span>Subtotal</span>
@@ -95,12 +97,18 @@ function Invoice({ items }: { items: LineItem[] }) {
       </div>
 
       {/* Terms */}
-      <div tw="mt-[32px] flex flex-col border-t border-neutral-300 pt-[11px]" style={{ breakInside: "avoid" }}>
-        <span tw="text-[11px] font-bold uppercase text-neutral-500 mb-[5px]">Terms &amp; Conditions</span>
+      <div
+        tw="mt-[32px] flex flex-col border-t border-neutral-300 pt-[11px]"
+        style={{ breakInside: 'avoid' }}
+      >
+        <span tw="text-[11px] font-bold uppercase text-neutral-500 mb-[5px]">
+          Terms &amp; Conditions
+        </span>
         <p tw="text-[11px] leading-relaxed text-neutral-600 m-0">
-          Payment is due within 30 days of the invoice date. Late payments accrue interest at 1.5% per month.
-          Please reference the invoice number on all remittances. Wire details available on request.
-          All services are provided under the Master Services Agreement dated January 12, 2026.
+          Payment is due within 30 days of the invoice date. Late payments accrue interest at 1.5%
+          per month. Please reference the invoice number on all remittances. Wire details available
+          on request. All services are provided under the Master Services Agreement dated January
+          12, 2026.
         </p>
       </div>
     </main>
@@ -112,7 +120,9 @@ function Invoice({ items }: { items: LineItem[] }) {
 // re-stated here to align the footer with the content column.
 const footer = (
   <div tw="flex w-full items-center justify-between border-t border-neutral-300 px-[53px] pt-[8px] text-[11px] text-neutral-500">
-    <span>{COMPANY.name} — {COMPANY.invoiceNo}</span>
+    <span>
+      {COMPANY.name} — {COMPANY.invoiceNo}
+    </span>
     <span tw="flex">
       Page <PageNumber /> of <TotalPages />
     </span>
@@ -122,10 +132,10 @@ const footer = (
 type Fonts = Awaited<ReturnType<typeof loadFonts>>;
 
 const renderOptions = (fonts: Fonts) => ({
-  size: "a4" as const,
-  margin: { top: 53, right: 53, bottom: "auto" as const, left: 53 },
+  size: 'a4' as const,
+  margin: { top: 53, right: 53, bottom: 'auto' as const, left: 53 },
   fonts,
-  fontFamilies: ["Inter", "sans-serif"],
+  fontFamilies: ['Inter', 'sans-serif'],
   footer,
 });
 
@@ -137,6 +147,10 @@ export async function renderInvoice(items: LineItem[], fonts: Fonts): Promise<Ui
 export function makeRenderer() {
   return new PdfRenderer();
 }
-export async function renderInvoiceWith(r: PdfRenderer, items: LineItem[], fonts: Fonts): Promise<Uint8Array> {
+export async function renderInvoiceWith(
+  r: PdfRenderer,
+  items: LineItem[],
+  fonts: Fonts,
+): Promise<Uint8Array> {
   return r.render(<Invoice items={items} />, renderOptions(fonts));
 }

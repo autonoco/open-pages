@@ -1,56 +1,50 @@
-import { KeyValue } from "@/registry/bases/takumi/components/key-value/key-value";
-import { PageFooter } from "@/registry/bases/takumi/components/page-footer/page-footer";
-import { PageHeader } from "@/registry/bases/takumi/components/page-header/page-header";
-import { Section } from "@/registry/bases/takumi/components/section/section";
+import { KeyValue } from '@/registry/bases/takumi/components/key-value/key-value';
+import { PageFooter } from '@/registry/bases/takumi/components/page-footer/page-footer';
+import { PageHeader } from '@/registry/bases/takumi/components/page-header/page-header';
+import { Section } from '@/registry/bases/takumi/components/section/section';
 import {
   Table,
   TableBody,
   TableCell,
   TableHeader,
   TableRow,
-} from "@/registry/bases/takumi/components/table/table";
-import { Text } from "@/registry/bases/takumi/components/text/text";
+} from '@/registry/bases/takumi/components/table/table';
+import { Text } from '@/registry/bases/takumi/components/text/text';
 import {
   PdfcnThemeProvider,
   usePdfcnTheme,
-} from "@/registry/bases/takumi/components/theme-provider";
-import {
-  View,
-  StyleSheet,
-  Document,
-  Page,
-} from "@/registry/bases/takumi/lib/pdf-primitives";
-import type { PdfcnTheme } from "@/registry/types/pdf-themes";
+} from '@/registry/bases/takumi/components/theme-provider';
+import { Document, Page, StyleSheet, View } from '@/registry/bases/takumi/lib/pdf-primitives';
+import type { PdfcnTheme } from '@/registry/types/pdf-themes';
 
-import type { InvoiceMinimalData } from "./invoice-minimal.types";
+import type { InvoiceMinimalData } from './invoice-minimal.types';
 
 // Sample data — replace with your own props or data source
 const sampleData: InvoiceMinimalData = {
   billTo: {
-    address: "500 Enterprise Way, Building A",
-    email: "finance@enterprisecorp.io",
-    name: "Enterprise Corp",
-    phone: "+1 (555) 246-8135",
+    address: '500 Enterprise Way, Building A',
+    email: 'finance@enterprisecorp.io',
+    name: 'Enterprise Corp',
+    phone: '+1 (555) 246-8135',
   },
-  companyAddress: "Nagpur, IN",
-  companyEmail: "hello@pdfcn.app",
-  companyName: "pdfcn",
-  dueDate: "March 22, 2026",
-  invoiceDate: "February 20, 2026",
-  invoiceNumber: "INV-2026-003",
+  companyAddress: 'Nagpur, IN',
+  companyEmail: 'hello@pdfcn.app',
+  companyName: 'pdfcn',
+  dueDate: 'March 22, 2026',
+  invoiceDate: 'February 20, 2026',
+  invoiceNumber: 'INV-2026-003',
   items: [
-    { description: "Annual License Plan", quantity: 1, unitPrice: 25_000 },
-    { description: "Support & Maintenance", quantity: 12, unitPrice: 1500 },
-    { description: "Custom Integration", quantity: 1, unitPrice: 12_000 },
+    { description: 'Annual License Plan', quantity: 1, unitPrice: 25_000 },
+    { description: 'Support & Maintenance', quantity: 12, unitPrice: 1500 },
+    { description: 'Custom Integration', quantity: 1, unitPrice: 12_000 },
   ],
-  notes:
-    "Invoice for annual enterprise subscription. Please retain for your records.",
+  notes: 'Invoice for annual enterprise subscription. Please retain for your records.',
   paymentTerms: {
-    dueDate: "March 22, 2026",
-    gst: "GSTIN 123456789",
-    method: "ACH Transfer / Check",
+    dueDate: 'March 22, 2026',
+    gst: 'GSTIN 123456789',
+    method: 'ACH Transfer / Check',
   },
-  subtitle: "Innovative PDF Solutions",
+  subtitle: 'Innovative PDF Solutions',
   summary: {
     subtotal: 55_000,
     tax: 3850,
@@ -65,31 +59,31 @@ const InvoiceMinimalContent = ({ data }: { data: InvoiceMinimalData }) => {
     infoLabel: {
       color: theme.colors.primary,
       fontSize: 8,
-      fontWeight: "bold",
+      fontWeight: 'bold',
       letterSpacing: 0.8,
       marginBottom: 4,
-      textTransform: "uppercase",
+      textTransform: 'uppercase',
     },
     infoRow: {
-      flexDirection: "row",
+      flexDirection: 'row',
       marginBottom: theme.spacing.sectionGap,
     },
     invoiceStamp: {
-      alignSelf: "flex-start",
+      alignSelf: 'flex-start',
       borderColor: theme.colors.primary,
       borderRadius: theme.primitives.borderRadius.sm,
-      borderStyle: "solid",
+      borderStyle: 'solid',
       borderWidth: 2,
       paddingHorizontal: 12,
       paddingVertical: 8,
     },
     page: {
       backgroundColor: theme.colors.background,
-      boxSizing: "border-box",
+      boxSizing: 'border-box',
       minHeight: 841,
       padding: theme.spacing.page.marginTop,
       paddingBottom: theme.spacing.page.marginBottom,
-      position: "relative",
+      position: 'relative',
     },
   });
 
@@ -99,8 +93,8 @@ const InvoiceMinimalContent = ({ data }: { data: InvoiceMinimalData }) => {
         <Section
           noWrap
           style={{
-            alignItems: "flex-start",
-            flexDirection: "row",
+            alignItems: 'flex-start',
+            flexDirection: 'row',
             marginBottom: theme.spacing.sectionGap,
           }}
         >
@@ -117,8 +111,8 @@ const InvoiceMinimalContent = ({ data }: { data: InvoiceMinimalData }) => {
               style={{
                 color: theme.colors.primary,
                 fontSize: 7,
-                fontWeight: "bold",
-                textAlign: "right",
+                fontWeight: 'bold',
+                textAlign: 'right',
               }}
               noMargin
               transform="uppercase"
@@ -129,8 +123,8 @@ const InvoiceMinimalContent = ({ data }: { data: InvoiceMinimalData }) => {
               style={{
                 color: theme.colors.foreground,
                 fontSize: 14,
-                fontWeight: "bold",
-                textAlign: "right",
+                fontWeight: 'bold',
+                textAlign: 'right',
               }}
               noMargin
             >
@@ -140,7 +134,7 @@ const InvoiceMinimalContent = ({ data }: { data: InvoiceMinimalData }) => {
               style={{
                 color: theme.colors.mutedForeground,
                 fontSize: 8,
-                textAlign: "right",
+                textAlign: 'right',
               }}
               noMargin
             >
@@ -149,7 +143,7 @@ const InvoiceMinimalContent = ({ data }: { data: InvoiceMinimalData }) => {
           </View>
         </Section>
         <View style={styles.infoRow}>
-          <View style={{ paddingRight: 20, width: "50%" }}>
+          <View style={{ paddingRight: 20, width: '50%' }}>
             <Text style={styles.infoLabel} noMargin>
               Bill To
             </Text>
@@ -166,16 +160,16 @@ const InvoiceMinimalContent = ({ data }: { data: InvoiceMinimalData }) => {
               {data.billTo.phone}
             </Text>
           </View>
-          <View style={{ width: "50%" }}>
+          <View style={{ width: '50%' }}>
             <Text style={styles.infoLabel} noMargin>
               Invoice Details
             </Text>
             <KeyValue
               size="sm"
               items={[
-                { key: "Due Date", value: data.dueDate },
-                { key: "Payment", value: data.paymentTerms.method },
-                { key: "GST", value: data.paymentTerms.gst },
+                { key: 'Due Date', value: data.dueDate },
+                { key: 'Payment', value: data.paymentTerms.method },
+                { key: 'GST', value: data.paymentTerms.gst },
               ]}
             />
           </View>
@@ -201,7 +195,7 @@ const InvoiceMinimalContent = ({ data }: { data: InvoiceMinimalData }) => {
             ))}
           </TableBody>
         </Table>
-        <Section noWrap style={{ flexDirection: "row", marginTop: 20 }}>
+        <Section noWrap style={{ flexDirection: 'row', marginTop: 20 }}>
           <View style={{ flex: 1 }} />
           <View style={{ width: 240 }}>
             <KeyValue
@@ -209,18 +203,18 @@ const InvoiceMinimalContent = ({ data }: { data: InvoiceMinimalData }) => {
               dividerThickness={1}
               items={[
                 {
-                  key: "Subtotal",
+                  key: 'Subtotal',
                   value: `$${data.summary.subtotal.toFixed(2)}`,
                 },
-                { key: "Tax (7%)", value: `$${data.summary.tax.toFixed(2)}` },
+                { key: 'Tax (7%)', value: `$${data.summary.tax.toFixed(2)}` },
                 {
-                  key: "Balance Due",
-                  keyStyle: { fontSize: 12, fontWeight: "bold" },
+                  key: 'Balance Due',
+                  keyStyle: { fontSize: 12, fontWeight: 'bold' },
                   value: `$${data.summary.total.toFixed(2)}`,
                   valueStyle: {
                     color: theme.colors.primary,
                     fontSize: 13,
-                    fontWeight: "bold",
+                    fontWeight: 'bold',
                   },
                 },
               ]}
@@ -228,12 +222,7 @@ const InvoiceMinimalContent = ({ data }: { data: InvoiceMinimalData }) => {
             />
           </View>
         </Section>
-        <PageFooter
-          leftText={data.notes}
-          rightText="Page 1 of 1"
-          sticky
-          pagePadding={25}
-        />
+        <PageFooter leftText={data.notes} rightText="Page 1 of 1" sticky pagePadding={25} />
       </Page>
     </Document>
   );

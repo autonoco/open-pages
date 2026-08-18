@@ -1,19 +1,19 @@
-import type { ColorTokens } from "@/registry/types/pdf-themes";
+import type { ColorTokens } from '@/registry/types/pdf-themes';
 
 /** Theme color token keys that can be used for the color prop */
 export const THEME_COLOR_KEYS = [
-  "foreground",
-  "background",
-  "muted",
-  "mutedForeground",
-  "primary",
-  "primaryForeground",
-  "border",
-  "accent",
-  "destructive",
-  "success",
-  "warning",
-  "info",
+  'foreground',
+  'background',
+  'muted',
+  'mutedForeground',
+  'primary',
+  'primaryForeground',
+  'border',
+  'accent',
+  'destructive',
+  'success',
+  'warning',
+  'info',
 ] as const satisfies (keyof ColorTokens)[];
 
 /** Resolves a color value: theme token key → hex, or raw CSS color as-is. */

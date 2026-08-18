@@ -1,24 +1,18 @@
-import { Children, cloneElement, isValidElement } from "react";
-import type { ReactElement, ReactNode } from "react";
+import type { ReactElement, ReactNode } from 'react';
+import { Children, cloneElement, isValidElement } from 'react';
 
-import {
-  usePdfcnTheme,
-  useSafeMemo,
-} from "@/registry/bases/takumi/components/theme-provider";
-import {
-  View,
-  Text as PDFText,
-} from "@/registry/bases/takumi/lib/pdf-primitives";
-import type { Style } from "@/registry/bases/takumi/lib/pdf-primitives";
+import { usePdfcnTheme, useSafeMemo } from '@/registry/bases/takumi/components/theme-provider';
+import type { Style } from '@/registry/bases/takumi/lib/pdf-primitives';
+import { Text as PDFText, View } from '@/registry/bases/takumi/lib/pdf-primitives';
 
-import { createTableStyles } from "./table.styles";
+import { createTableStyles } from './table.styles';
 import type {
   TableCellProps,
   TableProps,
   TableRowProps,
   TableSectionProps,
   TableVariant,
-} from "./table.types";
+} from './table.types';
 
 export const TableHeader = ({ children, style }: TableSectionProps) => (
   <View style={style}>{children}</View>
@@ -39,22 +33,20 @@ export const TableCell = ({
   width,
   children,
   style,
-  variant = "line",
+  variant = 'line',
   _last,
 }: TableCellProps) => {
   const theme = usePdfcnTheme();
   const styles = useSafeMemo(() => createTableStyles(theme), [theme]);
   const cellStyles: Style[] =
-    width === undefined
-      ? [styles.cell]
-      : [styles.cellFixed, { width } as Style];
+    width === undefined ? [styles.cell] : [styles.cellFixed, { width } as Style];
 
   const cellVariantStyle = (
     {
       bordered: styles.cellBordered,
       compact: styles.cellCompact,
       minimal: styles.cellMinimal,
-      "primary-header": styles.cellPrimaryHeader,
+      'primary-header': styles.cellPrimaryHeader,
       striped: styles.cellStriped,
     } as Partial<Record<TableVariant, Style>>
   )[variant];
@@ -62,9 +54,9 @@ export const TableCell = ({
     cellStyles.push(cellVariantStyle);
   }
 
-  if (variant === "grid" && !_last) {
+  if (variant === 'grid' && !_last) {
     cellStyles.push(styles.cellGridBorder);
-  } else if (variant === "bordered" && !_last) {
+  } else if (variant === 'bordered' && !_last) {
     cellStyles.push(styles.cellBorderedBorder);
   }
 
@@ -82,24 +74,18 @@ export const TableCell = ({
       grid: styles.cellTextHeaderGrid,
       line: styles.cellTextHeaderLine,
       minimal: styles.cellTextHeaderMinimal,
-      "primary-header": styles.cellTextHeaderPrimaryHeader,
+      'primary-header': styles.cellTextHeaderPrimaryHeader,
       striped: styles.cellTextHeaderStriped,
     }[variant];
   } else if (footer) {
     textStyle = styles.cellTextFooter;
-  } else if (variant === "compact") {
+  } else if (variant === 'compact') {
     textStyle = styles.cellTextCompact;
   }
 
   const content =
-    typeof children === "string" ? (
-      <PDFText
-        style={[
-          textStyle,
-          align ? { textAlign: align } : {},
-          { margin: 0, padding: 0 },
-        ]}
-      >
+    typeof children === 'string' ? (
+      <PDFText style={[textStyle, align ? { textAlign: align } : {}, { margin: 0, padding: 0 }]}>
         {children}
       </PDFText>
     ) : (
@@ -115,7 +101,7 @@ export const TableRow = ({
   stripe,
   children,
   style,
-  variant = "line",
+  variant = 'line',
 }: TableRowProps) => {
   const theme = usePdfcnTheme();
   const styles = useSafeMemo(() => createTableStyles(theme), [theme]);
@@ -127,7 +113,7 @@ export const TableRow = ({
       grid: styles.rowGrid,
       line: styles.rowLine,
       minimal: styles.rowMinimal,
-      "primary-header": styles.rowPrimaryHeader,
+      'primary-header': styles.rowPrimaryHeader,
       striped: styles.rowStriped,
     }[variant],
   ];
@@ -140,14 +126,14 @@ export const TableRow = ({
         grid: styles.rowHeaderGrid,
         line: styles.rowHeaderLine,
         minimal: styles.rowHeaderMinimal,
-        "primary-header": styles.rowHeaderPrimaryHeader,
+        'primary-header': styles.rowHeaderPrimaryHeader,
         striped: styles.rowHeaderStriped,
-      }[variant]
+      }[variant],
     );
   }
 
   if (footer) {
-    if (variant === "striped") {
+    if (variant === 'striped') {
       rowStyles.push(styles.rowFooterStriped);
     } else {
       rowStyles.push(styles.rowFooter);
@@ -173,11 +159,7 @@ export const TableRow = ({
   });
 
   return (
-    <View
-      style={[{ breakInside: "avoid" as const }, styleArray]
-        .flat()
-        .filter(Boolean)}
-    >
+    <View style={[{ breakInside: 'avoid' as const }, styleArray].flat().filter(Boolean)}>
       {processedChildren}
     </View>
   );
@@ -186,7 +168,7 @@ export const TableRow = ({
 const processTableChildren = (
   children: ReactNode,
   variant: TableVariant,
-  zebraStripe: boolean
+  zebraStripe: boolean,
 ): ReactNode => {
   let bodyRowIndex = 0;
 
@@ -195,35 +177,25 @@ const processTableChildren = (
       return child;
     }
 
-    if (
-      child.type === TableHeader ||
-      child.type === TableBody ||
-      child.type === TableFooter
-    ) {
+    if (child.type === TableHeader || child.type === TableBody || child.type === TableFooter) {
       const isBody = child.type === TableBody;
       const sectionChild = child as ReactElement<TableSectionProps>;
-      const sectionChildren = Children.map(
-        sectionChild.props.children,
-        (rowChild) => {
-          if (isValidElement(rowChild) && rowChild.type === TableRow) {
-            const rowProps: Partial<TableRowProps> = { variant };
+      const sectionChildren = Children.map(sectionChild.props.children, (rowChild) => {
+        if (isValidElement(rowChild) && rowChild.type === TableRow) {
+          const rowProps: Partial<TableRowProps> = { variant };
 
-            if (isBody && zebraStripe) {
-              const isStripe = bodyRowIndex % 2 === 1;
-              bodyRowIndex += 1;
-              if (isStripe) {
-                rowProps.stripe = true;
-              }
+          if (isBody && zebraStripe) {
+            const isStripe = bodyRowIndex % 2 === 1;
+            bodyRowIndex += 1;
+            if (isStripe) {
+              rowProps.stripe = true;
             }
-
-            return cloneElement(
-              rowChild as ReactElement<TableRowProps>,
-              rowProps
-            );
           }
-          return rowChild;
+
+          return cloneElement(rowChild as ReactElement<TableRowProps>, rowProps);
         }
-      );
+        return rowChild;
+      });
 
       return cloneElement(child, {}, sectionChildren);
     }
@@ -239,14 +211,14 @@ const processTableChildren = (
 export const Table = ({
   children,
   style,
-  variant = "line",
+  variant = 'line',
   zebraStripe = false,
   noWrap = false,
 }: TableProps) => {
   const theme = usePdfcnTheme();
   const styles = useSafeMemo(() => createTableStyles(theme), [theme]);
   const tableStyles: Style[] = [styles.table];
-  const effectiveZebra = variant === "striped" ? true : zebraStripe;
+  const effectiveZebra = variant === 'striped' ? true : zebraStripe;
 
   tableStyles.push(
     {
@@ -255,23 +227,17 @@ export const Table = ({
       grid: styles.tableGrid,
       line: styles.tableLine,
       minimal: styles.tableMinimal,
-      "primary-header": styles.tablePrimaryHeader,
+      'primary-header': styles.tablePrimaryHeader,
       striped: styles.tableStriped,
-    }[variant]
+    }[variant],
   );
 
   const styleArray = style ? [...tableStyles, style] : tableStyles;
-  const processedChildren = processTableChildren(
-    children,
-    variant,
-    effectiveZebra
-  );
+  const processedChildren = processTableChildren(children, variant, effectiveZebra);
 
   const inner = <View style={styleArray}>{processedChildren}</View>;
   return noWrap ? (
-    <View style={[{ breakInside: "avoid" as const }].filter(Boolean)}>
-      {inner}
-    </View>
+    <View style={[{ breakInside: 'avoid' as const }].filter(Boolean)}>{inner}</View>
   ) : (
     inner
   );

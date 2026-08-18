@@ -1,26 +1,19 @@
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
-import {
-  usePdfcnTheme,
-  useSafeMemo,
-} from "@/registry/bases/takumi/components/theme-provider";
-import {
-  View,
-  Text as PDFText,
-  StyleSheet,
-} from "@/registry/bases/takumi/lib/pdf-primitives";
-import type { Style } from "@/registry/bases/takumi/lib/pdf-primitives";
-import type { PDFComponentProps } from "@/registry/types/pdf-components";
-import type { PdfcnTheme } from "@/registry/types/pdf-themes";
+import { usePdfcnTheme, useSafeMemo } from '@/registry/bases/takumi/components/theme-provider';
+import type { Style } from '@/registry/bases/takumi/lib/pdf-primitives';
+import { Text as PDFText, StyleSheet, View } from '@/registry/bases/takumi/lib/pdf-primitives';
+import type { PDFComponentProps } from '@/registry/types/pdf-components';
+import type { PdfcnTheme } from '@/registry/types/pdf-themes';
 
-export type CardVariant = "default" | "bordered" | "muted";
+export type CardVariant = 'default' | 'bordered' | 'muted';
 
 /**
  * Bordered content card with optional title and padding presets.
  * Props - `title` | `children` | `variant` | `padding` | `wrap` | `style`
  * @see {@link PdfCardProps}
  */
-export interface PdfCardProps extends Omit<PDFComponentProps, "children"> {
+export interface PdfCardProps extends Omit<PDFComponentProps, 'children'> {
   title?: string;
   children?: ReactNode;
   /**
@@ -30,7 +23,7 @@ export interface PdfCardProps extends Omit<PDFComponentProps, "children"> {
   /**
    * @default 'md'
    */
-  padding?: "sm" | "md" | "lg";
+  padding?: 'sm' | 'md' | 'lg';
   /**
    * When false, the card will not split across PDF pages.
    * @default false
@@ -51,7 +44,7 @@ const createCardStyles = (t: PdfcnTheme) => {
       backgroundColor: t.colors.background,
       borderColor: t.colors.border,
       borderRadius: borderRadius.sm,
-      borderStyle: "solid",
+      borderStyle: 'solid',
       borderWidth: 1,
       marginBottom: t.spacing.componentGap,
     },
@@ -62,7 +55,7 @@ const createCardStyles = (t: PdfcnTheme) => {
     paddingSm: { padding: spacing[2] },
     title: {
       borderBottomColor: t.colors.border,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: 1,
       color: t.colors.foreground,
       fontFamily: t.typography.heading.fontFamily,
@@ -78,8 +71,8 @@ const createCardStyles = (t: PdfcnTheme) => {
 export const PdfCard = ({
   title,
   children,
-  variant = "default",
-  padding = "md",
+  variant = 'default',
+  padding = 'md',
   wrap = false,
   style,
 }: PdfCardProps) => {
@@ -91,10 +84,10 @@ export const PdfCard = ({
     sm: styles.paddingSm,
   };
   const cardStyles: Style[] = [styles.card];
-  if (variant === "bordered") {
+  if (variant === 'bordered') {
     cardStyles.push(styles.cardBordered);
   }
-  if (variant === "muted") {
+  if (variant === 'muted') {
     cardStyles.push(styles.cardMuted);
   }
   cardStyles.push(paddingMap[padding]);
@@ -104,11 +97,7 @@ export const PdfCard = ({
   return (
     <View wrap={wrap} style={cardStyles}>
       {title ? <PDFText style={styles.title}>{title}</PDFText> : null}
-      {typeof children === "string" ? (
-        <PDFText style={styles.body}>{children}</PDFText>
-      ) : (
-        children
-      )}
+      {typeof children === 'string' ? <PDFText style={styles.body}>{children}</PDFText> : children}
     </View>
   );
 };

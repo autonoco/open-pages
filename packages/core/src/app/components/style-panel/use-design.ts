@@ -14,21 +14,21 @@ export type UseDesignReturn = FetchedState & {
   reset: () => Promise<{ ok: boolean; error?: string }>;
 };
 
-export function useDesign(slideId: string): UseDesignReturn {
+export function useDesign(docId: string): UseDesignReturn {
   const [state, setState] = useState<FetchedState>({
     design: null,
     exists: false,
     warning: null,
     loaded: false,
   });
-  const slideIdRef = useRef(slideId);
-  slideIdRef.current = slideId;
+  const docIdRef = useRef(docId);
+  docIdRef.current = docId;
 
   const refresh = useCallback(async () => {
-    const id = slideIdRef.current;
+    const id = docIdRef.current;
     if (!id) return;
     try {
-      const res = await fetch(`/__design?slideId=${encodeURIComponent(id)}`);
+      const res = await fetch(`/__design?docId=${encodeURIComponent(id)}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const body = (await res.json()) as {
         design: DesignSystem;
@@ -52,10 +52,10 @@ export function useDesign(slideId: string): UseDesignReturn {
   }, [refresh]);
 
   const save = useCallback(async (patch: Partial<DesignSystem>) => {
-    const id = slideIdRef.current;
-    if (!id) return { ok: false, error: 'no slide id' };
+    const id = docIdRef.current;
+    if (!id) return { ok: false, error: 'no doc id' };
     try {
-      const res = await fetch(`/__design?slideId=${encodeURIComponent(id)}`, {
+      const res = await fetch(`/__design?docId=${encodeURIComponent(id)}`, {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ patch }),
@@ -84,10 +84,10 @@ export function useDesign(slideId: string): UseDesignReturn {
   }, []);
 
   const reset = useCallback(async () => {
-    const id = slideIdRef.current;
-    if (!id) return { ok: false, error: 'no slide id' };
+    const id = docIdRef.current;
+    if (!id) return { ok: false, error: 'no doc id' };
     try {
-      const res = await fetch(`/__design/reset?slideId=${encodeURIComponent(id)}`, {
+      const res = await fetch(`/__design/reset?docId=${encodeURIComponent(id)}`, {
         method: 'POST',
       });
       const body = (await res.json()) as { ok?: boolean; error?: string; design?: DesignSystem };

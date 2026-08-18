@@ -4,12 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "open-slide dev",
-    "build": "open-slide build",
-    "preview": "open-slide preview"
+    "dev": "open-pdf dev",
+    "build": "open-pdf build",
+    "preview": "open-pdf preview"
   },
   "dependencies": {
-    "@open-slide/core": "workspace:*",
+    "@open-pdf/core": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

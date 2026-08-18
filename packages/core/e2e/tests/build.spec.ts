@@ -10,13 +10,13 @@ import {
   waitForHttpOk,
 } from './helpers.ts';
 
-const FLAGS_CONFIG = `import type { OpenSlideConfig } from '@open-slide/core';
+const FLAGS_CONFIG = `import type { OpenPdfConfig } from '@open-pdf/core';
 
-const openSlideConfig: OpenSlideConfig = {
-  build: { showSlideBrowser: false, showSlideUi: false },
+const openPdfConfig: OpenPdfConfig = {
+  build: { showDocBrowser: false, showDocUi: false },
 };
 
-export default openSlideConfig;
+export default openPdfConfig;
 `;
 
 test.describe('static build and preview', () => {
@@ -41,26 +41,26 @@ test.describe('static build and preview', () => {
     if (preview) await stopServer(preview);
   });
 
-  test('emits a single-page bundle with per-slide chunks', async () => {
+  test('emits a single-page bundle with per-doc chunks', async () => {
     const dist = path.join(projectDir, 'dist');
     const entries = await fs.readdir(dist);
     expect(entries.filter((name) => name.endsWith('.html'))).toEqual(['index.html']);
 
     const html = await fs.readFile(path.join(dist, 'index.html'), 'utf8');
     expect(html).toContain('<div id="root"></div>');
-    expect(html).toContain('<title>open-slide</title>');
+    expect(html).toContain('<title>open-pdf</title>');
 
-    // Each slide is lazily imported, so the deck code-splits into at least one
-    // chunk per slide plus the entry chunk. The exact chunk filenames depend on
+    // Each doc is lazily imported, so the deck code-splits into at least one
+    // chunk per doc plus the entry chunk. The exact chunk filenames depend on
     // the bundler (Rollup names them after the module basename, `index-*.js`),
     // so assert the split happened rather than pinning a naming convention.
-    const slideCount = 4;
+    const docCount = 4;
     const assets = await fs.readdir(path.join(dist, 'assets'));
     const jsChunks = assets.filter((name) => name.endsWith('.js'));
-    expect(jsChunks.length).toBeGreaterThanOrEqual(slideCount + 1);
+    expect(jsChunks.length).toBeGreaterThanOrEqual(docCount + 1);
   });
 
-  test('serves the slide browser from the static bundle', async ({ page }) => {
+  test('serves the doc browser from the static bundle', async ({ page }) => {
     await page.goto(`${baseUrl}/`);
     await expect(page.getByText('Alpha Deck')).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText('Steps Deck')).toBeVisible();
@@ -88,7 +88,7 @@ test.describe('build flags', () => {
   test.beforeAll(async () => {
     test.setTimeout(300_000);
     const projectDir = prepareScratchProject('build-flags');
-    await fs.writeFile(path.join(projectDir, 'open-slide.config.ts'), FLAGS_CONFIG);
+    await fs.writeFile(path.join(projectDir, 'open-pdf.config.ts'), FLAGS_CONFIG);
     const res = await runCli(['build'], projectDir);
     expect(res.code, res.stderr).toBe(0);
     preview = startCliServer(
@@ -102,12 +102,12 @@ test.describe('build flags', () => {
     if (preview) await stopServer(preview);
   });
 
-  test('showSlideBrowser false hides the home browser', async ({ page }) => {
+  test('showDocBrowser false hides the home browser', async ({ page }) => {
     await page.goto(`${baseUrl}/`);
     await expect(page.getByText('Page not found')).toBeVisible();
   });
 
-  test('showSlideUi false serves a bare read-only player', async ({ page }) => {
+  test('showDocUi false serves a bare read-only player', async ({ page }) => {
     await page.goto(`${baseUrl}/s/alpha`);
     await expect(page.getByText('Alpha page one')).toBeVisible({ timeout: 30_000 });
     await expect(page.locator('main[data-inspector-root]')).toHaveCount(0);

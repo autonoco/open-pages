@@ -1,29 +1,23 @@
 import { expect, test } from '@playwright/test';
-import {
-  deleteSlide,
-  duplicateSlide,
-  editorCanvas,
-  openSlide,
-  readSlideSource,
-} from './helpers.ts';
+import { deleteDoc, duplicateDoc, editorCanvas, openPdf, readDocSource } from './helpers.ts';
 
 test.describe('inspector editing', () => {
-  const createdSlides: string[] = [];
+  const createdDocs: string[] = [];
 
   test.afterEach(async ({ request }) => {
-    for (const id of createdSlides.splice(0)) {
-      await deleteSlide(request, id);
+    for (const id of createdDocs.splice(0)) {
+      await deleteDoc(request, id);
     }
   });
 
   async function openEditable(
     page: import('@playwright/test').Page,
     request: import('@playwright/test').APIRequestContext,
-    slideId: string,
+    docId: string,
   ) {
-    createdSlides.push(slideId);
-    await duplicateSlide(request, 'edit-target', slideId);
-    await openSlide(page, slideId);
+    createdDocs.push(docId);
+    await duplicateDoc(request, 'edit-target', docId);
+    await openPdf(page, docId);
   }
 
   test('selecting an element opens the panel with its tag and text', async ({ page, request }) => {
@@ -37,7 +31,7 @@ test.describe('inspector editing', () => {
     await expect(panel.getByPlaceholder('Element text')).toHaveValue('Editable headline');
   });
 
-  test('saving a text edit rewrites the slide source on disk', async ({ page, request }) => {
+  test('saving a text edit rewrites the doc source on disk', async ({ page, request }) => {
     await openEditable(page, request, 'insp-save');
     await page.getByTitle('Inspect').click();
     await editorCanvas(page).getByText('Editable headline').click();
@@ -54,7 +48,7 @@ test.describe('inspector editing', () => {
     );
     await page.getByRole('button', { name: 'Save' }).click();
     expect((await saved).status()).toBe(200);
-    await expect.poll(() => readSlideSource('insp-save')).toContain('Edited via inspector');
+    await expect.poll(() => readDocSource('insp-save')).toContain('Edited via inspector');
   });
 
   test('discard reverts the edit without touching the file', async ({ page, request }) => {
@@ -70,7 +64,7 @@ test.describe('inspector editing', () => {
 
     await page.getByRole('button', { name: 'Discard' }).click();
     await expect(editorCanvas(page).getByText('Editable headline')).toBeVisible();
-    expect(await readSlideSource('insp-discard')).not.toContain('Discarded text');
+    expect(await readDocSource('insp-discard')).not.toContain('Discarded text');
   });
 
   test('toggling the inspector off commits pending edits', async ({ page, request }) => {
@@ -88,7 +82,7 @@ test.describe('inspector editing', () => {
     );
     await page.getByTitle('Inspect').click();
     expect((await saved).status()).toBe(200);
-    await expect.poll(() => readSlideSource('insp-commit')).toContain('Committed body copy');
+    await expect.poll(() => readDocSource('insp-commit')).toContain('Committed body copy');
   });
 
   test('style toggles restyle the element live and save to disk', async ({ page, request }) => {
@@ -114,8 +108,8 @@ test.describe('inspector editing', () => {
     );
     await page.getByRole('button', { name: 'Save' }).click();
     expect((await saved).status()).toBe(200);
-    await expect.poll(() => readSlideSource('insp-style')).toContain('textAlign');
-    const src = await readSlideSource('insp-style');
+    await expect.poll(() => readDocSource('insp-style')).toContain('textAlign');
+    const src = await readDocSource('insp-style');
     expect(src).toContain('fontWeight');
     expect(src).toContain('fontStyle');
   });

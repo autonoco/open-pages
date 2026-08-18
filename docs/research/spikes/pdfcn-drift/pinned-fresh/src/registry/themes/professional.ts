@@ -1,6 +1,6 @@
-import type { PdfcnTheme } from "@/registry/types/pdf-themes";
+import type { PdfcnTheme } from '@/registry/types/pdf-themes';
 
-import { defaultPrimitives } from "./primitives";
+import { defaultPrimitives } from './primitives';
 
 /**
  * Professional theme preset.
@@ -11,23 +11,23 @@ import { defaultPrimitives } from "./primitives";
  */
 export const professionalTheme: PdfcnTheme = {
   colors: {
-    accent: "#3b82f6",
-    background: "#ffffff",
-    border: "#e4e4e7",
-    destructive: "#dc2626",
-    foreground: "#18181b",
-    info: "#0ea5e9",
-    muted: "#f4f4f5",
-    mutedForeground: "#71717a",
-    primary: "#18181b",
-    primaryForeground: "#ffffff",
-    success: "#16a34a",
-    warning: "#d97706",
+    accent: '#3b82f6',
+    background: '#ffffff',
+    border: '#e4e4e7',
+    destructive: '#dc2626',
+    foreground: '#18181b',
+    info: '#0ea5e9',
+    muted: '#f4f4f5',
+    mutedForeground: '#71717a',
+    primary: '#18181b',
+    primaryForeground: '#ffffff',
+    success: '#16a34a',
+    warning: '#d97706',
   },
-  name: "professional",
+  name: 'professional',
   page: {
-    orientation: "portrait",
-    size: "A4",
+    orientation: 'portrait',
+    size: 'A4',
   },
   primitives: defaultPrimitives,
   spacing: {
@@ -43,12 +43,12 @@ export const professionalTheme: PdfcnTheme = {
   },
   typography: {
     body: {
-      fontFamily: "Helvetica",
+      fontFamily: 'Helvetica',
       fontSize: 11,
       lineHeight: 1.6,
     },
     heading: {
-      fontFamily: "Times-Roman",
+      fontFamily: 'Times-Roman',
       fontSize: {
         h1: 32,
         h2: 24,

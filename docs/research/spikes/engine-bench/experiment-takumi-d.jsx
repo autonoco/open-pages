@@ -1,21 +1,29 @@
 // D: the invoice's exact table, standalone, 36 rows — does a row split at the boundary?
-import { writeFile, readFile } from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { render } from "takumi-pdf";
-import { makeItems, money } from "./data.mjs";
+import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { render } from 'takumi-pdf';
+import { makeItems, money } from './data.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const interDir = path.join(here, "node_modules/@fontsource/inter/files");
+const interDir = path.join(here, 'node_modules/@fontsource/inter/files');
 const fonts = [
-  { name: "Inter", weight: 400, data: await readFile(path.join(interDir, "inter-latin-400-normal.woff2")) },
-  { name: "Inter", weight: 700, data: await readFile(path.join(interDir, "inter-latin-700-normal.woff2")) },
+  {
+    name: 'Inter',
+    weight: 400,
+    data: await readFile(path.join(interDir, 'inter-latin-400-normal.woff2')),
+  },
+  {
+    name: 'Inter',
+    weight: 700,
+    data: await readFile(path.join(interDir, 'inter-latin-700-normal.woff2')),
+  },
 ];
 
 const items = makeItems(3);
 
 const table = (
-  <table tw="w-full border border-slate-300 text-[12px]" style={{ borderCollapse: "collapse" }}>
+  <table tw="w-full border border-slate-300 text-[12px]" style={{ borderCollapse: 'collapse' }}>
     <thead>
       <tr tw="bg-slate-100 font-bold">
         <th tw="p-2 text-left border-b border-slate-300">SKU</th>
@@ -27,7 +35,7 @@ const table = (
     </thead>
     <tbody>
       {items.map((it, i) => (
-        <tr key={i} tw="border-b border-slate-200" style={{ breakInside: "avoid" }}>
+        <tr key={i} tw="border-b border-slate-200" style={{ breakInside: 'avoid' }}>
           <td tw="p-2 align-top">{it.sku}</td>
           <td tw="p-2 align-top">
             <div tw="flex flex-col">
@@ -44,7 +52,12 @@ const table = (
   </table>
 );
 
-await writeFile("exp-d-invoicetable.pdf", await render(table, {
-  size: "a4", fonts, fontFamilies: ["Inter"],
-}));
-console.log("done");
+await writeFile(
+  'exp-d-invoicetable.pdf',
+  await render(table, {
+    size: 'a4',
+    fonts,
+    fontFamilies: ['Inter'],
+  }),
+);
+console.log('done');

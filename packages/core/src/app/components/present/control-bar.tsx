@@ -94,14 +94,10 @@ export function PresentControlBar({
               visible ? 'pointer-events-auto' : 'pointer-events-none',
             )}
           >
-            <BarButton label={t.present.prevSlideAria} onClick={onPrev} disabled={index === 0}>
+            <BarButton label={t.present.prevDocAria} onClick={onPrev} disabled={index === 0}>
               <ChevronLeft className="size-4" />
             </BarButton>
-            <BarButton
-              label={t.present.nextSlideAria}
-              onClick={onNext}
-              disabled={index >= total - 1}
-            >
+            <BarButton label={t.present.nextDocAria} onClick={onNext} disabled={index >= total - 1}>
               <ChevronRight className="size-4" />
             </BarButton>
 
@@ -167,7 +163,7 @@ export function PresentControlBar({
           >
             <div className="flex h-10 w-fit items-center gap-0.5 rounded-full border border-white/10 bg-black/60 px-1 text-white/85 shadow-[0_8px_30px_-8px_oklch(0_0_0/0.65)] backdrop-blur-md">
               <MobileBarButton
-                label={t.present.prevSlideAria}
+                label={t.present.prevDocAria}
                 onClick={() => handleMobileAction(onPrev)}
                 disabled={index === 0}
               >
@@ -179,7 +175,7 @@ export function PresentControlBar({
                 <span>{total}</span>
               </span>
               <MobileBarButton
-                label={t.present.nextSlideAria}
+                label={t.present.nextDocAria}
                 onClick={() => handleMobileAction(onNext)}
                 disabled={index >= total - 1}
               >

@@ -9,7 +9,7 @@ A minimal theme used only by the e2e fixture project.
 
 ## Voice
 
-Keep every slide calm and literal. Prefer one idea per page and let the
+Keep every doc calm and literal. Prefer one idea per page and let the
 whitespace carry the weight. Avoid decorative gradients, drop shadows, and
 anything that competes with the words.
 
@@ -22,7 +22,7 @@ let a line run past a comfortable reading width.
 ## Color
 
 Ink on paper. A near-black foreground on a warm off-white background, with a
-single restrained accent reserved for the one thing that matters on a slide.
+single restrained accent reserved for the one thing that matters on a doc.
 Contrast is a feature, not a decoration.
 
 ## Typography

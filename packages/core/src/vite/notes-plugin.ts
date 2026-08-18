@@ -4,10 +4,10 @@ import * as t from '@babel/types';
 import type { Plugin, ViteDevServer } from 'vite';
 import { validateMutationRequest } from '../http/request-guard.ts';
 import { hasRecentWrite, recordWrite } from './recent-writes.ts';
-import { json, readBody, resolveSlidePath } from './routes/context.ts';
+import { json, readBody, resolveDocPath } from './routes/context.ts';
 
 type NotesBody = {
-  slideId?: string;
+  docId?: string;
   index?: number;
   text?: string;
 };
@@ -153,18 +153,18 @@ export function applyNotesEdit(source: string, index: number, text: string): App
 
 export type NotesPluginOptions = {
   userCwd: string;
-  slidesDir?: string;
+  docsDir?: string;
 };
 
 export function notesPlugin(opts: NotesPluginOptions): Plugin {
   const userCwd = opts.userCwd;
-  const slidesDir = opts.slidesDir ?? 'slides';
+  const docsDir = opts.docsDir ?? 'docs';
 
   return {
-    name: 'open-slide:notes',
+    name: 'open-pdf:notes',
     apply: 'serve',
     handleHotUpdate(ctx) {
-      // Suppress HMR for our own writes — RFR bails on the slide's mixed
+      // Suppress HMR for our own writes — RFR bails on the doc's mixed
       // exports and remounts the tree, stealing textarea focus mid-typing.
       if (hasRecentWrite(ctx.file)) return [];
       return undefined;
@@ -179,9 +179,9 @@ export function notesPlugin(opts: NotesPluginOptions): Plugin {
 
         try {
           const body = (await readBody(req)) as NotesBody;
-          const slideId = body.slideId ?? '';
-          const file = resolveSlidePath(userCwd, slidesDir, slideId);
-          if (!file) return json(res, 400, { error: 'invalid slideId' });
+          const docId = body.docId ?? '';
+          const file = resolveDocPath(userCwd, docsDir, docId);
+          if (!file) return json(res, 400, { error: 'invalid docId' });
           if (typeof body.index !== 'number') return json(res, 400, { error: 'missing index' });
           if (typeof body.text !== 'string') return json(res, 400, { error: 'missing text' });
 
@@ -189,7 +189,7 @@ export function notesPlugin(opts: NotesPluginOptions): Plugin {
           try {
             source = await fs.readFile(file, 'utf8');
           } catch {
-            return json(res, 404, { error: 'slide not found' });
+            return json(res, 404, { error: 'doc not found' });
           }
 
           const result = applyNotesEdit(source, body.index, body.text);

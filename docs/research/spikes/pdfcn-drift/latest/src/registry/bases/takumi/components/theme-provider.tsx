@@ -1,7 +1,7 @@
-import { isValidElement } from "react";
-import type { DependencyList, ReactNode } from "react";
+import type { DependencyList, ReactNode } from 'react';
+import { isValidElement } from 'react';
 
-import { professionalTheme } from "@/registry/themes/professional";
+import { professionalTheme } from '@/registry/themes/professional';
 
 export type PdfcnTheme = typeof professionalTheme;
 
@@ -12,26 +12,19 @@ export interface PdfcnThemeProviderProps {
   children: ReactNode;
 }
 
-const renderForSerializer = (
-  children: ReactNode,
-  theme: PdfcnTheme
-): ReactNode => {
+const renderForSerializer = (children: ReactNode, theme: PdfcnTheme): ReactNode => {
   serializedTheme = theme;
 
-  if (!isValidElement(children) || typeof children.type !== "function") {
+  if (!isValidElement(children) || typeof children.type !== 'function') {
     return children;
   }
 
   return (children.type as (props: unknown) => ReactNode)(children.props);
 };
 
-export const PdfcnThemeProvider = ({
-  theme,
-  children,
-}: PdfcnThemeProviderProps) =>
+export const PdfcnThemeProvider = ({ theme, children }: PdfcnThemeProviderProps) =>
   renderForSerializer(children, theme ?? professionalTheme);
 
 export const usePdfcnTheme = (): PdfcnTheme => serializedTheme;
 
-export const useSafeMemo = <T,>(factory: () => T, _deps: DependencyList): T =>
-  factory();
+export const useSafeMemo = <T,>(factory: () => T, _deps: DependencyList): T => factory();

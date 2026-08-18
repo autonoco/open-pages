@@ -1,4 +1,4 @@
-import buildManifest from 'virtual:open-slide/folders';
+import buildManifest from 'virtual:open-pdf/folders';
 import { useCallback, useEffect, useState } from 'react';
 import type { Folder, FolderIcon, FoldersManifest } from './sdk';
 
@@ -8,7 +8,7 @@ async function getManifest(): Promise<FoldersManifest> {
   // In dev the manifest is mutable: read live from the plugin endpoint so
   // edits made in the sidebar reflect immediately. In a static build there
   // is no server, so fall back to the bundled snapshot from the virtual
-  // module (populated at build time from slides/.folders.json).
+  // module (populated at build time from docs/.folders.json).
   if (import.meta.env.DEV) {
     const res = await fetch('/__folders');
     if (!res.ok) throw new Error(`GET /__folders ${res.status}`);
@@ -24,31 +24,31 @@ async function getManifest(): Promise<FoldersManifest> {
   };
 }
 
-async function patchSlideName(slideId: string, name: string): Promise<void> {
-  const res = await fetch(`/__slides/${slideId}`, {
+async function patchDocName(docId: string, name: string): Promise<void> {
+  const res = await fetch(`/__docs/${docId}`, {
     method: 'PATCH',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ name }),
   });
-  if (!res.ok) throw new Error(`PATCH /__slides/${slideId} ${res.status}`);
+  if (!res.ok) throw new Error(`PATCH /__docs/${docId} ${res.status}`);
 }
 
-async function duplicateSlideReq(slideId: string, newId?: string): Promise<string> {
+async function duplicateDocReq(docId: string, newId?: string): Promise<string> {
   const init: RequestInit = { method: 'POST' };
   if (newId !== undefined) {
     init.headers = { 'content-type': 'application/json' };
     init.body = JSON.stringify({ newId });
   }
-  const res = await fetch(`/__slides/${slideId}/duplicate`, init);
-  if (!res.ok) throw new Error(`POST /__slides/${slideId}/duplicate ${res.status}`);
-  const body = (await res.json()) as { slideId?: unknown };
-  if (typeof body.slideId !== 'string') throw new Error('duplicate response missing slideId');
-  return body.slideId;
+  const res = await fetch(`/__docs/${docId}/duplicate`, init);
+  if (!res.ok) throw new Error(`POST /__docs/${docId}/duplicate ${res.status}`);
+  const body = (await res.json()) as { docId?: unknown };
+  if (typeof body.docId !== 'string') throw new Error('duplicate response missing docId');
+  return body.docId;
 }
 
-async function deleteSlideReq(slideId: string): Promise<void> {
-  const res = await fetch(`/__slides/${slideId}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error(`DELETE /__slides/${slideId} ${res.status}`);
+async function deleteDocReq(docId: string): Promise<void> {
+  const res = await fetch(`/__docs/${docId}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(`DELETE /__docs/${docId} ${res.status}`);
 }
 
 async function postFolder(name: string, icon: FolderIcon): Promise<Folder> {
@@ -79,11 +79,11 @@ async function deleteFolder(id: string): Promise<void> {
   if (!res.ok) throw new Error(`DELETE /__folders/${id} ${res.status}`);
 }
 
-async function putAssign(slideId: string, folderId: string | null): Promise<void> {
+async function putAssign(docId: string, folderId: string | null): Promise<void> {
   const res = await fetch('/__folders/assign', {
     method: 'PUT',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ slideId, folderId }),
+    body: JSON.stringify({ docId, folderId }),
   });
   if (!res.ok) throw new Error(`PUT /__folders/assign ${res.status}`);
 }
@@ -104,10 +104,10 @@ export type UseFoldersResult = {
   update: (id: string, patch: { name?: string; icon?: FolderIcon }) => Promise<void>;
   remove: (id: string) => Promise<void>;
   reorder: (ids: string[]) => Promise<void>;
-  assign: (slideId: string, folderId: string | null) => Promise<void>;
-  renameSlide: (slideId: string, name: string) => Promise<void>;
-  duplicateSlide: (slideId: string, newId?: string) => Promise<string>;
-  deleteSlide: (slideId: string) => Promise<void>;
+  assign: (docId: string, folderId: string | null) => Promise<void>;
+  renameDoc: (docId: string, name: string) => Promise<void>;
+  duplicateDoc: (docId: string, newId?: string) => Promise<string>;
+  deleteDoc: (docId: string) => Promise<void>;
   refresh: () => Promise<void>;
 };
 
@@ -142,9 +142,9 @@ export function useFolders(): UseFoldersResult {
     const handler = () => {
       refresh().catch(() => {});
     };
-    import.meta.hot.on('open-slide:files-changed', handler);
+    import.meta.hot.on('open-pdf:files-changed', handler);
     return () => {
-      import.meta.hot?.off('open-slide:files-changed', handler);
+      import.meta.hot?.off('open-pdf:files-changed', handler);
     };
   }, [refresh]);
 
@@ -191,33 +191,33 @@ export function useFolders(): UseFoldersResult {
   );
 
   const assign = useCallback(
-    async (slideId: string, folderId: string | null) => {
-      await putAssign(slideId, folderId);
+    async (docId: string, folderId: string | null) => {
+      await putAssign(docId, folderId);
       await refresh();
     },
     [refresh],
   );
 
-  const renameSlide = useCallback(
-    async (slideId: string, name: string) => {
-      await patchSlideName(slideId, name);
+  const renameDoc = useCallback(
+    async (docId: string, name: string) => {
+      await patchDocName(docId, name);
       await refresh();
     },
     [refresh],
   );
 
-  const duplicateSlide = useCallback(
-    async (slideId: string, newId?: string) => {
-      const duplicatedId = await duplicateSlideReq(slideId, newId);
+  const duplicateDoc = useCallback(
+    async (docId: string, newId?: string) => {
+      const duplicatedId = await duplicateDocReq(docId, newId);
       await refresh();
       return duplicatedId;
     },
     [refresh],
   );
 
-  const deleteSlide = useCallback(
-    async (slideId: string) => {
-      await deleteSlideReq(slideId);
+  const deleteDoc = useCallback(
+    async (docId: string) => {
+      await deleteDocReq(docId);
       await refresh();
     },
     [refresh],
@@ -231,9 +231,9 @@ export function useFolders(): UseFoldersResult {
     remove,
     reorder,
     assign,
-    renameSlide,
-    duplicateSlide,
-    deleteSlide,
+    renameDoc,
+    duplicateDoc,
+    deleteDoc,
     refresh,
   };
 }

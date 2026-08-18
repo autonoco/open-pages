@@ -6,9 +6,9 @@ import { GeistSans } from 'geist/font/sans';
 import type { Metadata, Viewport } from 'next';
 import { appName, gitConfig, siteUrl } from '@/lib/shared';
 
-const title = `${appName} — a slide framework built for agents`;
+const title = `${appName} — a doc framework built for agents`;
 const description =
-  'A React-first slide framework authored by AI agents. Each page is arbitrary code on a 1920×1080 canvas — versioned, reviewable, yours.';
+  'A React-first doc framework authored by AI agents. Each page is arbitrary code on a 1920×1080 canvas — versioned, reviewable, yours.';
 
 export const metadata: Metadata = {
   title: {
@@ -19,15 +19,15 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   applicationName: appName,
   keywords: [
-    'open-slide',
-    'slides',
+    'open-pdf',
+    'docs',
     'presentation framework',
-    'React slides',
-    'Next.js slides',
+    'React docs',
+    'Next.js docs',
     'AI agents',
     'Claude Code',
-    'MDX slides',
-    'slides as code',
+    'MDX docs',
+    'docs as code',
     'developer presentations',
   ],
   authors: [{ name: gitConfig.user, url: `https://github.com/${gitConfig.user}` }],
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
         url: '/opengraph-image.png',
         width: 1200,
         height: 630,
-        alt: `${appName} — React-first slide framework for AI agents`,
+        alt: `${appName} — React-first doc framework for AI agents`,
       },
     ],
   },
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title,
     description,
-    creator: '@1weiho',
+    creator: '@autonoco',
     images: ['/opengraph-image.png'],
   },
   robots: {

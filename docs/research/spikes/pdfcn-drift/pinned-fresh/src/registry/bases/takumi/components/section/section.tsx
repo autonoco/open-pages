@@ -1,16 +1,13 @@
-import {
-  usePdfcnTheme,
-  useSafeMemo,
-} from "@/registry/bases/takumi/components/theme-provider";
-import { View, StyleSheet } from "@/registry/bases/takumi/lib/pdf-primitives";
-import type { Style } from "@/registry/bases/takumi/lib/pdf-primitives";
-import { resolveColor } from "@/registry/bases/takumi/lib/resolve-color";
-import type { PDFComponentProps } from "@/registry/types/pdf-components";
-import type { PdfcnTheme } from "@/registry/types/pdf-themes";
+import { usePdfcnTheme, useSafeMemo } from '@/registry/bases/takumi/components/theme-provider';
+import type { Style } from '@/registry/bases/takumi/lib/pdf-primitives';
+import { StyleSheet, View } from '@/registry/bases/takumi/lib/pdf-primitives';
+import { resolveColor } from '@/registry/bases/takumi/lib/resolve-color';
+import type { PDFComponentProps } from '@/registry/types/pdf-components';
+import type { PdfcnTheme } from '@/registry/types/pdf-themes';
 
-export type SectionSpacing = "none" | "sm" | "md" | "lg" | "xl";
-export type SectionPadding = "none" | "sm" | "md" | "lg";
-export type SectionVariant = "default" | "callout" | "highlight" | "card";
+export type SectionSpacing = 'none' | 'sm' | 'md' | 'lg' | 'xl';
+export type SectionPadding = 'none' | 'sm' | 'md' | 'lg';
+export type SectionVariant = 'default' | 'callout' | 'highlight' | 'card';
 
 /**
  * Layout container with spacing, padding, and visual style variants.
@@ -42,16 +39,16 @@ export interface SectionProps extends PDFComponentProps {
 const createSectionStyles = (t: PdfcnTheme) => {
   const { spacing, borderRadius } = t.primitives;
   return StyleSheet.create({
-    base: { flexDirection: "column" },
+    base: { flexDirection: 'column' },
     border: {
       borderColor: t.colors.border,
       borderRadius: borderRadius.md,
-      borderStyle: "solid",
+      borderStyle: 'solid',
       borderWidth: spacing[0.5],
     },
     callout: {
       borderLeftColor: t.colors.primary,
-      borderLeftStyle: "solid",
+      borderLeftStyle: 'solid',
       borderLeftWidth: spacing[1],
       paddingLeft: spacing[4],
       paddingVertical: spacing[2],
@@ -59,14 +56,14 @@ const createSectionStyles = (t: PdfcnTheme) => {
     card: {
       borderColor: t.colors.border,
       borderRadius: borderRadius.md,
-      borderStyle: "solid",
+      borderStyle: 'solid',
       borderWidth: spacing[0.5],
       padding: spacing[4],
     },
     highlight: {
       backgroundColor: t.colors.muted,
       borderLeftColor: t.colors.primary,
-      borderLeftStyle: "solid",
+      borderLeftStyle: 'solid',
       borderLeftWidth: spacing[1],
       padding: spacing[4],
     },
@@ -83,11 +80,11 @@ const createSectionStyles = (t: PdfcnTheme) => {
 };
 
 export const Section = ({
-  spacing = "md",
+  spacing = 'md',
   padding,
   background,
   border,
-  variant = "default",
+  variant = 'default',
   accentColor,
   children,
   style,
@@ -118,7 +115,7 @@ export const Section = ({
   if (variantStyle) {
     styleArray.push(variantStyle);
   }
-  if (accentColor && (variant === "callout" || variant === "highlight")) {
+  if (accentColor && (variant === 'callout' || variant === 'highlight')) {
     styleArray.push({
       borderLeftColor: resolveColor(accentColor, theme.colors),
     });
@@ -126,7 +123,7 @@ export const Section = ({
   if (padding && padding in paddingMap) {
     styleArray.push(paddingMap[padding]);
   }
-  if (border && variant === "default") {
+  if (border && variant === 'default') {
     styleArray.push(styles.border);
   }
   if (background) {

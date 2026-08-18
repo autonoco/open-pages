@@ -32,7 +32,7 @@ A faithful riff on Minecraft's in-game UI: everything is a block. Hard pixel bev
 - Body font: `"VT323", "Courier New", monospace` — readable pixel/terminal face (single weight 400). Use larger than a normal sans because the x-height runs small.
 - Google Fonts import: `https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap`
 - Render crisp: set `imageRendering: 'pixelated'` on pixel decorations; never anti-alias the block art.
-- Type-scale overrides (vs. `slide-authoring` defaults — Press Start 2P is much wider per glyph, so hero runs smaller):
+- Type-scale overrides (vs. `doc-authoring` defaults — Press Start 2P is much wider per glyph, so hero runs smaller):
   - Hero title: 96px, `lineHeight: 1.08`, `letterSpacing: 0`
   - Section heading: 56px Press Start 2P, `lineHeight: 1.2`
   - Page heading: 40px Press Start 2P
@@ -138,7 +138,7 @@ const Slot = ({ children }: { children?: React.ReactNode }) => (
 
 ## Fixed components
 
-These are paste-ready. Copy them verbatim into a slide that uses this theme.
+These are paste-ready. Copy them verbatim into a doc that uses this theme.
 
 ### Title
 
@@ -165,13 +165,13 @@ const Title = ({ children }: { children: React.ReactNode }) => (
 
 ### Footer
 
-Hotbar-style footer — the page number sits in an inventory slot. The brand mark reuses a mini `<IsoBlock size={16} variant="grass" />` so it matches the hero blocks. Pull the page number from `useSlidePageNumber()` — never hardcode `pageNum` / `total`.
+Hotbar-style footer — the page number sits in an inventory slot. The brand mark reuses a mini `<IsoBlock size={16} variant="grass" />` so it matches the hero blocks. Pull the page number from `useDocPageNumber()` — never hardcode `pageNum` / `total`.
 
 ```tsx
-import { useSlidePageNumber } from '@open-slide/core';
+import { useDocPageNumber } from '@open-pdf/core';
 
 const Footer = () => {
-  const { current, total } = useSlidePageNumber();
+  const { current, total } = useDocPageNumber();
   return (
     <div
       style={{

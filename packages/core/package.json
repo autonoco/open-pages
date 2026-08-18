@@ -1,7 +1,7 @@
 {
-  "name": "@open-slide/core",
-  "version": "1.18.0",
-  "description": "Runtime and CLI for open-slide — write slides in slides/, we handle the rest.",
+  "name": "@open-pdf/core",
+  "version": "0.1.0",
+  "description": "Runtime and CLI for open-pdf — write docs in docs/, we handle the rest.",
   "type": "module",
   "exports": {
     ".": {
@@ -21,7 +21,7 @@
     }
   },
   "bin": {
-    "open-slide": "./bin.js"
+    "open-pdf": "./bin.js"
   },
   "files": [
     "bin.js",
@@ -42,24 +42,24 @@
     "node": ">=18"
   },
   "keywords": [
-    "slides",
+    "docs",
     "presentation",
     "react",
     "vite"
   ],
   "license": "MIT",
   "author": {
-    "name": "1weiho",
-    "url": "https://github.com/1weiho"
+    "name": "autonoco",
+    "url": "https://github.com/autonoco"
   },
-  "homepage": "https://open-slide.dev",
+  "homepage": "https://open-pdf.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/1weiho/open-slide.git",
+    "url": "git+https://github.com/autonoco/open-pdf.git",
     "directory": "packages/core"
   },
   "bugs": {
-    "url": "https://github.com/1weiho/open-slide/issues"
+    "url": "https://github.com/autonoco/open-pdf/issues"
   },
   "publishConfig": {
     "access": "public"

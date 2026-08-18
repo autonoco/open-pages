@@ -1,17 +1,17 @@
 ---
 title: Page
-description: The component contract for one 1920 × 1080 slide page.
+description: The component contract for one 1920 × 1080 doc page.
 ---
 
-`Page` is the base primitive in open-slide. A deck is just an ordered array of
+`Page` is the base primitive in open-pdf. A deck is just an ordered array of
 zero-prop React components, and each component is one page in the runtime,
 presenter view, overview grid, thumbnails, and exports.
 
-```tsx title="slides/q2-launch/index.tsx"
-import { type Page, type SlideMeta, useSlidePageNumber } from '@open-slide/core';
+```tsx title="docs/q2-launch/index.tsx"
+import { type Page, type DocMeta, useDocPageNumber } from '@open-pdf/core';
 
 const Cover: Page = () => {
-  const { current, total } = useSlidePageNumber();
+  const { current, total } = useDocPageNumber();
 
   return (
     <section
@@ -30,7 +30,7 @@ const Cover: Page = () => {
   );
 };
 
-export const meta: SlideMeta = {
+export const meta: DocMeta = {
   title: 'Q2 launch',
 };
 
@@ -40,7 +40,7 @@ export default [Cover] satisfies Page[];
 ## Contract
 
 - A `Page` takes no props. Pull page context from hooks such as
-  `useSlidePageNumber()`.
+  `useDocPageNumber()`.
 - The module default export is the display order: `export default [Cover,
   Body] satisfies Page[]`.
 - The root element should fill the canvas with `width: '100%'` and
@@ -66,11 +66,11 @@ guard browser-only side effects when a page also needs to export cleanly.
 different animation than the module-level default.
 
 ```tsx
-import type { Page, SlideTransition } from '@open-slide/core';
+import type { Page, DocTransition } from '@open-pdf/core';
 
 const Cover: Page = () => <section>…</section>;
 
-const coverTransition: SlideTransition = {
+const coverTransition: DocTransition = {
   duration: 240,
   enter: {
     keyframes: [

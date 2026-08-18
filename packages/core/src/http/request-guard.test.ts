@@ -25,8 +25,8 @@ describe('validateMutationRequest', () => {
   it('accepts forwarded host/proto when origin matches', () => {
     const req = makeReq({
       host: '127.0.0.1:5173',
-      origin: 'https://slides.example.dev',
-      'x-forwarded-host': 'slides.example.dev',
+      origin: 'https://docs.example.dev',
+      'x-forwarded-host': 'docs.example.dev',
       'x-forwarded-proto': 'https',
       'content-type': 'application/json; charset=utf-8',
     });

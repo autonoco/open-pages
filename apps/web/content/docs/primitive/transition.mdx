@@ -3,17 +3,17 @@ title: Transition
 description: Enter, exit, and morph motion between pages.
 ---
 
-`SlideTransition` describes what happens when the active `Page` changes. There
+`DocTransition` describes what happens when the active `Page` changes. There
 is no default animation: pages snap unless the deck exports a transition or an
 incoming page defines its own override.
 
-```tsx title="slides/q2-launch/index.tsx"
-import type { Page, SlideTransition } from '@open-slide/core';
+```tsx title="docs/q2-launch/index.tsx"
+import type { Page, DocTransition } from '@open-pdf/core';
 
 const Cover: Page = () => <section>…</section>;
 const Agenda: Page = () => <section>…</section>;
 
-export const transition: SlideTransition = {
+export const transition: DocTransition = {
   duration: 220,
   exit: {
     duration: 140,
@@ -43,7 +43,7 @@ export default [Cover, Agenda] satisfies Page[];
 
 There are two declaration surfaces:
 
-- `export const transition` in the slide module sets the deck default.
+- `export const transition` in the doc module sets the deck default.
 - `Page.transition = …` sets an override for one page.
 
 The incoming page wins. Navigating `Cover → Agenda` uses
@@ -55,7 +55,7 @@ are returning to.
 const Cover: Page = () => <section>…</section>;
 const Agenda: Page = () => <section>…</section>;
 
-export const transition: SlideTransition = {
+export const transition: DocTransition = {
   duration: 220,
   enter: {
     keyframes: [{ opacity: 0 }, { opacity: 1 }],
@@ -78,15 +78,15 @@ Agenda.transition = {
 During a page transition, the wrapper exposes `--osd-dir` (`1` / `-1`) and
 `data-osd-dir` (`forward` / `backward`) so a keyframe can mirror itself on
 backward navigation. See
-[SlideTransition](/docs/reference/slide-transitions) for the details.
+[DocTransition](/docs/reference/doc-transitions) for the details.
 
 ## Morph
 
-`SlideTransition.morph` enables [MorphElement](/docs/primitive/morph-element)
+`DocTransition.morph` enables [MorphElement](/docs/primitive/morph-element)
 matching for objects that should visually continue across two pages.
 
 ```ts
-export const transition: SlideTransition = {
+export const transition: DocTransition = {
   duration: 600,
   morph: {
     duration: 600,
@@ -96,4 +96,4 @@ export const transition: SlideTransition = {
 ```
 
 For the full schema and a reusable family of examples, see
-[SlideTransition](/docs/reference/slide-transitions).
+[DocTransition](/docs/reference/doc-transitions).

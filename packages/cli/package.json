@@ -1,10 +1,10 @@
 {
-  "name": "@open-slide/cli",
-  "version": "1.4.1",
-  "description": "Scaffold an open-slide workspace with Claude Code skills preconfigured.",
+  "name": "@open-pdf/cli",
+  "version": "0.1.0",
+  "description": "Scaffold an open-pdf workspace with Claude Code skills preconfigured.",
   "type": "module",
   "bin": {
-    "open-slide": "dist/cli.js"
+    "open-pdf": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -21,24 +21,24 @@
     "node": ">=18"
   },
   "keywords": [
-    "slides",
+    "docs",
     "presentation",
     "claude-code",
     "scaffold"
   ],
   "license": "MIT",
   "author": {
-    "name": "1weiho",
-    "url": "https://github.com/1weiho"
+    "name": "autonoco",
+    "url": "https://github.com/autonoco"
   },
-  "homepage": "https://open-slide.dev",
+  "homepage": "https://open-pdf.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/1weiho/open-slide.git",
+    "url": "git+https://github.com/autonoco/open-pdf.git",
     "directory": "packages/cli"
   },
   "bugs": {
-    "url": "https://github.com/1weiho/open-slide/issues"
+    "url": "https://github.com/autonoco/open-pdf/issues"
   },
   "publishConfig": {
     "access": "public"

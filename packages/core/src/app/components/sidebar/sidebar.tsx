@@ -12,7 +12,7 @@ import { FolderIconChip, FolderItem } from './folder-item';
 import { IconPicker, PRESET_COLORS } from './icon-picker';
 import { SidebarFooter } from './sidebar-footer';
 
-export const ALL_SLIDES_ID = '__all__';
+export const ALL_DOCS_ID = '__all__';
 export const DRAFT_ID = 'draft';
 export const THEMES_ID = '__themes__';
 export const ASSETS_ID = '__assets__';
@@ -47,8 +47,8 @@ export function Sidebar({
   onRename: (id: string, name: string) => void;
   onChangeIcon: (id: string, icon: FolderIcon) => void;
   onDelete: (id: string) => void;
-  onDropToFolder: (folderId: string, slideId: string) => void;
-  onDropToDraft: (slideId: string) => void;
+  onDropToFolder: (folderId: string, docId: string) => void;
+  onDropToDraft: (docId: string) => void;
   onReorder: (ids: string[]) => void;
   onOpenCommandMenu: () => void;
 }) {
@@ -143,16 +143,16 @@ export function Sidebar({
         <FolderItem
           row={{ kind: 'all' }}
           count={allCount}
-          selected={selectedId === ALL_SLIDES_ID}
-          onSelect={() => onSelect(ALL_SLIDES_ID)}
-          onDropSlide={() => {}}
+          selected={selectedId === ALL_DOCS_ID}
+          onSelect={() => onSelect(ALL_DOCS_ID)}
+          onDropDoc={() => {}}
         />
         <FolderItem
           row={{ kind: 'themes' }}
           count={themesCount}
           selected={selectedId === THEMES_ID}
           onSelect={() => onSelect(THEMES_ID)}
-          onDropSlide={() => {}}
+          onDropDoc={() => {}}
         />
         {import.meta.env.DEV && (
           <FolderItem
@@ -160,7 +160,7 @@ export function Sidebar({
             count={assetsCount}
             selected={selectedId === ASSETS_ID}
             onSelect={() => onSelect(ASSETS_ID)}
-            onDropSlide={() => {}}
+            onDropDoc={() => {}}
           />
         )}
       </div>
@@ -176,7 +176,7 @@ export function Sidebar({
           count={countFor(null)}
           selected={selectedId === DRAFT_ID}
           onSelect={() => onSelect(DRAFT_ID)}
-          onDropSlide={onDropToDraft}
+          onDropDoc={onDropToDraft}
         />
         {folders.map((folder) => {
           const isDropTarget = dropTarget?.id === folder.id;
@@ -240,7 +240,7 @@ export function Sidebar({
                 count={countFor(folder.id)}
                 selected={selectedId === folder.id}
                 onSelect={() => onSelect(folder.id)}
-                onDropSlide={(slideId) => onDropToFolder(folder.id, slideId)}
+                onDropDoc={(docId) => onDropToFolder(folder.id, docId)}
               />
             </div>
           );

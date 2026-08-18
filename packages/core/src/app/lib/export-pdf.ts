@@ -1,9 +1,9 @@
 import { createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { designToCssVars } from './design';
-import { SlidePageProvider } from './page-context';
+import { DocPageProvider } from './page-context';
 import { isFrameAnimationSettled, waitForDataWaitfor, waitForFonts } from './print-ready';
-import type { SlideModule } from './sdk';
+import type { DocModule } from './sdk';
 
 const PRINT_ROOT_ID = 'os-print-root';
 const PRINT_STYLE_ID = 'os-print-style';
@@ -98,12 +98,12 @@ export type PdfExportProgress = {
 const ANIMATION_TIMEOUT_MS = 15_000;
 const POLL_INTERVAL_MS = 100;
 
-export async function exportSlideAsPdf(
-  slide: SlideModule,
-  slideId: string,
+export async function exportDocAsPdf(
+  doc: DocModule,
+  docId: string,
   onProgress?: (progress: PdfExportProgress) => void,
 ): Promise<void> {
-  const pages = slide.default ?? [];
+  const pages = doc.default ?? [];
   if (pages.length === 0) return;
 
   const total = pages.length;
@@ -120,7 +120,7 @@ export async function exportSlideAsPdf(
 
   onProgress?.({ phase: 'processing', current: 0, total, percent: 0 });
 
-  const designVars = slide.design ? designToCssVars(slide.design) : null;
+  const designVars = doc.design ? designToCssVars(doc.design) : null;
 
   const reactRoots: Root[] = [];
   const frames: HTMLElement[] = [];
@@ -144,7 +144,7 @@ export async function exportSlideAsPdf(
     frames.push(host);
     const r = createRoot(inner);
     r.render(
-      createElement(SlidePageProvider, { index: i, total: pages.length }, createElement(Page)),
+      createElement(DocPageProvider, { index: i, total: pages.length }, createElement(Page)),
     );
     reactRoots.push(r);
   }
@@ -153,7 +153,7 @@ export async function exportSlideAsPdf(
   await nextPaint();
 
   const previousTitle = document.title;
-  document.title = slide.meta?.title ?? slideId;
+  document.title = doc.meta?.title ?? docId;
 
   try {
     await waitForFonts();

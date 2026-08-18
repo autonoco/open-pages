@@ -1,5 +1,5 @@
-import { StyleSheet } from "@/registry/bases/takumi/lib/pdf-primitives";
-import type { PdfcnTheme } from "@/registry/types/pdf-themes";
+import { StyleSheet } from '@/registry/bases/takumi/lib/pdf-primitives';
+import type { PdfcnTheme } from '@/registry/types/pdf-themes';
 
 /**
  * Creates all table styles derived from the active theme.
@@ -22,14 +22,14 @@ export const createTableStyles = (t: PdfcnTheme) => {
 
   const rowDivider = {
     borderBottomColor: borderColor,
-    borderBottomStyle: "solid" as const,
+    borderBottomStyle: 'solid' as const,
     borderBottomWidth: hairline,
   };
 
   return StyleSheet.create({
     cell: {
       flex: 1,
-      justifyContent: "center",
+      justifyContent: 'center',
       paddingHorizontal: cellPadH,
       paddingVertical: cellPadV,
     },
@@ -41,7 +41,7 @@ export const createTableStyles = (t: PdfcnTheme) => {
 
     cellBorderedBorder: {
       borderRightColor: borderColor,
-      borderRightStyle: "solid",
+      borderRightStyle: 'solid',
       borderRightWidth: hairline,
     },
 
@@ -53,14 +53,14 @@ export const createTableStyles = (t: PdfcnTheme) => {
     cellFixed: {
       flexGrow: 0,
       flexShrink: 0,
-      justifyContent: "center",
+      justifyContent: 'center',
       paddingHorizontal: cellPadH,
       paddingVertical: cellPadV,
     },
 
     cellGridBorder: {
       borderRightColor: borderColor,
-      borderRightStyle: "solid",
+      borderRightStyle: 'solid',
       borderRightWidth: hairline,
     },
 
@@ -112,7 +112,7 @@ export const createTableStyles = (t: PdfcnTheme) => {
       fontWeight: fontWeights.semibold,
       letterSpacing: 0.6,
       lineHeight: 1.2,
-      textTransform: "uppercase",
+      textTransform: 'uppercase',
     },
     cellTextHeaderGrid: {
       color: t.colors.foreground,
@@ -143,7 +143,7 @@ export const createTableStyles = (t: PdfcnTheme) => {
       fontWeight: fontWeights.semibold,
       letterSpacing: 0.6,
       lineHeight: 1.2,
-      textTransform: "uppercase",
+      textTransform: 'uppercase',
     },
     cellTextHeaderStriped: {
       color: t.colors.foreground,
@@ -153,21 +153,21 @@ export const createTableStyles = (t: PdfcnTheme) => {
       lineHeight: 1.2,
     },
     row: {
-      display: "flex",
-      flexDirection: "row",
+      display: 'flex',
+      flexDirection: 'row',
     },
     rowBordered: rowDivider,
     rowCompact: rowDivider,
     rowFooter: {
       borderTopColor: borderColor,
-      borderTopStyle: "solid",
+      borderTopStyle: 'solid',
       borderTopWidth: rule,
     },
 
     rowFooterStriped: {
       backgroundColor: t.colors.muted,
       borderTopColor: borderColor,
-      borderTopStyle: "solid",
+      borderTopStyle: 'solid',
       borderTopWidth: rule,
     },
     rowGrid: rowDivider,
@@ -175,31 +175,31 @@ export const createTableStyles = (t: PdfcnTheme) => {
     rowHeaderBordered: {
       backgroundColor: t.colors.muted,
       borderBottomColor: borderColor,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: hairline,
     },
 
     rowHeaderCompact: {
       backgroundColor: t.colors.muted,
       borderBottomColor: borderColor,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: rule,
     },
     rowHeaderGrid: {
       backgroundColor: t.colors.muted,
       borderBottomColor: borderColor,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: rule,
     },
 
     rowHeaderLine: {
       borderBottomColor: borderColor,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: rule,
     },
     rowHeaderMinimal: {
       borderBottomColor: borderColor,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: rule,
     },
     rowHeaderPrimaryHeader: {
@@ -208,7 +208,7 @@ export const createTableStyles = (t: PdfcnTheme) => {
     rowHeaderStriped: {
       backgroundColor: t.colors.muted,
       borderBottomColor: borderColor,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: rule,
     },
     rowLine: rowDivider,
@@ -222,39 +222,39 @@ export const createTableStyles = (t: PdfcnTheme) => {
 
     rowStriped: {},
     table: {
-      display: "flex",
-      flexDirection: "column",
+      display: 'flex',
+      flexDirection: 'column',
       marginBottom: t.spacing.componentGap,
-      width: "100%",
+      width: '100%',
     },
     tableBordered: {
       borderBottomLeftRadius: borderRadius.sm,
       borderBottomRightRadius: borderRadius.sm,
       borderColor,
-      borderStyle: "solid",
+      borderStyle: 'solid',
       borderTopLeftRadius: borderRadius.sm,
       borderTopRightRadius: borderRadius.sm,
       borderWidth: rule,
-      overflow: "hidden" as const,
+      overflow: 'hidden' as const,
     },
     tableCompact: {
       borderBottomColor: borderColor,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: hairline,
     },
     tableGrid: {
       borderBottomLeftRadius: borderRadius.md,
       borderBottomRightRadius: borderRadius.md,
       borderColor,
-      borderStyle: "solid",
+      borderStyle: 'solid',
       borderTopLeftRadius: borderRadius.md,
       borderTopRightRadius: borderRadius.md,
       borderWidth: thick,
-      overflow: "hidden" as const,
+      overflow: 'hidden' as const,
     },
     tableLine: {
       borderBottomColor: borderColor,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: hairline,
     },
     tableMinimal: {
@@ -263,16 +263,16 @@ export const createTableStyles = (t: PdfcnTheme) => {
 
     tablePrimaryHeader: {
       borderBottomColor: borderColor,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: hairline,
     },
 
     tableStriped: {
       borderBottomColor: borderColor,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: hairline,
       borderTopColor: borderColor,
-      borderTopStyle: "solid",
+      borderTopStyle: 'solid',
       borderTopWidth: hairline,
     },
   });

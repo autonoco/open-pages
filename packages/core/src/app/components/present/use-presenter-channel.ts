@@ -17,7 +17,7 @@ export type PresenterCommand =
   | { type: 'request-state' }
   | { type: 'restart-timer' }
   | { type: 'toggle-blackout'; mode: 'black' | 'white' }
-  | { type: 'switch-slide'; slideId: string };
+  | { type: 'switch-doc'; docId: string };
 
 type Handler = (msg: PresenterCommand) => void;
 
@@ -26,7 +26,7 @@ const SUPPORTED = typeof window !== 'undefined' && typeof BroadcastChannel !== '
 // Channel ownership lives in the effect (not useMemo) so StrictMode's
 // double-invoke produces a fresh channel on remount rather than leaving a
 // closed one behind that throws on the next send().
-export function usePresenterChannel(slideId: string, onMessage?: Handler) {
+export function usePresenterChannel(docId: string, onMessage?: Handler) {
   const onMessageRef = useRef(onMessage);
   onMessageRef.current = onMessage;
 
@@ -35,7 +35,7 @@ export function usePresenterChannel(slideId: string, onMessage?: Handler) {
 
   useEffect(() => {
     if (!SUPPORTED) return;
-    const channel = new BroadcastChannel(`open-slide:presenter:${slideId}`);
+    const channel = new BroadcastChannel(`open-pdf:presenter:${docId}`);
     channelRef.current = channel;
     setAvailable(true);
     const handler = (e: MessageEvent<PresenterCommand>) => {
@@ -48,7 +48,7 @@ export function usePresenterChannel(slideId: string, onMessage?: Handler) {
       if (channelRef.current === channel) channelRef.current = null;
       setAvailable(false);
     };
-  }, [slideId]);
+  }, [docId]);
 
   return useMemo(
     () => ({

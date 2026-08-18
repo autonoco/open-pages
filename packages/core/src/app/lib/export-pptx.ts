@@ -1,12 +1,12 @@
 import { createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { designToCssVars } from './design';
-import { SlidePageProvider } from './page-context';
+import { DocPageProvider } from './page-context';
 import { isFrameAnimationSettled, waitForDataWaitfor, waitForFonts } from './print-ready';
-import type { SlideModule } from './sdk';
+import type { DocModule } from './sdk';
 
-const SLIDE_W = 1920;
-const SLIDE_H = 1080;
+const DOC_W = 1920;
+const DOC_H = 1080;
 // 16:9 widescreen in English Metric Units (914400 EMU per inch → 13.333in × 7.5in).
 const EMU_W = 12192000;
 const EMU_H = 6858000;
@@ -31,12 +31,12 @@ export type PptxExportProgress = {
   percent: number;
 };
 
-export async function exportSlideAsImagePptx(
-  slide: SlideModule,
-  slideId: string,
+export async function exportDocAsImagePptx(
+  doc: DocModule,
+  docId: string,
   onProgress?: (progress: PptxExportProgress) => void,
 ): Promise<void> {
-  const pages = slide.default ?? [];
+  const pages = doc.default ?? [];
   if (pages.length === 0) return;
 
   const total = pages.length;
@@ -69,7 +69,7 @@ export async function exportSlideAsImagePptx(
   }`;
   document.head.appendChild(captureStyle);
 
-  const designVars = slide.design ? designToCssVars(slide.design) : null;
+  const designVars = doc.design ? designToCssVars(doc.design) : null;
 
   const reactRoots: Root[] = [];
   const frames: HTMLElement[] = [];
@@ -78,8 +78,8 @@ export async function exportSlideAsImagePptx(
     if (!Page) continue;
     const host = document.createElement('div');
     host.setAttribute('data-osd-canvas', '');
-    host.style.width = `${SLIDE_W}px`;
-    host.style.height = `${SLIDE_H}px`;
+    host.style.width = `${DOC_W}px`;
+    host.style.height = `${DOC_H}px`;
     host.style.overflow = 'hidden';
     host.style.background = '#fff';
     if (designVars) {
@@ -89,7 +89,7 @@ export async function exportSlideAsImagePptx(
     frames.push(host);
     const r = createRoot(host);
     r.render(
-      createElement(SlidePageProvider, { index: i, total: pages.length }, createElement(Page)),
+      createElement(DocPageProvider, { index: i, total: pages.length }, createElement(Page)),
     );
     reactRoots.push(r);
   }
@@ -112,8 +112,8 @@ export async function exportSlideAsImagePptx(
     for (let i = 0; i < frames.length; i++) {
       freezeForCapture(frames[i]);
       const blob = await toBlob(frames[i], {
-        width: SLIDE_W,
-        height: SLIDE_H,
+        width: DOC_W,
+        height: DOC_H,
         pixelRatio: CAPTURE_PIXEL_RATIO,
         backgroundColor: '#ffffff',
         cacheBust: true,
@@ -134,7 +134,7 @@ export async function exportSlideAsImagePptx(
       new Blob([pptx as BlobPart], {
         type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
       }),
-      `${slideId}.pptx`,
+      `${docId}.pptx`,
     );
   } finally {
     onProgress?.({ phase: 'done', current: total, total, percent: 100 });
@@ -173,15 +173,15 @@ async function buildImagePptx(images: Uint8Array[]): Promise<Uint8Array> {
   files['ppt/_rels/presentation.xml.rels'] = strToU8(presentationRelsXml(n));
   files['ppt/presProps.xml'] = strToU8(presPropsXml());
   files['ppt/theme/theme1.xml'] = strToU8(themeXml());
-  files['ppt/slideMasters/slideMaster1.xml'] = strToU8(slideMasterXml());
-  files['ppt/slideMasters/_rels/slideMaster1.xml.rels'] = strToU8(slideMasterRelsXml());
-  files['ppt/slideLayouts/slideLayout1.xml'] = strToU8(slideLayoutXml());
-  files['ppt/slideLayouts/_rels/slideLayout1.xml.rels'] = strToU8(slideLayoutRelsXml());
+  files['ppt/docMasters/docMaster1.xml'] = strToU8(docMasterXml());
+  files['ppt/docMasters/_rels/docMaster1.xml.rels'] = strToU8(docMasterRelsXml());
+  files['ppt/docLayouts/docLayout1.xml'] = strToU8(docLayoutXml());
+  files['ppt/docLayouts/_rels/docLayout1.xml.rels'] = strToU8(docLayoutRelsXml());
 
   for (let i = 0; i < n; i++) {
     const idx = i + 1;
-    files[`ppt/slides/slide${idx}.xml`] = strToU8(slideXml());
-    files[`ppt/slides/_rels/slide${idx}.xml.rels`] = strToU8(slideRelsXml(idx));
+    files[`ppt/docs/doc${idx}.xml`] = strToU8(docXml());
+    files[`ppt/docs/_rels/doc${idx}.xml.rels`] = strToU8(docRelsXml(idx));
     files[`ppt/media/image${idx}.png`] = images[i];
   }
 
@@ -189,12 +189,12 @@ async function buildImagePptx(images: Uint8Array[]): Promise<Uint8Array> {
 }
 
 function contentTypesXml(n: number): string {
-  const slideOverrides = Array.from(
+  const docOverrides = Array.from(
     { length: n },
     (_, i) =>
-      `<Override PartName="/ppt/slides/slide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`,
+      `<Override PartName="/ppt/docs/doc${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.doc+xml"/>`,
   ).join('');
-  return `${XML_DECL}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/presProps.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presProps+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>${slideOverrides}</Types>`;
+  return `${XML_DECL}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/presProps.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presProps+xml"/><Override PartName="/ppt/docMasters/docMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.docMaster+xml"/><Override PartName="/ppt/docLayouts/docLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.docLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>${docOverrides}</Types>`;
 }
 
 function rootRelsXml(): string {
@@ -211,12 +211,12 @@ function presentationXml(n: number): string {
 
 function presentationRelsXml(n: number): string {
   const rels = [
-    `<Relationship Id="rId1" Type="${OD_REL}/slideMaster" Target="slideMasters/slideMaster1.xml"/>`,
+    `<Relationship Id="rId1" Type="${OD_REL}/docMaster" Target="docMasters/docMaster1.xml"/>`,
     `<Relationship Id="rId2" Type="${OD_REL}/presProps" Target="presProps.xml"/>`,
   ];
   for (let i = 0; i < n; i++) {
     rels.push(
-      `<Relationship Id="rId${i + 3}" Type="${OD_REL}/slide" Target="slides/slide${i + 1}.xml"/>`,
+      `<Relationship Id="rId${i + 3}" Type="${OD_REL}/doc" Target="docs/doc${i + 1}.xml"/>`,
     );
   }
   return `${XML_DECL}<Relationships xmlns="${REL_NS}">${rels.join('')}</Relationships>`;
@@ -226,28 +226,28 @@ function presPropsXml(): string {
   return `${XML_DECL}<p:presentationPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${OD_REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>`;
 }
 
-function slideMasterXml(): string {
+function docMasterXml(): string {
   return `${XML_DECL}<p:sldMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${OD_REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:spTree></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/><p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst></p:sldMaster>`;
 }
 
-function slideMasterRelsXml(): string {
-  return `${XML_DECL}<Relationships xmlns="${REL_NS}"><Relationship Id="rId1" Type="${OD_REL}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/><Relationship Id="rId2" Type="${OD_REL}/theme" Target="../theme/theme1.xml"/></Relationships>`;
+function docMasterRelsXml(): string {
+  return `${XML_DECL}<Relationships xmlns="${REL_NS}"><Relationship Id="rId1" Type="${OD_REL}/docLayout" Target="../docLayouts/docLayout1.xml"/><Relationship Id="rId2" Type="${OD_REL}/theme" Target="../theme/theme1.xml"/></Relationships>`;
 }
 
-function slideLayoutXml(): string {
+function docLayoutXml(): string {
   return `${XML_DECL}<p:sldLayout xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${OD_REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" type="blank" preserve="1"><p:cSld name="Blank"><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>`;
 }
 
-function slideLayoutRelsXml(): string {
-  return `${XML_DECL}<Relationships xmlns="${REL_NS}"><Relationship Id="rId1" Type="${OD_REL}/slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>`;
+function docLayoutRelsXml(): string {
+  return `${XML_DECL}<Relationships xmlns="${REL_NS}"><Relationship Id="rId1" Type="${OD_REL}/docMaster" Target="../docMasters/docMaster1.xml"/></Relationships>`;
 }
 
-function slideXml(): string {
-  return `${XML_DECL}<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${OD_REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr><p:pic><p:nvPicPr><p:cNvPr id="2" name="Slide"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="rId2"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${EMU_W}" cy="${EMU_H}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic></p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`;
+function docXml(): string {
+  return `${XML_DECL}<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${OD_REL}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr><p:pic><p:nvPicPr><p:cNvPr id="2" name="Doc"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="rId2"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${EMU_W}" cy="${EMU_H}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic></p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`;
 }
 
-function slideRelsXml(idx: number): string {
-  return `${XML_DECL}<Relationships xmlns="${REL_NS}"><Relationship Id="rId1" Type="${OD_REL}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/><Relationship Id="rId2" Type="${OD_REL}/image" Target="../media/image${idx}.png"/></Relationships>`;
+function docRelsXml(idx: number): string {
+  return `${XML_DECL}<Relationships xmlns="${REL_NS}"><Relationship Id="rId1" Type="${OD_REL}/docLayout" Target="../docLayouts/docLayout1.xml"/><Relationship Id="rId2" Type="${OD_REL}/image" Target="../media/image${idx}.png"/></Relationships>`;
 }
 
 function themeXml(): string {

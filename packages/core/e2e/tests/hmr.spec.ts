@@ -3,15 +3,15 @@ import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import {
   devScratchDir,
+  docSourcePath,
   editorCanvas,
-  openSlide,
-  refreshSlidesModule,
-  slideSourcePath,
+  openPdf,
+  refreshDocsModule,
 } from './helpers.ts';
 
-const FRESH_DECK = `import type { Page, SlideMeta } from '@open-slide/core';
+const FRESH_DECK = `import type { Page, DocMeta } from '@open-pdf/core';
 
-export const meta: SlideMeta = {
+export const meta: DocMeta = {
   title: 'Fresh Deck',
   createdAt: '2026-01-05T00:00:00.000Z',
 };
@@ -26,11 +26,11 @@ export default [Only] satisfies Page[];
 `;
 
 test.describe('dev server file watching', () => {
-  test('editing a slide source hot-swaps the open slide', async ({ page }) => {
-    const file = slideSourcePath('hot-swap');
+  test('editing a doc source hot-swaps the open doc', async ({ page }) => {
+    const file = docSourcePath('hot-swap');
     const source = await fs.readFile(file, 'utf8');
     try {
-      await openSlide(page, 'hot-swap');
+      await openPdf(page, 'hot-swap');
       await expect(editorCanvas(page).getByText('Hot swap headline')).toBeVisible();
 
       await fs.writeFile(file, source.replace('Hot swap headline', 'Hot swapped headline'));
@@ -46,11 +46,11 @@ test.describe('dev server file watching', () => {
   test('a deck created on disk appears after a refresh and hot-disappears when removed', async ({
     page,
   }) => {
-    const dir = path.join(devScratchDir, 'slides', 'hmr-doomed');
+    const dir = path.join(devScratchDir, 'docs', 'hmr-doomed');
     try {
       await fs.mkdir(dir, { recursive: true });
       await fs.writeFile(path.join(dir, 'index.tsx'), FRESH_DECK);
-      await refreshSlidesModule('hmr-doomed');
+      await refreshDocsModule('hmr-doomed');
 
       await page.goto('/');
       const card = page.getByText('Fresh Deck');
@@ -71,11 +71,11 @@ test.describe('dev server file watching', () => {
   });
 
   test('a deck with no pages shows the empty state', async ({ page }) => {
-    const dir = path.join(devScratchDir, 'slides', 'hmr-empty');
+    const dir = path.join(devScratchDir, 'docs', 'hmr-empty');
     try {
       await fs.mkdir(dir, { recursive: true });
       await fs.writeFile(path.join(dir, 'index.tsx'), 'export default [];\n');
-      await refreshSlidesModule('hmr-empty');
+      await refreshDocsModule('hmr-empty');
 
       await page.goto('/s/hmr-empty');
       const emptyState = page.getByText('Nothing to show.');

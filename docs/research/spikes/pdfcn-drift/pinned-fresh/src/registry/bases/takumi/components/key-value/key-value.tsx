@@ -1,19 +1,12 @@
-import {
-  usePdfcnTheme,
-  useSafeMemo,
-} from "@/registry/bases/takumi/components/theme-provider";
-import {
-  View,
-  Text as PDFText,
-  StyleSheet,
-} from "@/registry/bases/takumi/lib/pdf-primitives";
-import type { Style } from "@/registry/bases/takumi/lib/pdf-primitives";
-import { resolveColor } from "@/registry/bases/takumi/lib/resolve-color";
-import type { PDFComponentProps } from "@/registry/types/pdf-components";
-import type { PdfcnTheme } from "@/registry/types/pdf-themes";
+import { usePdfcnTheme, useSafeMemo } from '@/registry/bases/takumi/components/theme-provider';
+import type { Style } from '@/registry/bases/takumi/lib/pdf-primitives';
+import { Text as PDFText, StyleSheet, View } from '@/registry/bases/takumi/lib/pdf-primitives';
+import { resolveColor } from '@/registry/bases/takumi/lib/resolve-color';
+import type { PDFComponentProps } from '@/registry/types/pdf-components';
+import type { PdfcnTheme } from '@/registry/types/pdf-themes';
 
-export type KeyValueDirection = "horizontal" | "vertical";
-export type KeyValueSize = "sm" | "md" | "lg";
+export type KeyValueDirection = 'horizontal' | 'vertical';
+export type KeyValueSize = 'sm' | 'md' | 'lg';
 
 /**
  * A single key-value row with optional per-item color and style overrides.
@@ -33,7 +26,7 @@ export interface KeyValueEntry {
  * Props - `items` | `direction` | `divided` | `size` | `labelFlex` | `labelColor` | `valueColor` | `boldValue` | `noWrap` | `dividerColor` | `dividerThickness` | `dividerMargin` | `style`
  * @see {@link KeyValueProps}
  */
-export interface KeyValueProps extends Omit<PDFComponentProps, "children"> {
+export interface KeyValueProps extends Omit<PDFComponentProps, 'children'> {
   items: KeyValueEntry[];
   /**
    * @default 'horizontal'
@@ -81,22 +74,22 @@ const createKeyValueStyles = (t: PdfcnTheme) => {
     fontWeight: fontWeights.regular,
   };
   return StyleSheet.create({
-    container: { flexDirection: "column" },
+    container: { flexDirection: 'column' },
     divider: {
       borderBottomColor: c.border,
-      borderBottomStyle: "solid",
+      borderBottomStyle: 'solid',
       borderBottomWidth: spacing[0.5],
     },
     keyLg: { ...keyBase, fontSize: t.primitives.typography.base },
     keyMd: { ...keyBase, fontSize: body.fontSize },
     keySm: { ...keyBase, fontSize: t.primitives.typography.xs },
     rowHorizontal: {
-      alignItems: "flex-start",
-      flexDirection: "row",
+      alignItems: 'flex-start',
+      flexDirection: 'row',
       paddingVertical: spacing[1],
     },
     rowVertical: {
-      flexDirection: "column",
+      flexDirection: 'column',
       marginBottom: t.spacing.paragraphGap,
     },
     valueBold: { fontWeight: fontWeights.bold },
@@ -108,9 +101,9 @@ const createKeyValueStyles = (t: PdfcnTheme) => {
 
 export const KeyValue = ({
   items,
-  direction = "horizontal",
+  direction = 'horizontal',
   divided = false,
-  size = "md",
+  size = 'md',
   labelFlex = 1,
   labelColor,
   valueColor,
@@ -163,15 +156,12 @@ export const KeyValue = ({
           valStyles.push(item.valueStyle);
         }
 
-        if (direction === "horizontal") {
+        if (direction === 'horizontal') {
           const rowStyles: Style[] = [styles.rowHorizontal];
           if (divided && !isLast) {
             const dividerStyle: Style = {};
             if (dividerColor) {
-              dividerStyle.borderBottomColor = resolveColor(
-                dividerColor,
-                theme.colors
-              );
+              dividerStyle.borderBottomColor = resolveColor(dividerColor, theme.colors);
             }
             if (dividerThickness) {
               dividerStyle.borderBottomWidth = dividerThickness;
@@ -183,10 +173,8 @@ export const KeyValue = ({
           }
           return (
             <View key={item.key} style={rowStyles}>
-              <PDFText style={[...keyStyles, { flex: labelFlex }]}>
-                {item.key}
-              </PDFText>
-              <PDFText style={[...valStyles, { flex: 1, textAlign: "right" }]}>
+              <PDFText style={[...keyStyles, { flex: labelFlex }]}>{item.key}</PDFText>
+              <PDFText style={[...valStyles, { flex: 1, textAlign: 'right' }]}>
                 {item.value}
               </PDFText>
             </View>

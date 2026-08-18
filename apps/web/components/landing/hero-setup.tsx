@@ -7,15 +7,15 @@ import { useEffect, useRef, useState } from 'react';
 const setupOptions = {
   you: {
     label: 'For you',
-    displayContent: 'npx @open-slide/cli init',
-    content: 'npx @open-slide/cli init',
+    displayContent: 'npx @open-pdf/cli init',
+    content: 'npx @open-pdf/cli init',
     copyLabel: 'Copy setup command',
   },
   agent: {
     label: 'For your agent',
     displayContent: 'Copy Prompt',
     content:
-      'Set up an open-slide workspace with `npx @open-slide/cli init`. Install the dependencies, start the dev server, and tell me the local URL when it is ready.',
+      'Set up an open-pdf workspace with `npx @open-pdf/cli init`. Install the dependencies, start the dev server, and tell me the local URL when it is ready.',
     copyLabel: 'Copy agent setup prompt',
   },
 } as const;
@@ -62,7 +62,7 @@ export function HeroSetup() {
     <div className="flex w-full flex-col items-start gap-3 sm:gap-4">
       <div
         role="group"
-        aria-label="Choose how to set up open-slide"
+        aria-label="Choose how to set up open-pdf"
         className="flex items-center text-[14px] sm:text-[15px]"
       >
         {setupModes.map((key, index) => (

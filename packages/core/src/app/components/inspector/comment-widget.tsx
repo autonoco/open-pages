@@ -26,7 +26,7 @@ export function CommentWidget() {
       className="absolute right-4 bottom-4 z-20 flex flex-col items-end gap-2"
     >
       {open && (
-        <div className="w-80 rounded-md border bg-card shadow-xl animate-in fade-in-0 slide-in-from-bottom-2 duration-200">
+        <div className="w-80 rounded-md border bg-card shadow-xl animate-in fade-in-0 doc-in-from-bottom-2 duration-200">
           <div className="flex items-center justify-between border-b px-3 py-2">
             <span className="text-xs font-semibold">
               {format(plural(count, t.inspector.commentsCount), { count })}

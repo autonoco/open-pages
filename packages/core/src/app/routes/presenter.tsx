@@ -22,21 +22,21 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
+import { DocCanvas } from '../components/doc-canvas';
+import { DocPreloadLayer, isDeckWarmed, markDeckWarmed } from '../components/doc-preload-layer';
 import {
   type PresenterState,
   usePresenterChannel,
 } from '../components/present/use-presenter-channel';
-import { SlideCanvas } from '../components/slide-canvas';
-import { isDeckWarmed, markDeckWarmed, SlidePreloadLayer } from '../components/slide-preload-layer';
-import { SlidePageProvider } from '../lib/page-context';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, type SlideModule } from '../lib/sdk';
-import { loadSlide, slideIds } from '../lib/slides';
+import { docIds, loadDoc } from '../lib/docs';
+import { DocPageProvider } from '../lib/page-context';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, type DocModule } from '../lib/sdk';
 import { type StepController, StepHost } from '../lib/step-context';
-import { useSlideModule } from '../lib/use-slide-module';
+import { useDocModule } from '../lib/use-doc-module';
 
 export function Presenter() {
-  const { slideId = '' } = useParams();
-  const { slide, error } = useSlideModule(slideId);
+  const { docId = '' } = useParams();
+  const { doc, error } = useDocModule(docId);
 
   // Presenter view is a passive mirror of the projection window. It only
   // tracks the index it last heard about; navigation buttons send commands
@@ -50,11 +50,11 @@ export function Presenter() {
   const t = useLocale();
   const [, setWarmedTick] = useState(0);
   const handleAssetsWarmed = useCallback(() => {
-    markDeckWarmed(slideId);
+    markDeckWarmed(docId);
     setWarmedTick((n) => n + 1);
-  }, [slideId]);
+  }, [docId]);
 
-  const channel = usePresenterChannel(slideId, (msg) => {
+  const channel = usePresenterChannel(docId, (msg) => {
     if (msg.type === 'state') {
       setState(msg.state);
       setHasProjection(true);
@@ -64,16 +64,16 @@ export function Presenter() {
   // A deck switch reuses this route instance, so the handshake state from
   // the previous deck must be dropped before rejoining on the new channel.
   // Render-phase reset so the new deck never renders with the old state.
-  const prevSlideIdRef = useRef(slideId);
-  if (prevSlideIdRef.current !== slideId) {
-    prevSlideIdRef.current = slideId;
+  const prevDocIdRef = useRef(docId);
+  if (prevDocIdRef.current !== docId) {
+    prevDocIdRef.current = docId;
     setState(null);
     setHasProjection(false);
     requestedRef.current = false;
   }
 
   // Hydrate from the projection window once.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: slideId re-fires the handshake on a deck switch even when the channel memo keeps its identity (available toggling false→true in one commit nets to no change)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: docId re-fires the handshake on a deck switch even when the channel memo keeps its identity (available toggling false→true in one commit nets to no change)
   useEffect(() => {
     if (!channel.available || requestedRef.current) return;
     requestedRef.current = true;
@@ -81,17 +81,17 @@ export function Presenter() {
     // If nothing answers within a beat, surface the "no projection" hint.
     const t = setTimeout(() => setHasProjection((v) => v), 600);
     return () => clearTimeout(t);
-  }, [channel, slideId]);
+  }, [channel, docId]);
 
   const navigate = useNavigate();
   const send = channel.send;
   const switchDeck = useCallback(
     (id: string) => {
-      if (id === slideId) return;
-      send({ type: 'switch-slide', slideId: id });
+      if (id === docId) return;
+      send({ type: 'switch-doc', docId: id });
       navigate(`/s/${encodeURIComponent(id)}/presenter`, { replace: true });
     },
-    [slideId, send, navigate],
+    [docId, send, navigate],
   );
   const goPrev = useCallback(() => send({ type: 'prev' }), [send]);
   const goNext = useCallback(() => send({ type: 'next' }), [send]);
@@ -135,7 +135,7 @@ export function Presenter() {
       <div className="dark grid h-dvh place-items-center bg-background p-8 text-foreground">
         <div className="max-w-md text-center">
           <span className="eyebrow text-destructive/80">{t.common.loadFailed}</span>
-          <h2 className="mt-2 font-heading text-xl font-semibold">{t.common.failedToLoadSlide}</h2>
+          <h2 className="mt-2 font-heading text-xl font-semibold">{t.common.failedToLoadDoc}</h2>
           <pre className="mt-4 overflow-auto rounded-[6px] border border-border bg-card p-4 text-left text-[11.5px] whitespace-pre-wrap shadow-edge">
             {error}
           </pre>
@@ -144,7 +144,7 @@ export function Presenter() {
     );
   }
 
-  if (!slide) {
+  if (!doc) {
     return (
       <div className="dark grid h-dvh place-items-center bg-background text-muted-foreground">
         <div className="flex flex-col items-center gap-4">
@@ -154,24 +154,24 @@ export function Presenter() {
               className="line-loader-bar absolute inset-y-[-0.5px] left-0 w-1/4 bg-foreground"
             />
           </div>
-          <div className="text-[11.5px]">{format(t.presenter.loadingSlide, { slideId })}</div>
+          <div className="text-[11.5px]">{format(t.presenter.loadingDoc, { docId })}</div>
         </div>
       </div>
     );
   }
 
-  const pages = slide.default;
+  const pages = doc.default;
   const total = pages.length;
   const index = Math.max(0, Math.min(total - 1, state?.index ?? 0));
-  const note = slide.notes?.[index];
+  const note = doc.notes?.[index];
   const blackout = state?.blackout ?? null;
   const startedAt = state?.startedAt ?? localStart;
   const stepIndex = Math.max(0, state?.stepIndex ?? 0);
   const stepCount = Math.max(0, state?.stepCount ?? 0);
 
   const stepsRemaining = stepIndex < stepCount;
-  const hasNextSlide = index < total - 1;
-  const hasNext = stepsRemaining || hasNextSlide;
+  const hasNextDoc = index < total - 1;
+  const hasNext = stepsRemaining || hasNextDoc;
   const nextPageIndex = stepsRemaining ? index : Math.min(total - 1, index + 1);
   const nextRevealed = stepsRemaining ? stepIndex + 1 : 0;
 
@@ -180,7 +180,7 @@ export function Presenter() {
 
   // Hold the loader while a hidden layer warms the whole deck's images and
   // fonts, so the previews first paint with every asset already in cache.
-  if (!isDeckWarmed(slideId)) {
+  if (!isDeckWarmed(docId)) {
     return (
       <div className="dark grid h-dvh place-items-center bg-background text-muted-foreground">
         <div className="flex flex-col items-center gap-4">
@@ -192,10 +192,10 @@ export function Presenter() {
           </div>
           <div className="text-[11.5px]">{t.presenter.loadingAssets}</div>
         </div>
-        <SlidePreloadLayer
+        <DocPreloadLayer
           pages={pages}
           index={index}
-          design={slide.design}
+          design={doc.design}
           includeCurrent
           onDone={handleAssetsWarmed}
         />
@@ -209,8 +209,8 @@ export function Presenter() {
         index={index}
         total={total}
         startedAt={startedAt}
-        slideId={slideId}
-        slideTitle={slide.meta?.title ?? slideId}
+        docId={docId}
+        docTitle={doc.meta?.title ?? docId}
         connected={hasProjection}
         onSwitchDeck={switchDeck}
       />
@@ -220,13 +220,13 @@ export function Presenter() {
         <section className="flex min-h-0 flex-col gap-3">
           <SectionLabel>{t.presenter.nowShowing}</SectionLabel>
           <div className="relative min-h-0 flex-1 overflow-hidden rounded-[8px] bg-black ring-1 ring-border">
-            <SlideCanvas flat design={slide.design}>
-              <SlidePageProvider index={index} total={total}>
+            <DocCanvas flat design={doc.design}>
+              <DocPageProvider index={index} total={total}>
                 <PreviewStepHost revealed={stepIndex}>
                   <CurrentPage />
                 </PreviewStepHost>
-              </SlidePageProvider>
-            </SlideCanvas>
+              </DocPageProvider>
+            </DocCanvas>
             {blackout && (
               <div
                 aria-hidden
@@ -244,19 +244,19 @@ export function Presenter() {
         {/* Next + notes */}
         <aside className="flex min-h-0 flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <SectionLabel>{hasNext ? t.presenter.upNext : t.presenter.lastSlide}</SectionLabel>
+            <SectionLabel>{hasNext ? t.presenter.upNext : t.presenter.lastDoc}</SectionLabel>
             <div
               className="relative w-full overflow-hidden rounded-[8px] bg-black ring-1 ring-border"
               style={{ aspectRatio: `${CANVAS_WIDTH}/${CANVAS_HEIGHT}` }}
             >
               {NextPage ? (
-                <SlideCanvas flat freezeMotion design={slide.design}>
-                  <SlidePageProvider index={nextPageIndex} total={total}>
+                <DocCanvas flat freezeMotion design={doc.design}>
+                  <DocPageProvider index={nextPageIndex} total={total}>
                     <PreviewStepHost revealed={nextRevealed}>
                       <NextPage />
                     </PreviewStepHost>
-                  </SlidePageProvider>
-                </SlideCanvas>
+                  </DocPageProvider>
+                </DocCanvas>
               ) : (
                 <div className="grid h-full place-items-center text-[11.5px] text-muted-foreground">
                   {t.presenter.endOfDeck}
@@ -288,29 +288,29 @@ function PresenterTopBar({
   index,
   total,
   startedAt,
-  slideId,
-  slideTitle,
+  docId,
+  docTitle,
   connected,
   onSwitchDeck,
 }: {
   index: number;
   total: number;
   startedAt: number;
-  slideId: string;
-  slideTitle: string;
+  docId: string;
+  docTitle: string;
   connected: boolean;
-  onSwitchDeck: (slideId: string) => void;
+  onSwitchDeck: (docId: string) => void;
 }) {
   const t = useLocale();
   return (
     <header className="flex h-12 shrink-0 items-center justify-between border-b border-hairline px-6">
       <div className="flex min-w-0 items-center gap-3">
         <span className="eyebrow text-white/45">{t.presenter.eyebrow}</span>
-        {slideIds.length > 1 ? (
-          <DeckSwitcher slideId={slideId} slideTitle={slideTitle} onSwitchDeck={onSwitchDeck} />
+        {docIds.length > 1 ? (
+          <DeckSwitcher docId={docId} docTitle={docTitle} onSwitchDeck={onSwitchDeck} />
         ) : (
           <span className="truncate font-heading text-[14px] font-semibold tracking-tight">
-            {slideTitle}
+            {docTitle}
           </span>
         )}
         {!connected && (
@@ -335,12 +335,12 @@ function PresenterTopBar({
 // Listing decks means importing every deck's chunk for its meta and pages.
 // That warms the module cache for switches; assets only load on render, so
 // this stays cheap.
-function useDeckModules(): Record<string, SlideModule> {
-  const [modules, setModules] = useState<Record<string, SlideModule>>({});
+function useDeckModules(): Record<string, DocModule> {
+  const [modules, setModules] = useState<Record<string, DocModule>>({});
   useEffect(() => {
     let cancelled = false;
-    for (const id of slideIds) {
-      loadSlide(id)
+    for (const id of docIds) {
+      loadDoc(id)
         .then((mod) => {
           if (cancelled) return;
           setModules((cur) => (cur[id] === mod ? cur : { ...cur, [id]: mod }));
@@ -355,13 +355,13 @@ function useDeckModules(): Record<string, SlideModule> {
 }
 
 function DeckSwitcher({
-  slideId,
-  slideTitle,
+  docId,
+  docTitle,
   onSwitchDeck,
 }: {
-  slideId: string;
-  slideTitle: string;
-  onSwitchDeck: (slideId: string) => void;
+  docId: string;
+  docTitle: string;
+  onSwitchDeck: (docId: string) => void;
 }) {
   const t = useLocale();
   const modules = useDeckModules();
@@ -371,7 +371,7 @@ function DeckSwitcher({
   const listRef = useRef<HTMLDivElement | null>(null);
 
   const trimmed = query.trim().toLowerCase();
-  const filtered = slideIds.filter((id) => {
+  const filtered = docIds.filter((id) => {
     if (!trimmed) return true;
     const title = modules[id]?.meta?.title;
     return id.toLowerCase().includes(trimmed) || title?.toLowerCase().includes(trimmed);
@@ -420,7 +420,7 @@ function DeckSwitcher({
         className="group -mx-1.5 flex min-w-0 items-center gap-1 rounded-[5px] px-1.5 py-0.5 outline-none hover:bg-card focus-visible:ring-2 focus-visible:ring-ring/30"
       >
         <span className="truncate font-heading text-[14px] font-semibold tracking-tight">
-          {slideTitle}
+          {docTitle}
         </span>
         <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
       </DialogTrigger>
@@ -465,13 +465,13 @@ function DeckSwitcher({
                     style={{ aspectRatio: `${CANVAS_WIDTH}/${CANVAS_HEIGHT}` }}
                   >
                     {FirstPage && (
-                      <SlideCanvas flat freezeMotion design={mod.design}>
-                        <SlidePageProvider index={0} total={mod.default.length}>
+                      <DocCanvas flat freezeMotion design={mod.design}>
+                        <DocPageProvider index={0} total={mod.default.length}>
                           <PreviewStepHost revealed={0}>
                             <FirstPage />
                           </PreviewStepHost>
-                        </SlidePageProvider>
-                      </SlideCanvas>
+                        </DocPageProvider>
+                      </DocCanvas>
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -483,7 +483,7 @@ function DeckSwitcher({
                       {mod && ` · ${mod.default.length.toString().padStart(2, '0')}`}
                     </div>
                   </div>
-                  {id === slideId && <Check className="size-3.5 shrink-0 text-muted-foreground" />}
+                  {id === docId && <Check className="size-3.5 shrink-0 text-muted-foreground" />}
                 </button>
               );
             })
@@ -551,7 +551,7 @@ function PresenterBottomBar({
 
 const NOTES_FONT_SIZES = [11, 12, 13.5, 15, 17, 20, 24, 28];
 const NOTES_FONT_SIZE_DEFAULT_INDEX = 2;
-const NOTES_FONT_SIZE_STORAGE_KEY = 'open-slide:presenter-notes-font-size';
+const NOTES_FONT_SIZE_STORAGE_KEY = 'open-pdf:presenter-notes-font-size';
 
 function SpeakerNotes({ note }: { note: string | undefined }) {
   const t = useLocale();

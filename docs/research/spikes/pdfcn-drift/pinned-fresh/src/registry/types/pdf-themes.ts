@@ -44,9 +44,9 @@ export interface TypographyScale {
   /** 22pt — H3 equivalent */
   xl: number;
   /** 28pt — H2 equivalent */
-  "2xl": number;
+  '2xl': number;
   /** 36pt — H1 equivalent */
-  "3xl": number;
+  '3xl': number;
 }
 
 /** Spacing scale based on a 4pt grid system */
@@ -217,9 +217,9 @@ export interface SpacingTokens {
 /** Page layout defaults */
 export interface PageTokens {
   /** Default page size */
-  size: "A4" | "LETTER" | "LEGAL";
+  size: 'A4' | 'LETTER' | 'LEGAL';
   /** Default page orientation */
-  orientation: "portrait" | "landscape";
+  orientation: 'portrait' | 'landscape';
 }
 
 // ─── Full Theme ─────────────────────────────────────────────────────────────

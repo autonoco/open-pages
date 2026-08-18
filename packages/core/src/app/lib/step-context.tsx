@@ -44,7 +44,7 @@ type StepHostContextValue = {
   isActivePage: boolean;
 };
 
-const GLOBAL_KEY = '__open_slide_step_host_context__';
+const GLOBAL_KEY = '__open_pdf_step_host_context__';
 type GlobalWithCtx = typeof globalThis & {
   [GLOBAL_KEY]?: Context<StepHostContextValue | null>;
 };

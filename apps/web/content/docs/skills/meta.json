@@ -2,10 +2,10 @@
   "title": "Skills",
   "pages": [
     "overview",
-    "create-slide",
-    "slide-authoring",
+    "create-doc",
+    "doc-authoring",
     "apply-comments",
     "create-theme",
-    "current-slide"
+    "current-doc"
   ]
 }

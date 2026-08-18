@@ -1,9 +1,9 @@
-// Ambient module declarations for assets imported from `slides/<id>/assets/`.
+// Ambient module declarations for assets imported from `docs/<id>/assets/`.
 // Mirrors Vite's default asset handling (default export = resolved URL).
 //
 // Consumers opt in via tsconfig:
 //
-//   { "compilerOptions": { "types": ["@open-slide/core/env"] } }
+//   { "compilerOptions": { "types": ["@open-pdf/core/env"] } }
 
 declare module '*.svg' {
   const src: string;

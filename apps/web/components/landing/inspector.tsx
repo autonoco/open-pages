@@ -40,7 +40,7 @@ export function Inspector() {
               <>
                 Click any block, leave a note. The inspector pins it as a{' '}
                 <span className="font-[family-name:var(--font-mono)] text-[color:var(--color-accent-soft)]">
-                  @slide-comment
+                  @pdf-comment
                 </span>{' '}
                 marker in your source. Run{' '}
                 <span className="font-[family-name:var(--font-mono)] text-[color:var(--color-accent-soft)]">
@@ -311,7 +311,7 @@ function AgentApplyVisual() {
           </motion.div>
         </div>
 
-        {/* InspectorPanel — slides in from the right after click */}
+        {/* InspectorPanel — docs in from the right after click */}
         <motion.div
           className="border-l border-[color:var(--color-rule)] bg-[color:var(--color-panel-hi)] flex flex-col overflow-hidden"
           animate={active ? { x: ['100%', '100%', '0%', '0%', '100%', '100%'] } : { x: '0%' }}

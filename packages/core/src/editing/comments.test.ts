@@ -31,7 +31,7 @@ describe('parseMarkers', () => {
     const source = [
       'export default [() => (',
       '  <div>',
-      `    {/* @slide-comment id="${id}" ts="${ts}" text="${payload}" */}`,
+      `    {/* @pdf-comment id="${id}" ts="${ts}" text="${payload}" */}`,
       '    hi',
       '  </div>',
       ')];',
@@ -44,7 +44,7 @@ describe('parseMarkers', () => {
 
   it('extracts a hint when the marker payload includes one', () => {
     const payload = b64urlEncode(JSON.stringify({ note: 'fix', hint: 'h1' }));
-    const source = `{/* @slide-comment id="c-12345678" ts="2026-04-25T00:00:00.000Z" text="${payload}" */}`;
+    const source = `{/* @pdf-comment id="c-12345678" ts="2026-04-25T00:00:00.000Z" text="${payload}" */}`;
     const [c] = parseMarkers(source);
     expect(c.hint).toBe('h1');
     expect(c.note).toBe('fix');
@@ -52,7 +52,7 @@ describe('parseMarkers', () => {
 
   it('skips markers whose payload is malformed', () => {
     const source =
-      '{/* @slide-comment id="c-12345678" ts="2026-04-25T00:00:00.000Z" text="not_json" */}';
+      '{/* @pdf-comment id="c-12345678" ts="2026-04-25T00:00:00.000Z" text="not_json" */}';
     expect(parseMarkers(source)).toEqual([]);
   });
 
@@ -60,9 +60,9 @@ describe('parseMarkers', () => {
     const p1 = b64urlEncode(JSON.stringify({ note: 'one' }));
     const p2 = b64urlEncode(JSON.stringify({ note: 'two' }));
     const source = [
-      `{/* @slide-comment id="c-aaaaaaaa" ts="2026-04-25T00:00:00.000Z" text="${p1}" */}`,
+      `{/* @pdf-comment id="c-aaaaaaaa" ts="2026-04-25T00:00:00.000Z" text="${p1}" */}`,
       'const x = 1;',
-      `{/* @slide-comment id="c-bbbbbbbb" ts="2026-04-25T00:00:00.000Z" text="${p2}" */}`,
+      `{/* @pdf-comment id="c-bbbbbbbb" ts="2026-04-25T00:00:00.000Z" text="${p2}" */}`,
     ].join('\n');
 
     const comments = parseMarkers(source);

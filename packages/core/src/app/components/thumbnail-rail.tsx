@@ -39,11 +39,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import type { DesignSystem } from '../lib/design';
-import { SlidePageProvider } from '../lib/page-context';
+import { DocPageProvider } from '../lib/page-context';
 import type { Page } from '../lib/sdk';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../lib/sdk';
-import type { SlideTransition } from '../lib/transition';
-import { SlideCanvas } from './slide-canvas';
+import type { DocTransition } from '../lib/transition';
+import { DocCanvas } from './doc-canvas';
 import {
   getCenteredThumbnailScrollTop,
   getThumbnailOffscreenDirection,
@@ -68,7 +68,7 @@ type Props = {
   /** Vertical-only: total rail width in px. Thumbnails scale to fit. */
   width?: number;
   /** Deck-level transition default; used to flag pages that inherit a transition. */
-  moduleTransition?: SlideTransition;
+  moduleTransition?: DocTransition;
   /** When provided, the vertical rail header renders a button that opens the overview grid. */
   onOverview?: () => void;
 };
@@ -518,11 +518,11 @@ function HorizontalVirtualThumbList({
           )}
           style={{ width: thumbWidth, height: HORIZONTAL_THUMB_HEIGHT }}
         >
-          <SlideCanvas scale={scale} center={false} flat freezeMotion design={design}>
-            <SlidePageProvider index={i} total={pages.length}>
+          <DocCanvas scale={scale} center={false} flat freezeMotion design={design}>
+            <DocPageProvider index={i} total={pages.length}>
               <PageComp />
-            </SlidePageProvider>
-          </SlideCanvas>
+            </DocPageProvider>
+          </DocCanvas>
         </div>
       </button>
     );
@@ -746,7 +746,7 @@ function ThumbContents({
   scale: number;
   thumbWidth: number;
   height: number;
-  moduleTransition?: SlideTransition;
+  moduleTransition?: DocTransition;
 }) {
   const t = useLocale();
   const boxRef = useRef<HTMLDivElement | null>(null);
@@ -793,11 +793,11 @@ function ThumbContents({
         )}
         style={{ width: thumbWidth, height }}
       >
-        <SlideCanvas scale={scale} center={false} flat freezeMotion design={design}>
-          <SlidePageProvider index={index} total={total}>
+        <DocCanvas scale={scale} center={false} flat freezeMotion design={design}>
+          <DocPageProvider index={index} total={total}>
             <PageComp />
-          </SlidePageProvider>
-        </SlideCanvas>
+          </DocPageProvider>
+        </DocCanvas>
         {active && (
           <span
             aria-hidden

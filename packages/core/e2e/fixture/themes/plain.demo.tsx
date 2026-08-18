@@ -1,4 +1,4 @@
-import type { Page } from '@open-slide/core';
+import type { Page } from '@open-pdf/core';
 
 const base = {
   width: '100%',

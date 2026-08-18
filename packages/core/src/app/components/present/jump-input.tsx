@@ -10,7 +10,7 @@ type Props = {
 /**
  * Listens for digit keypresses anywhere on the document and shows a
  * transient "→ 7" badge. Pressing Enter (or letting it idle) flushes the
- * buffer and jumps to the slide. Designed to be invisible until the user
+ * buffer and jumps to the doc. Designed to be invisible until the user
  * starts typing — never steals focus, never shows an input element.
  */
 export function PresentJumpInput({ pageCount, onJump }: Props) {

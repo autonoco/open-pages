@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { format, useLocale } from '@/lib/use-locale';
-import { SlidePageProvider } from '../../lib/page-context';
+import { DocPageProvider } from '../../lib/page-context';
 import { loadThemeDemo, type Theme, type ThemeDemoModule, themes } from '../../lib/themes';
-import { SlideCanvas } from '../slide-canvas';
+import { DocCanvas } from '../doc-canvas';
 
 export function ThemesGallery({ onOpen }: { onOpen: (id: string) => void }) {
   const t = useLocale();
@@ -78,11 +78,11 @@ function ThemePreview({ theme }: { theme: Theme }) {
 
   return (
     <div className="h-full w-full motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]">
-      <SlideCanvas flat freezeMotion design={demo.design}>
-        <SlidePageProvider index={0} total={demo.default.length}>
+      <DocCanvas flat freezeMotion design={demo.design}>
+        <DocPageProvider index={0} total={demo.default.length}>
           <FirstPage />
-        </SlidePageProvider>
-      </SlideCanvas>
+        </DocPageProvider>
+      </DocCanvas>
     </div>
   );
 }

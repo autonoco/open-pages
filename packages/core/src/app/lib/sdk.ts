@@ -1,23 +1,23 @@
 import type { ComponentType } from 'react';
 import type { DesignSystem } from './design.ts';
-import type { SlideTransition } from './transition.ts';
+import type { DocTransition } from './transition.ts';
 
-export type Page = ComponentType & { transition?: SlideTransition };
+export type Page = ComponentType & { transition?: DocTransition };
 
-export type SlideMeta = {
+export type DocMeta = {
   title?: string;
   theme?: string;
-  /** ISO 8601 timestamp. Set once at scaffold time; used to sort the slide list. */
+  /** ISO 8601 timestamp. Set once at scaffold time; used to sort the doc list. */
   createdAt?: string;
 };
 
-export type SlideModule = {
+export type DocModule = {
   default: Page[];
-  meta?: SlideMeta;
+  meta?: DocMeta;
   design?: DesignSystem;
   // Index-aligned with `default`.
   notes?: (string | undefined)[];
-  transition?: SlideTransition;
+  transition?: DocTransition;
 };
 
 export type FolderIcon = { type: 'emoji'; value: string } | { type: 'color'; value: string };

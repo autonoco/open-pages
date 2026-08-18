@@ -4,18 +4,18 @@ import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import {
   coreRoot,
-  deleteSlide,
+  deleteDoc,
   devScratchDir,
-  duplicateSlide,
-  readSlideSource,
-  slideSourcePath,
+  docSourcePath,
+  duplicateDoc,
+  readDocSource,
   TINY_PNG,
 } from './helpers.ts';
 
 test.describe('dev server http api', () => {
   test.afterEach(async ({ request }) => {
     for (const id of ['api-dup', 'api-notes', 'api-design', 'api-comments', 'api-assets']) {
-      await deleteSlide(request, id);
+      await deleteDoc(request, id);
     }
     const folders = (await (await request.get('/__folders')).json()) as {
       folders: { id: string }[];
@@ -62,7 +62,7 @@ test.describe('dev server http api', () => {
     expect(folder.name).toBe('E2E Folder');
 
     const assigned = await request.put('/__folders/assign', {
-      data: { slideId: 'alpha', folderId: folder.id },
+      data: { docId: 'alpha', folderId: folder.id },
     });
     expect(assigned.ok()).toBe(true);
     const state = (await (await request.get('/__folders')).json()) as {
@@ -80,93 +80,91 @@ test.describe('dev server http api', () => {
     expect(after.assignments).toEqual({});
   });
 
-  test('slides can be duplicated, renamed, and deleted', async ({ request }) => {
-    const dup = await request.post('/__slides/edit-target/duplicate', {
+  test('docs can be duplicated, renamed, and deleted', async ({ request }) => {
+    const dup = await request.post('/__docs/edit-target/duplicate', {
       data: { newId: 'api-dup' },
     });
     expect(dup.ok()).toBe(true);
-    expect(((await dup.json()) as { slideId: string }).slideId).toBe('api-dup');
-    expect(existsSync(slideSourcePath('api-dup'))).toBe(true);
+    expect(((await dup.json()) as { docId: string }).docId).toBe('api-dup');
+    expect(existsSync(docSourcePath('api-dup'))).toBe(true);
 
-    const conflict = await request.post('/__slides/edit-target/duplicate', {
+    const conflict = await request.post('/__docs/edit-target/duplicate', {
       data: { newId: 'api-dup' },
     });
     expect(conflict.status()).toBe(409);
 
-    const invalid = await request.post('/__slides/edit-target/duplicate', {
+    const invalid = await request.post('/__docs/edit-target/duplicate', {
       data: { newId: 'bad id!' },
     });
     expect(invalid.status()).toBe(400);
 
-    const renamed = await request.patch('/__slides/api-dup', { data: { name: 'Renamed via API' } });
+    const renamed = await request.patch('/__docs/api-dup', { data: { name: 'Renamed via API' } });
     expect(renamed.ok()).toBe(true);
-    expect(await readSlideSource('api-dup')).toContain('Renamed via API');
+    expect(await readDocSource('api-dup')).toContain('Renamed via API');
 
-    const deleted = await request.delete('/__slides/api-dup');
+    const deleted = await request.delete('/__docs/api-dup');
     expect(deleted.ok()).toBe(true);
-    await expect.poll(() => existsSync(slideSourcePath('api-dup'))).toBe(false);
+    await expect.poll(() => existsSync(docSourcePath('api-dup'))).toBe(false);
   });
 
-  test('notes endpoint writes speaker notes into the slide module', async ({ request }) => {
-    await duplicateSlide(request, 'edit-target', 'api-notes');
+  test('notes endpoint writes speaker notes into the doc module', async ({ request }) => {
+    await duplicateDoc(request, 'edit-target', 'api-notes');
     const res = await request.put('/__notes', {
-      data: { slideId: 'api-notes', index: 0, text: 'API speaker note' },
+      data: { docId: 'api-notes', index: 0, text: 'API speaker note' },
     });
     expect(res.ok()).toBe(true);
     expect((await res.json()) as { ok: boolean }).toMatchObject({ ok: true });
 
-    const source = await readSlideSource('api-notes');
+    const source = await readDocSource('api-notes');
     expect(source).toContain('export const notes');
     expect(source).toContain('API speaker note');
   });
 
   test('design endpoint creates and resets a design declaration', async ({ request }) => {
-    await duplicateSlide(request, 'edit-target', 'api-design');
+    await duplicateDoc(request, 'edit-target', 'api-design');
 
-    const initial = (await (await request.get('/__design?slideId=api-design')).json()) as {
+    const initial = (await (await request.get('/__design?docId=api-design')).json()) as {
       exists: boolean;
     };
     expect(initial.exists).toBe(false);
 
-    const updated = await request.put('/__design?slideId=api-design', {
+    const updated = await request.put('/__design?docId=api-design', {
       data: { patch: { radius: 12 } },
     });
     expect(updated.ok()).toBe(true);
-    expect(await readSlideSource('api-design')).toContain('const design: DesignSystem');
+    expect(await readDocSource('api-design')).toContain('const design: DesignSystem');
 
-    const reset = await request.post('/__design/reset?slideId=api-design');
+    const reset = await request.post('/__design/reset?docId=api-design');
     expect(reset.ok()).toBe(true);
   });
 
   test('comment markers round-trip through the comments api', async ({ request }) => {
-    await duplicateSlide(request, 'edit-target', 'api-comments');
-    const source = await readSlideSource('api-comments');
+    await duplicateDoc(request, 'edit-target', 'api-comments');
+    const source = await readDocSource('api-comments');
     const line = source.split('\n').findIndex((l) => l.includes('<h1')) + 1;
     expect(line).toBeGreaterThan(0);
 
     const added = await request.post('/__comments/add', {
-      data: { slideId: 'api-comments', line, text: 'Make this pop' },
+      data: { docId: 'api-comments', line, text: 'Make this pop' },
     });
     expect(added.ok()).toBe(true);
     const comment = (await added.json()) as { id: string };
     expect(comment.id).toMatch(/^c-[a-f0-9]+$/);
-    expect(await readSlideSource('api-comments')).toContain('@slide-comment');
+    expect(await readDocSource('api-comments')).toContain('@pdf-comment');
 
-    const list = (await (await request.get('/__comments/?slideId=api-comments')).json()) as {
+    const list = (await (await request.get('/__comments/?docId=api-comments')).json()) as {
       comments: { id: string; note: string }[];
     };
     expect(list.comments).toHaveLength(1);
     expect(list.comments[0]?.note).toBe('Make this pop');
 
-    const removed = await request.delete(`/__comments/${comment.id}?slideId=api-comments`);
+    const removed = await request.delete(`/__comments/${comment.id}?docId=api-comments`);
     expect(removed.ok()).toBe(true);
-    expect(await readSlideSource('api-comments')).not.toContain('@slide-comment');
+    expect(await readDocSource('api-comments')).not.toContain('@pdf-comment');
   });
 
-  test('slide assets can be uploaded, listed, served, renamed, and deleted', async ({
-    request,
-  }) => {
-    await duplicateSlide(request, 'edit-target', 'api-assets');
+  test('doc assets can be uploaded, listed, served, renamed, and deleted', async ({ request }) => {
+    await duplicateDoc(request, 'edit-target', 'api-assets');
 
     const uploaded = await request.post('/__assets/api-assets/dot.png', {
       headers: { 'content-type': 'application/octet-stream' },

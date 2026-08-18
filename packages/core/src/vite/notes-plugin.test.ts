@@ -22,7 +22,7 @@ describe('renderNoteLiteral', () => {
 
 describe('applyNotesEdit / no existing export', () => {
   it('inserts a new notes export padded to the target index', () => {
-    const source = `import type { Page } from '@open-slide/core';\n\nexport default [];\n`;
+    const source = `import type { Page } from '@open-pdf/core';\n\nexport default [];\n`;
     const result = applyNotesEdit(source, 2, 'hello');
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -58,7 +58,7 @@ describe('applyNotesEdit / no existing export', () => {
 describe('applyNotesEdit / existing export', () => {
   it('updates an existing slot in place', () => {
     const source = [
-      "import type { Page } from '@open-slide/core';",
+      "import type { Page } from '@open-pdf/core';",
       '',
       'export default [];',
       '',
@@ -126,7 +126,7 @@ describe('applyNotesEdit / existing export', () => {
 
 describe('recent-writes window', () => {
   it('reports a freshly recorded write as recent for the whole window', () => {
-    const file = '/slides/recent-a/index.tsx';
+    const file = '/docs/recent-a/index.tsx';
     const now = 1_000_000;
     recordWrite(file, now);
     expect(hasRecentWrite(file, now)).toBe(true);
@@ -134,11 +134,11 @@ describe('recent-writes window', () => {
   });
 
   it('treats an unrecorded file as not recent', () => {
-    expect(hasRecentWrite('/slides/never-written/index.tsx', 1)).toBe(false);
+    expect(hasRecentWrite('/docs/never-written/index.tsx', 1)).toBe(false);
   });
 
   it('expires entries after the window so a later genuine edit is not suppressed', () => {
-    const file = '/slides/recent-b/index.tsx';
+    const file = '/docs/recent-b/index.tsx';
     const now = 2_000_000;
     recordWrite(file, now);
     expect(hasRecentWrite(file, now + RECENT_WRITE_WINDOW_MS)).toBe(false);

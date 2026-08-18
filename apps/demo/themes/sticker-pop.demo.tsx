@@ -1,4 +1,4 @@
-import { type Page, useSlidePageNumber } from '@open-slide/core';
+import { type Page, useDocPageNumber } from '@open-pdf/core';
 import type { ReactNode } from 'react';
 
 const styles = `
@@ -34,7 +34,7 @@ const Title = ({ children }: { children: ReactNode }) => (
 );
 
 const Footer = () => {
-  const { current, total } = useSlidePageNumber();
+  const { current, total } = useDocPageNumber();
   return (
     <div
       style={{

@@ -6,21 +6,21 @@ description: Spin up your first deck in under a minute.
 ## Install
 
 ```npm
-npx @open-slide/cli init my-deck
+npx @open-pdf/cli init my-deck
 cd my-deck
 npm run dev
 ```
 
 The scaffolder generates a workspace (abridged — see
-[open-slide init](/docs/cli/init) for the full tree):
+[open-pdf init](/docs/cli/init) for the full tree):
 
 ```text
 my-deck/
-├── slides/
-│   └── getting-started/    # your first slide
+├── docs/
+│   └── getting-started/    # your first doc
 ├── themes/                 # shared design systems
 ├── .agents/skills/         # bundled agent skills
-├── open-slide.config.ts    # framework config
+├── open-pdf.config.ts    # framework config
 ├── AGENTS.md               # agent rules (CLAUDE.md symlinks to it)
 └── package.json
 ```
@@ -34,19 +34,19 @@ Open the workspace in any agent-aware editor — Claude Code, Codex, Cursor,
 Windsurf, Zed, etc. From the agent prompt:
 
 ```text
-/create-slide for "Q2 launch — 3 chapters, mixed text density, subtle motion, dark aesthetic"
+/create-doc for "Q2 launch — 3 chapters, mixed text density, subtle motion, dark aesthetic"
 ```
 
 The skill scopes the deck (theme, aesthetic, page count, density, motion),
 picks an id, plans the structure, and writes the pages under
-`slides/<id>/index.tsx`.
+`docs/<id>/index.tsx`.
 
 ## Iterate visually
 
 1. Click any element in the browser preview.
 2. Pick **Comment** and type a note — *"use the accent colour on this
    title"*, *"shrink to 88px"*, *"swap to assets/cover.png"*.
-3. Save. Comments are persisted as `@slide-comment` markers in the source.
+3. Save. Comments are persisted as `@pdf-comment` markers in the source.
 4. Run `/apply-comments` in your agent. It rewrites exactly the flagged
    regions and clears the markers.
 
@@ -66,7 +66,7 @@ Zeabur, Netlify, or any static host.
 ## What's next
 
 <Cards>
-  <Card title="Create a slide" href="/docs/skills/create-slide" />
+  <Card title="Create a doc" href="/docs/skills/create-doc" />
   <Card title="Present mode" href="/docs/core-feature/present-mode" />
   <Card title="Agent skills" href="/docs/skills/overview" />
 </Cards>

@@ -225,14 +225,14 @@ function AssetManagerMock() {
         <div className="flex min-w-0 items-center gap-3">
           <div className="inline-flex items-center gap-0.5 rounded-[7px] border border-[color:var(--color-rule)] bg-[color:var(--color-panel-hi)] p-0.5">
             <span className="rounded-[5px] bg-[color:var(--color-panel)] px-3 py-1 font-[family-name:var(--font-sans)] text-[12px] font-medium text-[color:var(--color-text)] [box-shadow:var(--shadow-edge)]">
-              Slide
+              Doc
             </span>
             <span className="rounded-[5px] px-3 py-1 font-[family-name:var(--font-sans)] text-[12px] text-[color:var(--color-muted)] transition-colors hover:text-[color:var(--color-text)]">
               Global
             </span>
           </div>
           <span className="hidden md:inline-flex items-baseline min-w-0 font-[family-name:var(--font-mono)] text-[11.5px] text-[color:var(--color-muted)]">
-            slides/cover/assets/
+            docs/cover/assets/
             <span className="mx-1.5 opacity-50">·</span>
             <span className="relative whitespace-nowrap">
               <motion.span style={{ opacity: oldCountOpacity }}>06 files</motion.span>

@@ -59,10 +59,10 @@ const Title = ({ children }: { children: React.ReactNode }) => (
 ### Footer
 
 ```tsx
-import { useSlidePageNumber } from '@open-slide/core';
+import { useDocPageNumber } from '@open-pdf/core';
 
 const Footer = () => {
-  const { current, total } = useSlidePageNumber();
+  const { current, total } = useDocPageNumber();
   return (
     <div
       style={{
@@ -155,7 +155,7 @@ Use `sp-pop` on stickers as they appear, `sp-bob` on decorative dots, `sp-wiggle
 
 ## Aesthetic
 
-A sticker book glued to a peach risograph print. Soft warm paper, hot-pink and grape doing all the punctuation, hard black outlines and chunky drop-stamps (`4px 4px 0 0 #2d1b4e`) instead of soft shadows. Type wants to be friendly: rounded geometric sans, big, slightly tipped. Avoid: gradients, glow, photography, glassmorphism, corporate four-grid card layouts, dark mode. If the slide could be screen-printed onto a tote bag, it is on theme.
+A sticker book glued to a peach risograph print. Soft warm paper, hot-pink and grape doing all the punctuation, hard black outlines and chunky drop-stamps (`4px 4px 0 0 #2d1b4e`) instead of soft shadows. Type wants to be friendly: rounded geometric sans, big, slightly tipped. Avoid: gradients, glow, photography, glassmorphism, corporate four-grid card layouts, dark mode. If the doc could be screen-printed onto a tote bag, it is on theme.
 
 ## Example usage
 

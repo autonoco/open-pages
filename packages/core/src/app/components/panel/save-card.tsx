@@ -58,7 +58,7 @@ export function SaveCard({
   return (
     <div
       {...dataAttrs}
-      className="pointer-events-none absolute bottom-6 left-1/2 z-30 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-2 duration-200 ease-out"
+      className="pointer-events-none absolute bottom-6 left-1/2 z-30 -translate-x-1/2 animate-in fade-in doc-in-from-bottom-2 duration-200 ease-out"
     >
       <div className="pointer-events-auto flex h-9 items-center gap-1 rounded-[8px] border border-border bg-popover/95 py-0.5 pr-0.5 pl-1 shadow-overlay backdrop-blur-md">
         {showHistory && (

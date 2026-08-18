@@ -9,7 +9,7 @@ import { currentPlugin } from './current-plugin.ts';
 import { designPlugin } from './design-plugin.ts';
 import { locTagsPlugin } from './loc-tags-plugin.ts';
 import { notesPlugin } from './notes-plugin.ts';
-import { loadUserConfig, type OpenSlideConfig, openSlidePlugin } from './open-slide-plugin.ts';
+import { loadUserConfig, type OpenPdfConfig, openPdfPlugin } from './open-pdf-plugin.ts';
 import { themesPlugin } from './themes-plugin.ts';
 
 function findPackageRoot(fromFile: string): string {
@@ -37,17 +37,17 @@ const CORE_VERSION = readCoreVersion();
 
 export type CreateViteConfigOptions = {
   userCwd: string;
-  config?: OpenSlideConfig;
+  config?: OpenPdfConfig;
   mode?: 'serve' | 'build';
 };
 
 export async function createViteConfig(opts: CreateViteConfigOptions): Promise<InlineConfig> {
   const userCwd = path.resolve(opts.userCwd);
   const config = opts.config ?? (await loadUserConfig(userCwd));
-  const slidesDir = config.slidesDir ?? 'slides';
+  const docsDir = config.docsDir ?? 'docs';
   const themesDir = config.themesDir ?? 'themes';
   const assetsDir = config.assetsDir ?? 'assets';
-  const slidesAbs = path.resolve(userCwd, slidesDir);
+  const docsAbs = path.resolve(userCwd, docsDir);
   const themesAbs = path.resolve(userCwd, themesDir);
   const assetsAbs = path.resolve(userCwd, assetsDir);
 
@@ -57,15 +57,15 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
     configFile: false,
     envDir: userCwd,
     plugins: [
-      locTagsPlugin({ userCwd, slidesDir }),
+      locTagsPlugin({ userCwd, docsDir }),
       react(),
       tailwindcss(),
-      openSlidePlugin({ userCwd, config, coreVersion: CORE_VERSION }),
+      openPdfPlugin({ userCwd, config, coreVersion: CORE_VERSION }),
       themesPlugin({ userCwd, config }),
       designPlugin({ userCwd }),
-      apiPlugin({ userCwd, slidesDir, assetsDir, coreVersion: CORE_VERSION }),
-      notesPlugin({ userCwd, slidesDir }),
-      currentPlugin({ userCwd, slidesDir }),
+      apiPlugin({ userCwd, docsDir, assetsDir, coreVersion: CORE_VERSION }),
+      notesPlugin({ userCwd, docsDir }),
+      currentPlugin({ userCwd, docsDir }),
     ],
     resolve: {
       alias: {
@@ -94,15 +94,15 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
         'class-variance-authority',
         'emoji-picker-react',
       ],
-      // The app source ships inside node_modules/@open-slide/core/src/app, so
+      // The app source ships inside node_modules/@open-pdf/core/src/app, so
       // Vite's dep scanner traverses it as if it were a third-party dep and
       // tries to bundle our virtual imports with esbuild. Mark them external.
       esbuildOptions: {
         plugins: [
           {
-            name: 'open-slide:virtual-externals',
+            name: 'open-pdf:virtual-externals',
             setup(build) {
-              build.onResolve({ filter: /^virtual:open-slide\// }, (args) => ({
+              build.onResolve({ filter: /^virtual:open-pdf\// }, (args) => ({
                 path: args.path,
                 external: true,
               }));
@@ -114,7 +114,7 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
     server: {
       port: config.port ?? 5173,
       ...(config.allowedHosts !== undefined ? { allowedHosts: config.allowedHosts } : {}),
-      fs: { allow: [APP_ROOT, userCwd, slidesAbs, themesAbs, assetsAbs] },
+      fs: { allow: [APP_ROOT, userCwd, docsAbs, themesAbs, assetsAbs] },
     },
     build: {
       outDir: path.resolve(userCwd, 'dist'),

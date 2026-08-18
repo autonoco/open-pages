@@ -7,7 +7,7 @@ export type TransitionPhase = {
   delay?: number;
 };
 
-export type SlideTransition = {
+export type DocTransition = {
   duration: number;
   easing?: string;
   enter?: TransitionPhase;
@@ -24,7 +24,7 @@ export type MorphTransition = {
 export function resolveTransition(
   pages: Page[],
   index: number,
-  moduleDefault?: SlideTransition,
-): SlideTransition | undefined {
+  moduleDefault?: DocTransition,
+): DocTransition | undefined {
   return pages[index]?.transition ?? moduleDefault;
 }

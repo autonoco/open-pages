@@ -1,8 +1,8 @@
-# open-slide — Framework Repo Guide
+# open-pdf — Framework Repo Guide
 
-You are working on the **open-slide framework** — the runtime, CLI, and tooling that ship to npm.
+You are working on the **open-pdf framework** — the runtime, CLI, and tooling that ship to npm.
 
-(Slide-authoring guidance lives in the `slide-authoring` / `create-slide` skills under `apps/demo/.claude/skills/`. Use those only when editing files inside `apps/demo/slides/`.)
+(Doc-authoring guidance lives in the `doc-authoring` / `create-doc` skills under `apps/demo/.claude/skills/`. Use those only when editing files inside `apps/demo/docs/`.)
 
 ## Layout
 
@@ -10,9 +10,9 @@ pnpm + Turbo monorepo.
 
 | Path | Package | Role |
 | --- | --- | --- |
-| `packages/core` | `@open-slide/core` | Runtime (viewer, present mode, inspector), Vite plugin, `open-slide` dev/build CLI. |
-| `packages/cli` | `@open-slide/cli` | `npx @open-slide/cli init` scaffolder + project template. |
-| `apps/demo` | private | Local consumer of `@open-slide/core` via `workspace:*`. Dogfood target — run `pnpm dev` here to exercise the framework. |
+| `packages/core` | `@open-pdf/core` | Runtime (viewer, present mode, inspector), Vite plugin, `open-pdf` dev/build CLI. |
+| `packages/cli` | `@open-pdf/cli` | `npx @open-pdf/cli init` scaffolder + project template. |
+| `apps/demo` | private | Local consumer of `@open-pdf/core` via `workspace:*`. Dogfood target — run `pnpm dev` here to exercise the framework. |
 | `apps/web` | private | Marketing site (Next.js). |
 
 Shared config: `biome.json`, `turbo.json`, `pnpm-workspace.yaml`, `tsconfig` per package.
@@ -35,7 +35,7 @@ Filter to one package: `pnpm core <script>` / `pnpm cli <script>`.
 - **Biome must pass before commit.** Run `pnpm check` (or `pnpm check:fix`). CI and the user's review both expect a clean tree.
 - **If `packages/core` or `packages/cli` changes, add a changeset.** Run `pnpm changeset`, pick the right package(s) and bump (`patch` for fixes/polish, `minor` for new public API, `major` for breaking). Apps (`demo`, `web`) and root tooling do **not** need one.
 - **Changeset descriptions: short and direct.** One line, present-tense, what changed from a user's perspective. Match the tone of `.changeset/*.md` already in the repo. No paragraphs, no rationale, no "this PR…".
-  - Good: `Replace spinner with a hairline + sliding bar for slide and presenter loading states.`
+  - Good: `Replace spinner with a hairline + sliding bar for doc and presenter loading states.`
   - Bad: `This change introduces a new loading indicator because the previous spinner felt heavy and we wanted something more subtle for presentation contexts…`
 - Don't bump versions or edit `CHANGELOG.md` by hand — `changeset version` owns that.
 - Don't add dependencies casually. The `core` runtime ships to users; every dep inflates install size.

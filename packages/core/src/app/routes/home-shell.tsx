@@ -17,31 +17,31 @@ import { cn } from '@/lib/utils';
 import { CommandMenuTrigger } from '../components/command/command-menu';
 import { HomeCommandMenu } from '../components/command/home-command-menu';
 import { FolderIconChip } from '../components/sidebar/folder-item';
-import { ALL_SLIDES_ID, ASSETS_ID, Sidebar, THEMES_ID } from '../components/sidebar/sidebar';
+import { ALL_DOCS_ID, ASSETS_ID, Sidebar, THEMES_ID } from '../components/sidebar/sidebar';
+import { docIds } from '../lib/docs';
 import type { FoldersManifest } from '../lib/sdk';
-import { slideIds } from '../lib/slides';
 import { themes as themeRegistry } from '../lib/themes';
 
 export type HomeOutletContext = {
   manifest: FoldersManifest;
   loading: boolean;
-  draftSlides: string[];
-  slidesByFolder: Record<string, string[]>;
-  /** Selected view id: ALL_SLIDES_ID, DRAFT_ID, a folder id, THEMES_ID, or ASSETS_ID. */
+  draftDocs: string[];
+  docsByFolder: Record<string, string[]>;
+  /** Selected view id: ALL_DOCS_ID, DRAFT_ID, a folder id, THEMES_ID, or ASSETS_ID. */
   selectedId: string;
   selectFolder: (id: string) => void;
-  reportTitle: (slideId: string, title: string) => void;
+  reportTitle: (docId: string, title: string) => void;
   titleMap: Record<string, string>;
-  assign: (slideId: string, folderId: string | null) => Promise<void>;
-  renameSlide: (slideId: string, name: string) => Promise<void>;
-  duplicateSlide: (slideId: string, newId?: string) => Promise<string>;
-  deleteSlide: (slideId: string) => Promise<void>;
+  assign: (docId: string, folderId: string | null) => Promise<void>;
+  renameDoc: (docId: string, name: string) => Promise<void>;
+  duplicateDoc: (docId: string, newId?: string) => Promise<string>;
+  deleteDoc: (docId: string) => Promise<void>;
 };
 
 function pathToSelectedId(pathname: string, search: URLSearchParams): string {
   if (pathname === '/themes' || pathname.startsWith('/themes/')) return THEMES_ID;
   if (pathname === '/assets') return ASSETS_ID;
-  return search.get('f') ?? ALL_SLIDES_ID;
+  return search.get('f') ?? ALL_DOCS_ID;
 }
 
 export function HomeShell() {
@@ -53,9 +53,9 @@ export function HomeShell() {
     remove,
     reorder,
     assign,
-    renameSlide,
-    duplicateSlide,
-    deleteSlide,
+    renameDoc,
+    duplicateDoc,
+    deleteDoc,
   } = useFolders();
   const navigate = useNavigate();
   const location = useLocation();
@@ -68,17 +68,15 @@ export function HomeShell() {
   const openCommandMenu = useCallback(() => setCommandOpen(true), []);
 
   const [titleMap, setTitleMap] = useState<Record<string, string>>({});
-  const reportTitle = useCallback((slideId: string, slideTitle: string) => {
-    setTitleMap((prev) =>
-      prev[slideId] === slideTitle ? prev : { ...prev, [slideId]: slideTitle },
-    );
+  const reportTitle = useCallback((docId: string, docTitle: string) => {
+    setTitleMap((prev) => (prev[docId] === docTitle ? prev : { ...prev, [docId]: docTitle }));
   }, []);
 
   const selectFolder = useCallback(
     (id: string) => {
       if (id === THEMES_ID) navigate('/themes', { replace: true });
       else if (id === ASSETS_ID) navigate('/assets', { replace: true });
-      else if (id === ALL_SLIDES_ID) navigate('/', { replace: true });
+      else if (id === ALL_DOCS_ID) navigate('/', { replace: true });
       else navigate(`/?f=${encodeURIComponent(id)}`, { replace: true });
     },
     [navigate],
@@ -87,11 +85,11 @@ export function HomeShell() {
   const { assets: globalAssets } = useAssets('@global');
   const isAssetsRoute = location.pathname === '/assets';
 
-  const { draftSlides, slidesByFolder } = useMemo(() => {
+  const { draftDocs, docsByFolder } = useMemo(() => {
     const byFolder: Record<string, string[]> = {};
     const draft: string[] = [];
     const known = new Set(manifest.folders.map((f) => f.id));
-    for (const id of slideIds) {
+    for (const id of docIds) {
       const folderId = manifest.assignments[id];
       if (folderId && known.has(folderId)) {
         byFolder[folderId] ??= [];
@@ -100,25 +98,25 @@ export function HomeShell() {
         draft.push(id);
       }
     }
-    return { draftSlides: draft, slidesByFolder: byFolder };
+    return { draftDocs: draft, docsByFolder: byFolder };
   }, [manifest]);
 
   const countFor = (folderId: string | null) =>
-    folderId === null ? draftSlides.length : (slidesByFolder[folderId]?.length ?? 0);
+    folderId === null ? draftDocs.length : (docsByFolder[folderId]?.length ?? 0);
 
-  const moveSlideWithToast = useCallback(
-    async (slideId: string, folderId: string | null) => {
-      if (manifest.assignments[slideId] === (folderId ?? undefined)) return;
-      const slideName = titleMap[slideId] ?? slideId;
+  const moveDocWithToast = useCallback(
+    async (docId: string, folderId: string | null) => {
+      if (manifest.assignments[docId] === (folderId ?? undefined)) return;
+      const docName = titleMap[docId] ?? docId;
       const folderName =
         folderId === null
           ? t.home.draft
           : (manifest.folders.find((f) => f.id === folderId)?.name ?? folderId);
       try {
-        await assign(slideId, folderId);
-        toast.success(format(t.home.toastSlideMoved, { slide: slideName, folder: folderName }));
+        await assign(docId, folderId);
+        toast.success(format(t.home.toastDocMoved, { doc: docName, folder: folderName }));
       } catch {
-        toast.error(t.home.toastSlideMoveFailed);
+        toast.error(t.home.toastDocMoveFailed);
       }
     },
     [assign, manifest, titleMap, t],
@@ -127,16 +125,16 @@ export function HomeShell() {
   const ctx: HomeOutletContext = {
     manifest,
     loading,
-    draftSlides,
-    slidesByFolder,
+    draftDocs,
+    docsByFolder,
     selectedId,
     selectFolder,
     reportTitle,
     titleMap,
     assign,
-    renameSlide,
-    duplicateSlide,
-    deleteSlide,
+    renameDoc,
+    duplicateDoc,
+    deleteDoc,
   };
 
   return (
@@ -145,7 +143,7 @@ export function HomeShell() {
         <Sidebar
           folders={manifest.folders}
           countFor={countFor}
-          allCount={slideIds.length}
+          allCount={docIds.length}
           themesCount={themeRegistry.length}
           assetsCount={globalAssets.length}
           selectedId={selectedId}
@@ -155,7 +153,7 @@ export function HomeShell() {
           onChangeIcon={(id, icon) => update(id, { icon })}
           onDelete={async (id) => {
             const name = manifest.folders.find((f) => f.id === id)?.name ?? id;
-            if (selectedId === id) selectFolder(ALL_SLIDES_ID);
+            if (selectedId === id) selectFolder(ALL_DOCS_ID);
             try {
               await remove(id);
               toast.success(format(t.home.toastFolderDeleted, { name }));
@@ -164,8 +162,8 @@ export function HomeShell() {
             }
           }}
           onOpenCommandMenu={openCommandMenu}
-          onDropToFolder={(folderId, slideId) => moveSlideWithToast(slideId, folderId)}
-          onDropToDraft={(slideId) => moveSlideWithToast(slideId, null)}
+          onDropToFolder={(folderId, docId) => moveDocWithToast(docId, folderId)}
+          onDropToDraft={(docId) => moveDocWithToast(docId, null)}
           onReorder={async (ids) => {
             try {
               await reorder(ids);
@@ -197,7 +195,7 @@ export function HomeShell() {
               />
               <DropdownMenuContent align="end" className="min-w-[200px]">
                 <DropdownMenuItem
-                  onClick={() => selectFolder(ALL_SLIDES_ID)}
+                  onClick={() => selectFolder(ALL_DOCS_ID)}
                   className={cn(
                     selectedId !== THEMES_ID &&
                       selectedId !== ASSETS_ID &&
@@ -205,8 +203,8 @@ export function HomeShell() {
                   )}
                 >
                   <FolderIconChip icon={{ type: 'emoji', value: '🎞️' }} />
-                  <span className="flex-1 truncate">{t.home.slides}</span>
-                  <span className="folio">{slideIds.length.toString().padStart(2, '0')}</span>
+                  <span className="flex-1 truncate">{t.home.docs}</span>
+                  <span className="folio">{docIds.length.toString().padStart(2, '0')}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => selectFolder(THEMES_ID)}

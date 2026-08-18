@@ -3,9 +3,9 @@ import { sanitizeDirName } from './init.ts';
 
 describe('sanitizeDirName', () => {
   it('leaves safe names untouched', () => {
-    expect(sanitizeDirName('my-slides')).toBe('my-slides');
+    expect(sanitizeDirName('my-docs')).toBe('my-docs');
     expect(sanitizeDirName('decks/2026-q2')).toBe('decks/2026-q2');
-    expect(sanitizeDirName('Open_Slide.workspace')).toBe('Open_Slide.workspace');
+    expect(sanitizeDirName('Open_Doc.workspace')).toBe('Open_Doc.workspace');
   });
 
   it('preserves "." and ".."', () => {
@@ -14,8 +14,8 @@ describe('sanitizeDirName', () => {
   });
 
   it('replaces spaces with hyphens', () => {
-    expect(sanitizeDirName('future of open slide and how can i help')).toBe(
-      'future-of-open-slide-and-how-can-i-help',
+    expect(sanitizeDirName('future of open pdf and how can i help')).toBe(
+      'future-of-open-pdf-and-how-can-i-help',
     );
   });
 
@@ -34,9 +34,9 @@ describe('sanitizeDirName', () => {
     expect(sanitizeDirName('!!!hi!!!')).toBe('hi');
   });
 
-  it('falls back to "my-slides" when nothing usable remains', () => {
-    expect(sanitizeDirName('!!!')).toBe('my-slides');
-    expect(sanitizeDirName('   ')).toBe('my-slides');
+  it('falls back to "my-docs" when nothing usable remains', () => {
+    expect(sanitizeDirName('!!!')).toBe('my-docs');
+    expect(sanitizeDirName('   ')).toBe('my-docs');
   });
 
   it('keeps path separators intact', () => {
@@ -45,7 +45,7 @@ describe('sanitizeDirName', () => {
 
   it('is idempotent', () => {
     const cases = [
-      'future of open slide and how can i help',
+      'future of open pdf and how can i help',
       "my deck's notes",
       'decks/my new deck',
       '!!!hi!!!',
@@ -77,14 +77,14 @@ describe('sanitizeDirName', () => {
   });
 
   it('preserves Windows backslash separators', () => {
-    expect(sanitizeDirName('slides\\q2')).toBe('slides\\q2');
+    expect(sanitizeDirName('docs\\q2')).toBe('docs\\q2');
     expect(sanitizeDirName('decks\\my new deck')).toBe('decks\\my-new-deck');
     expect(sanitizeDirName('a-\\-b')).toBe('a\\b');
   });
 
   it('falls back when sanitization would produce a root-like path', () => {
-    expect(sanitizeDirName('!!!/!!!')).toBe('my-slides');
-    expect(sanitizeDirName('!!!\\!!!')).toBe('my-slides');
-    expect(sanitizeDirName('//')).toBe('my-slides');
+    expect(sanitizeDirName('!!!/!!!')).toBe('my-docs');
+    expect(sanitizeDirName('!!!\\!!!')).toBe('my-docs');
+    expect(sanitizeDirName('//')).toBe('my-docs');
   });
 });

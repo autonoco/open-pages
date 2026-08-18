@@ -20,7 +20,7 @@ async function loadGoogleFont(family: string, weight: number, italic = false) {
   const axis = italic ? `${ital}wght@1,${weight}` : `wght@${weight}`;
   const css = await fetch(
     `https://fonts.googleapis.com/css2?family=${family.replace(/ /g, '+')}:${axis}&display=swap`,
-    { headers: { 'User-Agent': 'Mozilla/5.0 (Open-Slide OG)' } },
+    { headers: { 'User-Agent': 'Mozilla/5.0 (Open-Doc OG)' } },
   ).then((r) => r.text());
   const url = css.match(/src:\s*url\((https:[^)]+)\)\s*format/)?.[1];
   if (!url) throw new Error(`Could not resolve font: ${family} ${weight}`);
@@ -36,12 +36,12 @@ export async function GET(_req: Request, { params }: RouteContext<'/og/docs/[...
     loadGoogleFont('Geist', 400),
     loadGoogleFont('Geist', 500),
     loadGoogleFont('Geist Mono', 500),
-    readFile(path.join(process.cwd(), 'public/open-slide.png')),
+    readFile(path.join(process.cwd(), 'public/open-pdf.png')),
   ]);
   const logoSrc = `data:image/png;base64,${logoBuffer.toString('base64')}`;
 
   const title = page.data.title;
-  const description = page.data.description ?? 'A slide framework built for agents.';
+  const description = page.data.description ?? 'A doc framework built for agents.';
   const breadcrumb = ['docs', ...page.slugs].join(' / ');
 
   return new ImageResponse(
@@ -97,7 +97,6 @@ function Frame({
 
       {/* Eyebrow: logo mark + monospace caption */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        {/* biome-ignore lint/performance/noImgElement: next/og uses Satori; <img> is the only supported image tag */}
         <img src={logoSrc} width={48} height={48} alt="" style={{ borderRadius: 8 }} />
         <div
           style={{
@@ -196,7 +195,7 @@ function Frame({
           <span>{breadcrumb}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ color: INK }}>open-slide.dev</span>
+          <span style={{ color: INK }}>open-pdf.dev</span>
           <span style={{ color: RULE }}>↗</span>
         </div>
       </div>

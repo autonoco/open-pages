@@ -4,7 +4,7 @@ import type { Plugin, ViteDevServer } from 'vite';
 import { type DesignSystem, defaultDesign } from '../app/lib/design.ts';
 import type { AstNode } from '../editing/babel-walk.ts';
 import { validateMutationRequest } from '../http/request-guard.ts';
-import { json, readBody, resolveSlidePath } from './routes/context.ts';
+import { json, readBody, resolveDocPath } from './routes/context.ts';
 
 function parseSource(source: string): AstNode | null {
   try {
@@ -179,14 +179,14 @@ export function serializeDesign(design: DesignSystem): string {
   return serializeValue(design as unknown as Record<string, unknown>, 0);
 }
 
-export type ParsedSlideDesign =
+export type ParsedDocDesign =
   | { ok: true; design: DesignSystem; loc: DesignDeclLocation }
   | { ok: false; exists: false }
   | { ok: false; exists: true; error: string };
 
-export function parseSlideDesign(source: string): ParsedSlideDesign {
+export function parseDocDesign(source: string): ParsedDocDesign {
   const ast = parseSource(source);
-  if (!ast) return { ok: false, exists: true, error: 'could not parse slide source' };
+  if (!ast) return { ok: false, exists: true, error: 'could not parse doc source' };
   const loc = findDesignDecl(ast);
   if (!loc) return { ok: false, exists: false };
   const objectNode = findDesignObjectNode(ast);
@@ -249,7 +249,7 @@ function ensureDesignSystemImport(
   ast: AstNode,
 ): { source: string; offsetShift: number } {
   const imports = findImports(ast);
-  const coreImport = imports.find((imp) => imp.source === '@open-slide/core');
+  const coreImport = imports.find((imp) => imp.source === '@open-pdf/core');
   if (coreImport) {
     const hasDesignSystem = coreImport.specifiers.some((spec) => {
       if (spec.type !== 'ImportSpecifier') return false;
@@ -271,8 +271,8 @@ function ensureDesignSystemImport(
     return { source: next, offsetShift: insertText.length };
   }
 
-  // No @open-slide/core import — add one after the last import (or at top).
-  const stmt = `import type { DesignSystem } from '@open-slide/core';\n`;
+  // No @open-pdf/core import — add one after the last import (or at top).
+  const stmt = `import type { DesignSystem } from '@open-pdf/core';\n`;
   if (imports.length > 0) {
     const last = imports[imports.length - 1];
     const insertAt = last.node.end;
@@ -308,7 +308,7 @@ export function applyDesignWrite(source: string, next: DesignSystem): WriteResul
   }
 
   const ast = parseSource(source);
-  if (!ast) return { ok: false, status: 422, error: 'could not parse slide source' };
+  if (!ast) return { ok: false, status: 422, error: 'could not parse doc source' };
 
   const loc = findDesignDecl(ast);
   if (loc) {
@@ -329,23 +329,23 @@ export function applyDesignWrite(source: string, next: DesignSystem): WriteResul
 
 export type DesignPluginOptions = {
   userCwd: string;
-  slidesDir?: string;
+  docsDir?: string;
 };
 
 export function designPlugin(opts: DesignPluginOptions): Plugin {
   const userCwd = opts.userCwd;
-  const slidesDir = opts.slidesDir ?? 'slides';
+  const docsDir = opts.docsDir ?? 'docs';
 
   return {
-    name: 'open-slide:design',
+    name: 'open-pdf:design',
     apply: 'serve',
     configureServer(server: ViteDevServer) {
       server.middlewares.use('/__design', async (req, res, next) => {
         const url = new URL(req.url ?? '/', 'http://local');
         const method = req.method ?? 'GET';
-        const slideId = url.searchParams.get('slideId') ?? '';
-        const file = resolveSlidePath(userCwd, slidesDir, slideId);
-        if (!file) return json(res, 400, { error: 'invalid slideId' });
+        const docId = url.searchParams.get('docId') ?? '';
+        const file = resolveDocPath(userCwd, docsDir, docId);
+        if (!file) return json(res, 400, { error: 'invalid docId' });
 
         try {
           if (method === 'GET' && url.pathname === '/') {
@@ -353,9 +353,9 @@ export function designPlugin(opts: DesignPluginOptions): Plugin {
             try {
               source = await fs.readFile(file, 'utf8');
             } catch {
-              return json(res, 404, { error: 'slide not found' });
+              return json(res, 404, { error: 'doc not found' });
             }
-            const parsed = parseSlideDesign(source);
+            const parsed = parseDocDesign(source);
             if (parsed.ok) {
               return json(res, 200, { design: parsed.design, exists: true, warning: null });
             }
@@ -379,9 +379,9 @@ export function designPlugin(opts: DesignPluginOptions): Plugin {
             try {
               source = await fs.readFile(file, 'utf8');
             } catch {
-              return json(res, 404, { error: 'slide not found' });
+              return json(res, 404, { error: 'doc not found' });
             }
-            const parsed = parseSlideDesign(source);
+            const parsed = parseDocDesign(source);
             const baseDesign = parsed.ok ? parsed.design : defaultDesign;
             if (!parsed.ok && parsed.exists) {
               return json(res, 422, { error: parsed.error });
@@ -402,7 +402,7 @@ export function designPlugin(opts: DesignPluginOptions): Plugin {
             try {
               source = await fs.readFile(file, 'utf8');
             } catch {
-              return json(res, 404, { error: 'slide not found' });
+              return json(res, 404, { error: 'doc not found' });
             }
             const written = applyDesignWrite(source, defaultDesign);
             if (!written.ok) return json(res, written.status, { error: written.error });

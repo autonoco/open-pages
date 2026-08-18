@@ -1,15 +1,22 @@
-import React from 'react';
 import rpdf from '@react-pdf/renderer';
+import React from 'react';
+
 const { pdf, Document, Page, View, Text } = rpdf;
 const e = React.createElement;
 
-const doc = e(Document, null,
-  e(Page, { size: 'A4', style: { padding: 40 } },
-    e(View, { 'data-loc': '12:5', style: { marginBottom: 10, padding: 8 } },
-      e(Text, { 'data-loc': '13:7', style: { fontSize: 14 } }, 'hello world')
+const doc = e(
+  Document,
+  null,
+  e(
+    Page,
+    { size: 'A4', style: { padding: 40 } },
+    e(
+      View,
+      { 'data-loc': '12:5', style: { marginBottom: 10, padding: 8 } },
+      e(Text, { 'data-loc': '13:7', style: { fontSize: 14 } }, 'hello world'),
     ),
-    e(Text, { 'data-loc': '16:3' }, 'second paragraph')
-  )
+    e(Text, { 'data-loc': '16:3' }, 'second paragraph'),
+  ),
 );
 
 const instance = pdf(doc);
@@ -37,7 +44,7 @@ console.log('doc node keys:', Object.keys(docNode));
 
 // Run layout ourselves to inspect boxes+props
 const FontStore = (await import('@react-pdf/font')).default;
-const fontStore = new FontStore.constructor ? new (FontStore)() : null;
+const fontStore = new FontStore.constructor() ? new FontStore() : null;
 let laid;
 try {
   laid = await layoutDocument(docNode, fontStore ?? undefined);
@@ -47,7 +54,9 @@ try {
 if (laid) {
   const walk = (n, d = 0) => {
     const loc = n.props?.['data-loc'];
-    const box = n.box ? `box=(${Math.round(n.box.left)},${Math.round(n.box.top)},${Math.round(n.box.width)}x${Math.round(n.box.height)})` : 'no-box';
+    const box = n.box
+      ? `box=(${Math.round(n.box.left)},${Math.round(n.box.top)},${Math.round(n.box.width)}x${Math.round(n.box.height)})`
+      : 'no-box';
     console.log(' '.repeat(d * 2) + `${n.type} ${loc ? 'data-loc=' + loc : ''} ${box}`);
     (n.children || []).forEach((c) => walk(c, d + 1));
   };

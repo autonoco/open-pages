@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('home slide browser', () => {
+test.describe('home doc browser', () => {
   test('lists every fixture deck with its display title', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('li h3')).toHaveCount(4);
@@ -10,7 +10,7 @@ test.describe('home slide browser', () => {
     await expect(page.getByText('Hot Deck')).toBeVisible();
   });
 
-  test('slide card links to the viewer', async ({ page }) => {
+  test('doc card links to the viewer', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('link', { name: 'Alpha Deck' }).click();
     await expect(page).toHaveURL(/\/s\/alpha$/);
@@ -21,7 +21,7 @@ test.describe('home slide browser', () => {
 
   test('search filters decks and can be cleared', async ({ page }) => {
     await page.goto('/');
-    const search = page.getByPlaceholder('Search slides');
+    const search = page.getByPlaceholder('Search docs');
     await search.fill('steps');
     await expect(page.locator('li h3')).toHaveCount(1);
     await expect(page.getByText('Steps Deck')).toBeVisible();

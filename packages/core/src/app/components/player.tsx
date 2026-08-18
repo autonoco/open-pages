@@ -5,9 +5,11 @@ import { cn } from '@/lib/utils';
 import type { DesignSystem } from '../lib/design';
 import type { Page } from '../lib/sdk';
 import type { EntryDirection, StepAggregate, StepController } from '../lib/step-context';
-import type { SlideTransition } from '../lib/transition';
+import type { DocTransition } from '../lib/transition';
 import { useIsMobile } from '../lib/use-is-mobile';
 import { usePrefersReducedMotion } from '../lib/use-prefers-reduced-motion';
+import { DocCanvas } from './doc-canvas';
+import { DocTransitionLayer } from './doc-transition-layer';
 import { OverviewGrid } from './overview-grid';
 import { PresentBlackoutOverlay } from './present/blackout-overlay';
 import { PresentControlBar } from './present/control-bar';
@@ -23,8 +25,6 @@ import {
   usePresenterChannel,
 } from './present/use-presenter-channel';
 import { useTouchSwipe } from './present/use-touch-swipe';
-import { SlideCanvas } from './slide-canvas';
-import { SlideTransitionLayer } from './slide-transition-layer';
 
 const IDLE_HIDE_MS = 2000;
 const BAR_HOTZONE_PX = 160;
@@ -33,14 +33,14 @@ const MOBILE_CHROME_HIDE_MS = 2200;
 type Props = {
   pages: Page[];
   design?: DesignSystem;
-  transition?: SlideTransition;
+  transition?: DocTransition;
   index: number;
   onIndexChange: (index: number) => void;
   onExit: () => void;
   allowExit?: boolean;
   controls?: boolean;
-  slideId?: string;
-  onSwitchSlide?: (slideId: string) => void;
+  docId?: string;
+  onSwitchDoc?: (docId: string) => void;
   /**
    * When true, the Player enters the browser Fullscreen API on mount.
    * When false, it renders as a window-sized overlay (viewport-filling)
@@ -58,8 +58,8 @@ export function Player({
   onExit,
   allowExit = true,
   controls = false,
-  slideId,
-  onSwitchSlide,
+  docId,
+  onSwitchDoc,
   fullscreen = true,
 }: Props) {
   const isMobile = useIsMobile();
@@ -252,14 +252,14 @@ export function Player({
         setBlackout((cur) => (cur === msg.mode ? null : msg.mode));
       } else if (msg.type === 'request-state') {
         send({ type: 'state', state: presenterStateRef.current });
-      } else if (msg.type === 'switch-slide') {
-        if (msg.slideId !== slideId) onSwitchSlide?.(msg.slideId);
+      } else if (msg.type === 'switch-doc') {
+        if (msg.docId !== docId) onSwitchDoc?.(msg.docId);
       }
     },
-    [goNext, goPrev, handleIndexChange, pages.length, slideId, onSwitchSlide],
+    [goNext, goPrev, handleIndexChange, pages.length, docId, onSwitchDoc],
   );
 
-  const channel = usePresenterChannel(slideId ?? '__none__', (msg) => {
+  const channel = usePresenterChannel(docId ?? '__none__', (msg) => {
     if (!controls) return;
     handlePresenterCommand(msg, (m) => channel.send(m));
   });
@@ -351,9 +351,9 @@ export function Player({
       } else if (e.key === 'h' || e.key === 'H' || e.key === '?') {
         e.preventDefault();
         setHelpOpen((v) => !v);
-      } else if ((e.key === 'p' || e.key === 'P') && slideId) {
+      } else if ((e.key === 'p' || e.key === 'P') && docId) {
         e.preventDefault();
-        openPresenterWindow(slideId);
+        openPresenterWindow(docId);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -370,7 +370,7 @@ export function Player({
     goPrev,
     handleIndexChange,
     pages.length,
-    slideId,
+    docId,
   ]);
 
   // The control bar + progress strip only surface when the pointer is in
@@ -405,11 +405,11 @@ export function Player({
       )}
       style={design ? { background: design.palette.bg } : undefined}
     >
-      <SlideCanvas flat design={design}>
+      <DocCanvas flat design={design}>
         {/* Keyed per deck so a presenter-driven deck switch cuts instead of
             animating a transition between two unrelated decks. */}
-        <SlideTransitionLayer
-          key={slideId}
+        <DocTransitionLayer
+          key={docId}
           pages={pages}
           index={index}
           total={pages.length}
@@ -419,7 +419,7 @@ export function Player({
           entryDirection={entryDirection}
           onStepAggregateChange={handleAggregateChange}
         />
-      </SlideCanvas>
+      </DocCanvas>
 
       {controls && (
         <div data-osd-chrome style={{ display: 'contents' }}>
@@ -443,7 +443,7 @@ export function Player({
             onOverview={() => setOverviewOpen(true)}
             onBlackout={(mode) => setBlackout((c) => (c === mode ? null : mode))}
             onLaser={() => setLaser((v) => !v)}
-            onPresenter={() => slideId && openPresenterWindow(slideId)}
+            onPresenter={() => docId && openPresenterWindow(docId)}
             onToggleFullscreen={toggleFullscreen}
             onHelp={() => setHelpOpen(true)}
             onExit={onExit}
@@ -466,8 +466,8 @@ export function Player({
   );
 }
 
-export function openPresenterWindow(slideId: string) {
+export function openPresenterWindow(docId: string) {
   if (typeof window === 'undefined') return;
-  const url = `${import.meta.env.BASE_URL}s/${encodeURIComponent(slideId)}/presenter`;
-  window.open(url, `open-slide-presenter-${slideId}`, 'popup,width=1280,height=800');
+  const url = `${import.meta.env.BASE_URL}s/${encodeURIComponent(docId)}/presenter`;
+  window.open(url, `open-pdf-presenter-${docId}`, 'popup,width=1280,height=800');
 }

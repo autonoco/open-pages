@@ -1,15 +1,16 @@
 // Per-process benchmark worker. Fresh process = cold start.
 // Usage: tsx worker.mjs <engine: reactpdf|takumi> <multiplier> <warmRuns> <outFile>
-import { performance } from "node:perf_hooks";
-import { writeFile } from "node:fs/promises";
-import { makeItems } from "./data.mjs";
+
+import { writeFile } from 'node:fs/promises';
+import { performance } from 'node:perf_hooks';
+import { makeItems } from './data.mjs';
 
 const [engine, multStr, warmStr, outFile] = process.argv.slice(2);
 const mult = Number(multStr ?? 1);
 const warmRuns = Number(warmStr ?? 5);
 const items = makeItems(mult);
 
-const modPath = engine === "reactpdf" ? "./invoice-reactpdf.jsx" : "./invoice-takumi.jsx";
+const modPath = engine === 'reactpdf' ? './invoice-reactpdf.jsx' : './invoice-takumi.jsx';
 
 const t0 = performance.now();
 const { renderInvoice } = await import(modPath);
@@ -32,11 +33,15 @@ for (let i = 0; i < warmRuns; i++) {
 if (outFile) await writeFile(outFile, last);
 
 const avg = warm.length ? warm.reduce((a, b) => a + b, 0) / warm.length : null;
-console.log(JSON.stringify({
-  engine, mult, items: items.length,
-  import_ms: +tImport.toFixed(1),
-  cold_first_render_ms: +coldMs.toFixed(1),
-  warm_ms: warm.map((x) => +x.toFixed(1)),
-  warm_avg_ms: avg == null ? null : +avg.toFixed(1),
-  bytes: last.length,
-}));
+console.log(
+  JSON.stringify({
+    engine,
+    mult,
+    items: items.length,
+    import_ms: +tImport.toFixed(1),
+    cold_first_render_ms: +coldMs.toFixed(1),
+    warm_ms: warm.map((x) => +x.toFixed(1)),
+    warm_avg_ms: avg == null ? null : +avg.toFixed(1),
+    bytes: last.length,
+  }),
+);

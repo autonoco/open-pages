@@ -1,14 +1,14 @@
-import type { PDFComponentProps } from "@/registry/types/pdf-components";
+import type { PDFComponentProps } from '@/registry/types/pdf-components';
 
 /** Table visual style variant. */
 export type TableVariant =
-  | "line"
-  | "grid"
-  | "minimal"
-  | "striped"
-  | "compact"
-  | "bordered"
-  | "primary-header";
+  | 'line'
+  | 'grid'
+  | 'minimal'
+  | 'striped'
+  | 'compact'
+  | 'bordered'
+  | 'primary-header';
 
 /**
  * Table container with visual style variants and optional zebra striping.
@@ -52,7 +52,7 @@ export interface TableRowProps extends PDFComponentProps {
 export interface TableCellProps extends PDFComponentProps {
   header?: boolean;
   footer?: boolean;
-  align?: "left" | "center" | "right";
+  align?: 'left' | 'center' | 'right';
   width?: string | number;
   variant?: TableVariant;
   _last?: boolean;

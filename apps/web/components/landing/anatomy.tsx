@@ -15,7 +15,7 @@ const variants: Variant[] = [
     word: 'deck',
     accent: '#de3b3d',
     label: '01',
-    subtitle: 'A React slide, rendered live.',
+    subtitle: 'A React doc, rendered live.',
   },
   {
     word: 'pitch',
@@ -35,7 +35,7 @@ const CYCLE_MS = 3200;
 
 function buildCode({ accent, word, subtitle }: Variant): string[] {
   return [
-    "import type { Page } from '@open-slide/core';",
+    "import type { Page } from '@open-pdf/core';",
     '',
     `const ACCENT = '${accent}';`,
     `const WORD = '${word}';`,
@@ -74,7 +74,7 @@ export function Anatomy() {
           data-reveal="blur"
           className="text-[32px] sm:text-[44px] lg:text-[60px] leading-[1.1] sm:leading-[1.05] tracking-[-0.035em] font-medium max-w-[820px] mb-14 sm:mb-20"
         >
-          A slide is a file.
+          A doc is a file.
           <br />
           <span className="font-[family-name:var(--font-pixel)] text-[color:var(--color-muted)]">
             Just React, nothing else.
@@ -91,7 +91,7 @@ export function Anatomy() {
                     className="h-2.5 w-2.5 rounded-full transition-colors duration-500"
                     style={{ background: v.accent }}
                   />
-                  <span>slides/hello/index.tsx</span>
+                  <span>docs/hello/index.tsx</span>
                 </div>
                 <span className="tracking-[0.08em] uppercase">tsx · {lines.length} lines</span>
               </div>
@@ -137,7 +137,7 @@ export function Anatomy() {
                 className="relative rounded-[6px] overflow-hidden border border-[color:var(--color-rule)]"
                 style={{ aspectRatio: '16 / 9', containerType: 'inline-size' }}
               >
-                <SlidePreview variant={v} index={i} />
+                <DocPreview variant={v} index={i} />
               </div>
             </div>
           </div>
@@ -147,7 +147,7 @@ export function Anatomy() {
   );
 }
 
-function SlidePreview({ variant, index }: { variant: Variant; index: number }) {
+function DocPreview({ variant, index }: { variant: Variant; index: number }) {
   const { word, accent, label, subtitle } = variant;
   return (
     <div
@@ -194,7 +194,7 @@ function SlidePreview({ variant, index }: { variant: Variant; index: number }) {
             className="inline-block rounded-full transition-colors duration-500"
             style={{ width: '0.9cqw', height: '0.9cqw', background: accent }}
           />
-          <span>open-slide · {label}</span>
+          <span>open-pdf · {label}</span>
         </span>
         <span>2026</span>
       </div>

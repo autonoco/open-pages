@@ -1,4 +1,4 @@
-import type { PrimitiveTokens } from "@/registry/types/pdf-themes";
+import type { PrimitiveTokens } from '@/registry/types/pdf-themes';
 
 /**
  * Default primitive tokens shared by all theme presets.
@@ -53,8 +53,8 @@ export const defaultPrimitives: PrimitiveTokens = {
     8: 32,
   },
   typography: {
-    "2xl": 28,
-    "3xl": 36,
+    '2xl': 28,
+    '3xl': 36,
     base: 15,
     lg: 18,
     sm: 12,

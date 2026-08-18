@@ -2,11 +2,11 @@
 
 import posthog from 'posthog-js';
 import { useState } from 'react';
-import { InlineSlidePlayer, inlineSlideCount } from './inline-slide-player';
+import { InlineDocPlayer, inlineDocCount } from './inline-doc-player';
 
 export function LiveDemo() {
   const [index, setIndex] = useState(0);
-  const count = inlineSlideCount;
+  const count = inlineDocCount;
   const clamp = (i: number) => Math.max(0, Math.min(count - 1, i));
   const atStart = index === 0;
   const atEnd = index === count - 1;
@@ -14,18 +14,18 @@ export function LiveDemo() {
   const handlePrev = () => {
     const next = clamp(index - 1);
     setIndex(next);
-    posthog.capture('demo_slide_navigated', {
+    posthog.capture('demo_doc_navigated', {
       direction: 'prev',
-      slide_index: next,
+      doc_index: next,
     });
   };
 
   const handleNext = () => {
     const next = clamp(index + 1);
     setIndex(next);
-    posthog.capture('demo_slide_navigated', {
+    posthog.capture('demo_doc_navigated', {
       direction: 'next',
-      slide_index: next,
+      doc_index: next,
     });
   };
 
@@ -40,12 +40,12 @@ export function LiveDemo() {
           className="floating relative block w-full overflow-hidden rounded-[8px] border border-[color:var(--color-rule)] bg-black"
           style={{ aspectRatio: '16 / 9' }}
         >
-          <InlineSlidePlayer index={index} onIndexChange={setIndex} />
+          <InlineDocPlayer index={index} onIndexChange={setIndex} />
         </div>
 
         <div className="mt-6 flex items-center justify-between text-[13px] font-medium text-[color:var(--color-muted)]">
           <a
-            href="https://demo.open-slide.dev/"
+            href="https://demo.open-pdf.dev/"
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => posthog.capture('view_more_demos_clicked')}
@@ -67,7 +67,7 @@ export function LiveDemo() {
               type="button"
               onClick={handlePrev}
               disabled={atStart}
-              aria-label="Previous slide"
+              aria-label="Previous doc"
               className="pressable px-1.5 py-0.5 text-[color:var(--color-text-soft)] hover:text-[color:var(--color-text)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-[color:var(--color-text-soft)]"
             >
               ←
@@ -76,7 +76,7 @@ export function LiveDemo() {
               type="button"
               onClick={handleNext}
               disabled={atEnd}
-              aria-label="Next slide"
+              aria-label="Next doc"
               className="pressable px-1.5 py-0.5 text-[color:var(--color-text-soft)] hover:text-[color:var(--color-text)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-[color:var(--color-text-soft)]"
             >
               →

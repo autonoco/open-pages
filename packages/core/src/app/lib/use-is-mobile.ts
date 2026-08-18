@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-// Matches Tailwind's `md` breakpoint — below it the slide viewer hides desktop
+// Matches Tailwind's `md` breakpoint — below it the doc viewer hides desktop
 // navigation chrome and relies on tap-to-navigate instead.
 const QUERY = '(max-width: 767.98px)';
 

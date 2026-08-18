@@ -9,15 +9,15 @@ export type {
   DesignTypeScale,
 } from './app/lib/design.ts';
 export { cssVarsToString, defaultDesign, designToCssVars } from './app/lib/design.ts';
-export { useSlidePageNumber } from './app/lib/page-context.tsx';
-export type { Page, SlideMeta, SlideModule } from './app/lib/sdk.ts';
+export { useDocPageNumber } from './app/lib/page-context.tsx';
+export type { DocMeta, DocModule, Page } from './app/lib/sdk.ts';
 export { CANVAS_HEIGHT, CANVAS_WIDTH } from './app/lib/sdk.ts';
 export type { StepProps, StepsProps } from './app/lib/step-context.tsx';
 export { Step, Steps, useIsActivePage } from './app/lib/step-context.tsx';
 export type {
+  DocTransition,
   MorphTransition,
-  SlideTransition,
   TransitionPhase,
 } from './app/lib/transition.ts';
-export type { OpenSlideConfig } from './config.ts';
+export type { OpenPdfConfig } from './config.ts';
 export type { Locale, Plural } from './locale/types.ts';

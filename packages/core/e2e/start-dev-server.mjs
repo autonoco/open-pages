@@ -1,4 +1,4 @@
-// Boots `open-slide dev` for the e2e suite against a throwaway copy of the
+// Boots `open-pdf dev` for the e2e suite against a throwaway copy of the
 // fixture project (see scratch.mjs).
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -10,7 +10,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const coreRoot = path.resolve(here, '..');
 
 if (!existsSync(path.join(coreRoot, 'dist', 'cli', 'bin.js'))) {
-  console.error('packages/core/dist is missing. Run `pnpm --filter @open-slide/core build` first.');
+  console.error('packages/core/dist is missing. Run `pnpm --filter @open-pdf/core build` first.');
   process.exit(1);
 }
 if (!existsSync(path.join(fixtureDir, 'node_modules'))) {
@@ -36,10 +36,10 @@ const child = spawn(
   {
     cwd: scratchDir,
     stdio: 'inherit',
-    // OPEN_SLIDE_DEV_SUPERVISED=1 skips the CLI's supervisor fork so Playwright
+    // OPEN_PDF_DEV_SUPERVISED=1 skips the CLI's supervisor fork so Playwright
     // manages a single server process. The skills drift check is already
     // disabled by the --no-skills-check flag above.
-    env: { ...process.env, OPEN_SLIDE_DEV_SUPERVISED: '1' },
+    env: { ...process.env, OPEN_PDF_DEV_SUPERVISED: '1' },
   },
 );
 child.on('exit', (code, signal) => process.exit(code ?? (signal ? 1 : 0)));

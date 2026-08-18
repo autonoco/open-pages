@@ -63,7 +63,7 @@ export function PromptComposer() {
     >
       <SectionRule />
       <h2 id="prompt-composer-heading" className="sr-only">
-        Create a slide deck with a prompt
+        Create a doc deck with a prompt
       </h2>
 
       <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -80,7 +80,7 @@ export function PromptComposer() {
             <div className="flex min-h-[108px] items-center px-5 py-6 sm:min-h-[128px] sm:px-8">
               <div className="flex h-[58px] w-full flex-wrap content-center items-center gap-x-2 gap-y-1 font-[family-name:var(--font-mono)] text-[16px] leading-[1.55] tracking-[-0.025em] sm:h-[38px] sm:flex-nowrap sm:text-[19px]">
                 <span className="shrink-0 font-medium text-[color:var(--color-accent)]">
-                  /create-slide
+                  /create-doc
                 </span>
                 <span className="relative h-[1.55em] min-w-0 flex-[1_1_220px] overflow-hidden [perspective:700px]">
                   <AnimatePresence initial={false} mode="popLayout">
@@ -109,8 +109,8 @@ export function PromptComposer() {
               </span>
 
               <Link
-                href="/docs/skills/create-slide"
-                aria-label="Learn how to use the create-slide skill"
+                href="/docs/skills/create-doc"
+                aria-label="Learn how to use the create-doc skill"
                 className="pressable group flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-text)] text-[color:var(--color-panel)] shadow-[0_1px_0_oklch(1_0_0/0.16)_inset] hover:bg-[color:var(--color-accent)] sm:h-11 sm:w-11"
               >
                 <ArrowUpGlyph />

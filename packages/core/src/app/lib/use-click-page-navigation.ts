@@ -1,6 +1,6 @@
 import { type RefObject, useEffect } from 'react';
 
-// Clicks that land on (or inside) these never navigate — interactive slide
+// Clicks that land on (or inside) these never navigate — interactive doc
 // content keeps its click, and present chrome is excluded via data-osd-chrome.
 // Authors can opt any element out with a data-osd-interactive attribute.
 const NAV_PASSTHROUGH =

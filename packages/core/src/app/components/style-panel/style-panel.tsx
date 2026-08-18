@@ -143,7 +143,7 @@ export function DesignPanel({ open, onClose }: DesignPanelProps) {
             }, 'design:fonts.body')
           }
         />
-        <SliderField
+        <DocrField
           label={t.stylePanel.heroLabel}
           value={draft.typeScale.hero}
           min={48}
@@ -156,7 +156,7 @@ export function DesignPanel({ open, onClose }: DesignPanelProps) {
             }, 'design:typeScale.hero')
           }
         />
-        <SliderField
+        <DocrField
           label={t.stylePanel.bodyLabel}
           value={draft.typeScale.body}
           min={16}
@@ -174,7 +174,7 @@ export function DesignPanel({ open, onClose }: DesignPanelProps) {
       <Separator />
 
       <Section title={t.stylePanel.shapeSection}>
-        <SliderField
+        <DocrField
           label={t.stylePanel.radiusLabel}
           value={draft.radius}
           min={0}
@@ -302,7 +302,7 @@ function FontField({
   );
 }
 
-function SliderField({
+function DocrField({
   label,
   value,
   min,

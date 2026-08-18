@@ -1,19 +1,19 @@
-import config from 'virtual:open-slide/config';
+import config from 'virtual:open-pdf/config';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Toaster } from './components/ui/sonner';
 import { useLocale } from './lib/use-locale';
 import { AssetsPage } from './routes/assets';
+import { Doc } from './routes/doc';
 import { Home } from './routes/home';
 import { HomeShell } from './routes/home-shell';
 import { Presenter } from './routes/presenter';
-import { Slide } from './routes/slide';
 import { ThemeDetailPage, ThemesGalleryPage } from './routes/themes';
 
 export function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
-        {config.build.showSlideBrowser ? (
+        {config.build.showDocBrowser ? (
           <Route element={<HomeShell />}>
             <Route path="/" element={<Home />} />
             <Route path="/themes" element={<ThemesGalleryPage />} />
@@ -23,8 +23,8 @@ export function App() {
         ) : (
           <Route path="/" element={<NotFound />} />
         )}
-        <Route path="/s/:slideId" element={<Slide />} />
-        <Route path="/s/:slideId/presenter" element={<Presenter />} />
+        <Route path="/s/:docId" element={<Doc />} />
+        <Route path="/s/:docId/presenter" element={<Presenter />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />

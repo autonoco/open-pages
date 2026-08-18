@@ -24,7 +24,7 @@ const thread: Tweet[] = [
     name: 'Sam Lambert',
     handle: '@samlambert',
     avatar: '/assets/avatar/samlambert.png',
-    body: 'open-slide + cursor',
+    body: 'open-pdf + cursor',
   },
 ];
 
@@ -40,7 +40,7 @@ export function UsedBy() {
           Used by people
           <br />
           <span className="font-[family-name:var(--font-pixel)] text-[color:var(--color-muted)]">
-            who create engaging slides.
+            who create engaging docs.
           </span>
         </h2>
 
