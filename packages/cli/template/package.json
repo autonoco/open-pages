@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "open-pdf dev",
     "build": "open-pdf build",
+    "export": "open-pdf export",
     "preview": "open-pdf preview",
     "sync:skills": "open-pdf sync:skills"
   },

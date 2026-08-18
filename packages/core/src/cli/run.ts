@@ -134,6 +134,16 @@ export async function run(argv: string[]): Promise<void> {
     });
 
   program
+    .command('export')
+    .description('Render docs to PDF files — same bytes as the preview')
+    .argument('[docs...]', 'doc ids to export (default: all)')
+    .option('--out-dir <dir>', 'output directory (defaults to `export`)')
+    .action(async (docs: string[], flags: { outDir?: string }) => {
+      const { exportPdfs } = await import('./export.ts');
+      await exportPdfs({ docs, outDir: flags.outDir });
+    });
+
+  program
     .command('sync:skills')
     .description('Sync built-in skills from @open-pdf/core into this workspace')
     .option('--dry-run', 'show what would change without writing')
