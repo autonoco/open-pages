@@ -1,0 +1,25 @@
+{
+  "name": "engine-bench",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@react-pdf/renderer": "^4.6.1",
+    "pdfjs-dist": "^6.2.108",
+    "react": "^19.2.8",
+    "takumi-pdf": "^0.11.1"
+  },
+  "devDependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "@napi-rs/canvas": "^1.0.6",
+    "@types/react": "^19.2.18",
+    "tsx": "^4.23.12"
+  },
+  "type": "module"
+}
