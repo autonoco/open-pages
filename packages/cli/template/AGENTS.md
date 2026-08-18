@@ -6,7 +6,7 @@ You are authoring **documents** in this repo. Every doc is a React component tha
 
 - Put your doc under `docs/<kebab-case-id>/`.
 - The entry is `docs/<id>/index.tsx`.
-- A doc is one `index.tsx` — no sibling files. (Asset embedding is not wired up yet; see the `doc-authoring` skill's fonts-and-assets reference.)
+- A doc is one `index.tsx` plus `docs/<id>/assets/` for its images and fonts. Shared assets live in the root `assets/` folder (import via `@assets/...`).
 - Do **not** touch `package.json`, `open-pdf.config.ts`, or other docs.
 - Do not add dependencies. Use only `react` and standard web APIs.
 

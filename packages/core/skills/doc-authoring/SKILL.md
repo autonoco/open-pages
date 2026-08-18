@@ -31,7 +31,7 @@ Details live under `references/` in this skill. **Read the relevant file before 
 - Entry is `docs/<id>/index.tsx`.
 - Do **not** touch `package.json`, `open-pdf.config.ts`, or other docs.
 - Do not add dependencies. Only `react`, `@open-pdf/core`, and plain JS are available.
-- A doc is **one `index.tsx`** — helper components and constants go inside it. No sibling files, no `README.md`, no CSS files.
+- A doc is **one `index.tsx` plus `docs/<id>/assets/`** for its images/fonts — helper components and constants go inside the tsx. No other sibling files, no `README.md`, no CSS files.
 - Components must be **pure and synchronous**: no hooks, no state, no `window`/`document`, no `fetch`. The doc renders in a worker to static PDF bytes — anything dynamic has nowhere to run.
 
 ## File contract
@@ -112,7 +112,7 @@ Sizes are CSS pixels at 96 dpi; an A4 page is **794 × 1123 px** inside which yo
 1. **No explicit widths on `<th>`.** `tw="w-[45%]"` on a header cell leaves an unpainted gap in the header row's background. Let the table size its own tracks; put width hints on `<td>` content instead if you must.
 2. **`breakInside: 'avoid'` on `<tr>` is unreliable inside flex wrappers.** If the table's ancestor chain includes a flex container, a tall row can still split across pages. Keep row content short (one title line + one detail line), and don't build load-bearing keep-together logic around table rows.
 3. **No CSS grid layouts for structure you could express as a table.** Real `<table>` markup gets you column tracks, repeated `<thead>` on every page, and correct breaks. Hand-rolled flex/grid tables get none of that.
-4. **Missing glyphs fail the render** (an error, not a blank). Stick to Latin text, common punctuation, and standard symbols unless a font that covers your script is configured (`references/fonts-and-assets.md`).
+4. **Missing glyphs fail the render** (an error, not a blank). Stick to Latin text, common punctuation, and standard symbols unless a registered font covers your script (`references/fonts-and-assets.md`).
 
 ## Data rows vs designed repeats
 

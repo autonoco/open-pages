@@ -13,6 +13,7 @@ export type {
   DocComponent,
   DocMeta,
   DocModule,
+  PageFont,
   PageMarginSide,
   PageOptions,
 } from './app/lib/sdk.ts';

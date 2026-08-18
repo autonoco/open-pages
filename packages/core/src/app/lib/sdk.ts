@@ -18,6 +18,20 @@ export type DocMeta = {
 /** CSS px, or 'auto' to size the side to fit its running band. */
 export type PageMarginSide = number | 'auto';
 
+/**
+ * A font for the PDF engine: a URL string (dev-server asset URL from an
+ * `import` of a .woff2/.ttf under the doc's assets, or an absolute https URL),
+ * or raw bytes with an optional family name/weight/style.
+ */
+export type PageFont =
+  | string
+  | {
+      name?: string;
+      data: ArrayBuffer | Uint8Array;
+      weight?: number;
+      style?: 'normal' | 'italic' | 'oblique';
+    };
+
 /** Per-document page geometry and running bands, passed to the PDF engine. */
 export type PageOptions = {
   /** Page size preset ('a4', 'letter', ...) or {width, height} in CSS px. */
@@ -34,6 +48,8 @@ export type PageOptions = {
   header?: ReactNode;
   /** Running footer band, rendered on every page. May use <PageNumber/> / <TotalPages/>. */
   footer?: ReactNode;
+  /** Custom fonts to register for this document. Default: the engine's bundled font. */
+  fonts?: PageFont[];
 };
 
 export type DocModule = {

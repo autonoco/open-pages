@@ -66,7 +66,7 @@ Decide the page-break plan now (which sections get `breakBefore: 'page'`, which 
 
 ## Step 5 — Commit to a visual direction
 
-One palette, one type scale, held for the whole document. The constraints (print type scale, palette structure, spacing) live in `doc-authoring` — apply them. Define the palette as plain consts or repeat Tailwind color utilities consistently (`slate-900`/`slate-500`/one accent). Fonts: the engine's bundled default only — do not declare font families (see `references/fonts-and-assets.md`).
+One palette, one type scale, held for the whole document. The constraints (print type scale, palette structure, spacing) live in `doc-authoring` — apply them. Define the palette as plain consts or repeat Tailwind color utilities consistently (`slate-900`/`slate-500`/one accent). Fonts: default to the engine's bundled face; register custom fonts via `pageOptions.fonts` only when the user names one or supplies files (see `references/fonts-and-assets.md`).
 
 ## Step 6 — Write `docs/<id>/index.tsx`
 

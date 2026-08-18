@@ -17,7 +17,12 @@ if (import.meta.env.DEV && IN_WORKER) {
 import { fromJsx } from '@takumi-rs/helpers/jsx';
 import { createElement } from 'react';
 import { render } from 'takumi-pdf';
-import { LOC_URL_PREFIX } from './loc-url';
+import {
+  collectImageSrcs,
+  DEFAULT_PAGE,
+  injectLocAnchors,
+  type TakumiNode,
+} from '../../../shared/takumi-doc';
 
 export type RenderRequest = {
   type: 'render';
@@ -42,38 +47,6 @@ export type RenderResponse =
     }
   | { type: 'render-error'; seq: number; message: string };
 
-// Engine margins are numbers (CSS px) or 'auto' — CSS length strings throw.
-const DEFAULT_PAGE = { size: 'a4', margin: 48 } as const;
-
-type TakumiNode = {
-  type?: string;
-  children?: TakumiNode[];
-  tagName?: string;
-  attributes?: Record<string, string>;
-};
-
-/**
- * Turn every loc-tagged node into an anchor pointing at a sentinel URL that
- * encodes its source location. The engine emits one Link annotation with an
- * exact /Rect per rendered fragment (split across pages as needed) — the
- * inspector reads them back with pdf.js getAnnotations(). Presets/styles were
- * already resolved by fromJsx, so retagging does not affect layout.
- */
-function injectLocAnchors(root: TakumiNode): Record<string, string> {
-  const tags: Record<string, string> = {};
-  const visit = (node: TakumiNode) => {
-    const loc = node.attributes?.['data-pdf-loc'];
-    if (loc && node.attributes) {
-      tags[loc] ??= node.tagName ?? '';
-      node.tagName = 'a';
-      node.attributes.href = `${LOC_URL_PREFIX}${encodeURIComponent(loc)}`;
-    }
-    for (const child of node.children ?? []) visit(child);
-  };
-  visit(root);
-  return tags;
-}
-
 async function handleRender(req: RenderRequest) {
   const start = performance.now();
   const mod = await import(/* @vite-ignore */ req.moduleUrl);
@@ -84,8 +57,19 @@ async function handleRender(req: RenderRequest) {
   const { node, stylesheets } = await fromJsx(element);
   const tags = req.inspect ? injectLocAnchors(node as TakumiNode) : {};
   const pageOptions = mod.pageOptions ?? {};
+  // The engine does not fetch image URLs itself — hand it lazy loaders for
+  // every src in the tree (dev-server URLs resolve against the worker origin).
+  const images = collectImageSrcs(node as TakumiNode).map((src) => ({
+    src,
+    data: () =>
+      fetch(src).then((r) => {
+        if (!r.ok) throw new Error(`image fetch failed (${r.status}): ${src}`);
+        return r.arrayBuffer();
+      }),
+  }));
   const bytes: Uint8Array = await render(node, {
     stylesheets,
+    images,
     ...DEFAULT_PAGE,
     ...pageOptions,
   });

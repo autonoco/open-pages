@@ -67,7 +67,7 @@ description: <one-line elevator pitch>
 
 ## Typography
 
-- Font: engine default only — do not declare font families.
+- Font: engine default, or a font file the doc registers via `pageOptions.fonts` (name the family and tell `create-doc` where the file must live).
 - Type-scale overrides (only list what differs from `doc-authoring` defaults):
   - Document title: 30px, `font-bold tracking-tight`
   - Section heading: 16px, `font-bold`
@@ -143,13 +143,13 @@ Contract:
 - **One default-exported component** (flowing content, 1–2 pages worth) plus `export const pageOptions` using the theme's page setup and footer band.
 - Inline the **same** fixed components defined in the theme markdown — verbatim, no abstractions. Demo and markdown must stay in lockstep so what `create-doc` pastes matches what the demo shows.
 - Content should exercise the theme's range: letterhead, a heading, a short table, a callout. Use plausible realistic content, not lorem ipsum.
-- Self-contained: no asset imports, no `@/` imports, no images, engine-default font only (see `references/fonts-and-assets.md` in `doc-authoring`).
+- Self-contained: no `@/` imports; engine-default font unless the theme ships a font file the demo can reference.
 
 ## Step 5 — Self-review
 
 - [ ] Palette table covers text / muted / accent / rule / band as Tailwind utilities.
 - [ ] Frontmatter has `name` and `description` only (the runtime reads nothing else).
-- [ ] Typography declares no font families (engine default only).
+- [ ] Typography names only fonts the theme actually registers (or the engine default).
 - [ ] Layout specifies `pageOptions` size + margins.
 - [ ] Fixed components are paste-ready Takumi-dialect JSX (`tw` prop, no `className`, no hooks) and the footer band uses `<PageNumber/>`/`<TotalPages/>` inside `pageOptions`.
 - [ ] Aesthetic paragraph names a single coherent direction.
@@ -171,7 +171,7 @@ Do not run the dev server. Do not modify real docs — the demo `.tsx` is the de
 - ❌ Writing executable code in `themes/<id>.md` outside the labeled component snippets — the markdown is documentation.
 - ❌ Producing only the markdown without the demo, or only the demo without the markdown. A theme is the **bundle** — both files, every time.
 - ❌ Slide-era shapes in the demo: page arrays, fixed-size page `<div>`s, `className`, hooks.
-- ❌ Declaring font families or embedding images — neither is wired yet.
+- ❌ Naming font families the theme never registers.
 - ❌ Inventing palette / styling when the user supplied images or an existing doc. Extract, don't fabricate.
 - ❌ Editing `docs/`, `packages/`, `package.json`, or `open-pdf.config.ts`.
 - ❌ Skipping Fixed components. The letterhead and footer band are the most common reuse targets — they must be paste-ready.

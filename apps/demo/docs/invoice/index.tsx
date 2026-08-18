@@ -1,4 +1,5 @@
 import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@open-pdf/core';
+import logo from './assets/logo.png';
 
 export const meta: DocMeta = {
   title: 'Invoice INV-2026-0147',
@@ -121,9 +122,7 @@ export default function Invoice() {
           <span tw="text-slate-500">Miami, FL 33137</span>
           <span tw="text-slate-500">billing@meridiansystems.example</span>
         </div>
-        <div tw="flex h-[64px] w-[110px] items-center justify-center rounded border border-dashed border-slate-300 text-slate-400">
-          LOGO
-        </div>
+        <img src={logo} width={64} height={64} tw="rounded-lg" />
       </div>
 
       <div tw="mt-8 flex items-end justify-between">

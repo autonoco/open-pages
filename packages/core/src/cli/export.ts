@@ -1,10 +1,12 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { fromJsx } from '@takumi-rs/helpers/jsx';
 import chalk from 'chalk';
 import fg from 'fast-glob';
 import { createElement } from 'react';
 import { render } from 'takumi-pdf';
 import { createServer, mergeConfig } from 'vite';
+import { collectImageSrcs, DEFAULT_PAGE, type TakumiNode } from '../shared/takumi-doc.ts';
 import { createViteConfig } from '../vite/config.ts';
 import { loadUserConfig } from '../vite/open-pdf-plugin.ts';
 
@@ -15,11 +17,25 @@ export interface ExportOptions {
   outDir?: string;
 }
 
-// Keep in sync with the preview worker's defaults
-// (src/app/lib/pdf/render-worker.ts) — preview and export must agree.
-const DEFAULT_PAGE = { size: 'a4', margin: 48 } as const;
-
 const ENTRY_GLOB = '*/index.{tsx,jsx,ts,js}';
+
+/**
+ * Dev-server URL -> bytes, without a listening server: Vite emits `/@fs/<abs>`
+ * URLs for workspace assets; anything else root-relative resolves against the
+ * project; http(s) URLs are fetched.
+ */
+async function resolveUrlBytes(url: string, userCwd: string): Promise<Uint8Array> {
+  const clean = url.replace(/[?#].*$/, '');
+  if (/^https?:/.test(clean)) {
+    const res = await fetch(clean);
+    if (!res.ok) throw new Error(`fetch failed (${res.status}): ${clean}`);
+    return new Uint8Array(await res.arrayBuffer());
+  }
+  const fsPath = clean.startsWith('/@fs/')
+    ? decodeURIComponent(clean.slice('/@fs'.length))
+    : path.join(userCwd, decodeURIComponent(clean));
+  return readFile(fsPath);
+}
 
 export async function exportPdfs(opts: ExportOptions = {}): Promise<void> {
   const userCwd = process.cwd();
@@ -66,9 +82,28 @@ export async function exportPdfs(opts: ExportOptions = {}): Promise<void> {
         throw new Error(`${docsDir}/${entry} must default-export a component`);
       }
       const element = createElement(mod.default as Parameters<typeof createElement>[0]);
-      const bytes: Uint8Array = await render(element, {
+      const { node, stylesheets } = await fromJsx(element);
+      const images = await Promise.all(
+        collectImageSrcs(node as TakumiNode).map(async (src) => ({
+          src,
+          data: await resolveUrlBytes(src, userCwd),
+        })),
+      );
+      const pageOptions = { ...(mod.pageOptions ?? {}) };
+      if (Array.isArray(pageOptions.fonts)) {
+        pageOptions.fonts = await Promise.all(
+          pageOptions.fonts.map(async (f) =>
+            typeof f === 'string' && !/^https?:/.test(f)
+              ? { data: await resolveUrlBytes(f, userCwd) }
+              : f,
+          ),
+        );
+      }
+      const bytes: Uint8Array = await render(node, {
+        stylesheets,
+        images,
         ...DEFAULT_PAGE,
-        ...(mod.pageOptions ?? {}),
+        ...pageOptions,
       });
       const outFile = path.join(outDir, `${id}.pdf`);
       await writeFile(outFile, bytes);
