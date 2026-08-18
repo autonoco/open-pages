@@ -122,7 +122,7 @@ export default function Invoice() {
           <span tw="text-slate-500">Miami, FL 33137</span>
           <span tw="text-slate-500">billing@meridiansystems.example</span>
         </div>
-        <img src={logo} width={64} height={64} tw="rounded-lg" />
+        <img src={logo} alt="Meridian Systems logo" width={64} height={64} tw="rounded-lg" />
       </div>
 
       <div tw="mt-8 flex items-end justify-between">
