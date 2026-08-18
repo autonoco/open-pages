@@ -1,48 +1,47 @@
 ---
 name: create-theme
-description: Use this skill when the user wants to create, draft, author, or extract a doc theme in this open-pdf repo. Triggers on phrases like "create a theme", "make a theme called X", "extract a theme from <doc>", "build a theme from these images". Produces two paired files under `themes/` — `<id>.md` (palette, typography, layout, fixed Title/Footer components, motion) and `<id>.demo.tsx` (a runnable demo doc that the dev-UI Themes panel previews). Do NOT use for editing real docs — only for authoring the theme bundle.
+description: Use this skill when the user wants to create, draft, author, or extract a document theme in this open-pdf repo. Triggers on phrases like "create a theme", "make a theme called X", "extract a theme from <doc>", "build a theme from these images". Produces two paired files under `themes/` — `<id>.md` (palette, typography, layout, fixed components) and `<id>.demo.tsx` (a runnable demo doc; the dev-UI Themes panel will preview it once demo previews are re-enabled). Do NOT use for editing real docs — only for authoring the theme bundle.
 ---
 
-# Create a doc theme
+# Create a document theme
 
-This skill produces a **theme bundle** under `themes/`: two paired files that together describe a reusable visual identity.
+This skill produces a **theme bundle** under `themes/`: two paired files that together describe a reusable visual identity for PDF documents.
 
-1. `themes/<id>.md` — agent-facing documentation: palette, typography, layout, fixed Title/Footer/Eyebrow components, motion. This is what `create-doc` reads when an author picks the theme.
-2. `themes/<id>.demo.tsx` — a runnable mini-doc (a normal doc module: `export default Page[]`) that demonstrates the theme on 2–3 pages. The dev UI's **Themes panel** loads this file and renders it as the theme's live preview.
+1. `themes/<id>.md` — agent-facing documentation: palette, typography, layout, fixed components (letterhead, footer band, callout). This is what `create-doc` reads when an author picks the theme.
+2. `themes/<id>.demo.tsx` — a runnable mini-doc (same module shape as `docs/<id>/index.tsx`: **one default-exported component** plus `pageOptions`) that demonstrates the theme on 1–2 pages. The dev-UI Themes panel currently shows a placeholder card for demos; previews are being re-enabled, so keep the demo valid regardless.
 
 Both files share the same stem so the runtime can pair them automatically.
 
-A theme is **distinct from a doc's `design` const**. The theme markdown is authoring-time aesthetic direction (copied into a real doc's source by `create-doc`). The demo `.tsx` is a self-contained preview, not a real doc — it does not appear in the docs list. A per-doc `const design: DesignSystem = { … }` (declared at the top of `docs/<id>/index.tsx`) is the runtime tokens object the user can tweak from the Design panel. The markdown commits the *direction*; the per-doc `design` const makes the doc *tweakable*; the demo `.tsx` makes the theme *previewable*.
+The theme markdown is authoring-time direction — `create-doc` copies its palette, utilities, and components into a real doc's source. The demo `.tsx` is a self-contained preview, not a real doc — it does not appear in the docs list.
 
-You only write files under `themes/<id>.md` and `themes/<id>.demo.tsx`. Never modify real docs or other configuration. The canvas / type-scale defaults that themes can override live in the **`doc-authoring`** skill — read it before writing the theme so your overrides are stated explicitly.
+You only write `themes/<id>.md` and `themes/<id>.demo.tsx`. Never modify real docs or configuration. The dialect and print defaults that themes override live in the **`doc-authoring`** skill — read it before writing the theme so your overrides are stated explicitly.
 
 ## Step 1 — Identify the input source
 
 A theme can be derived from any combination of three input shapes:
 
-- **Image references** — paths or URLs to doc screenshots, mood-board images, brand assets.
-- **Free-text description** — prose describing the desired palette, fonts, feel.
+- **Image references** — paths or URLs to document screenshots, mood-board images, brand assets.
+- **Free-text description** — prose describing the desired palette, weight, feel.
 - **An existing doc** — `docs/<id>/index.tsx` whose visual identity should be lifted out into a reusable theme.
 
 If the user's original message already specifies the inputs unambiguously, skip the question and proceed. Otherwise call `AskUserQuestion` (multi-select) so they can pick one or more sources, and ask follow-ups (paths, doc id, prose) only as needed.
 
 ## Step 2 — Gather raw inputs
 
-- **Images**: read each path with the `Read` tool (it accepts images). Note dominant colors as hex, type weight/style, layout rhythm, decorative motifs, and any recurring chrome (header bar, footer line, page numbers).
-- **Text**: extract explicit tokens (hex codes, font names, motion verbs) and implicit tone words ("editorial", "playful", "brutalist"). Resolve vague language into concrete decisions before writing.
+- **Images**: read each path with the `Read` tool (it accepts images). Note dominant colors as hex, type weight, ruling style (hairlines vs heavy bars), table styling, and recurring chrome (letterhead, footer line).
+- **Text**: extract explicit tokens (hex codes, tone words) and resolve vague language into concrete decisions before writing.
 - **Existing doc**: read `docs/<id>/index.tsx` and pull:
-  - The `design.palette` object (or a legacy top-of-file `palette` const) → Palette section.
-  - `design.fonts` / font constants and any `font-size` patterns → Typography section.
-  - Padding / alignment patterns → Layout section.
-  - Recurring components (TrafficLights, Eyebrow, Footer-style helpers, WindowShell, …) → Fixed components section.
-  - `@keyframes` blocks and the shared `styles` string → Motion section.
-  - The aesthetic feel implied by the design → Aesthetic paragraph.
+  - The Tailwind color utilities used consistently (`text-slate-900`, accent classes) → Palette section.
+  - Type sizes (`text-[11px]`, heading sizes) → Typography section.
+  - `pageOptions` (size, margins, header/footer bands) → Layout + Fixed components.
+  - Recurring helper components (callout boxes, key-value rows, signature blocks) → Fixed components section.
+  - The aesthetic feel implied → Aesthetic paragraph.
 
 When inputs disagree (e.g. images use blue but the description says green), ask the user which to honor.
 
 ## Step 3 — Pick a theme id
 
-Use **kebab-case**, short, descriptive. Examples: `editorial-noir`, `brutalist-mono`, `pastel-soft`, `dev-terminal`. Check `themes/` to avoid collisions.
+Use **kebab-case**, short, descriptive. Examples: `ledger-classic`, `saas-clean`, `compliance-formal`, `field-guide`. Check `themes/` to avoid collisions.
 
 ## Step 4 — Write `themes/<id>.md`
 
@@ -50,204 +49,129 @@ Produce a file with this exact section order. Section bodies adapt to the theme;
 
 ````markdown
 ---
-name: <Human title, e.g. "Editorial Noir">
+name: <Human title, e.g. "Classic Ledger">
 description: <one-line elevator pitch>
-mode: <dark | light — whichever matches the palette's bg>
 ---
 
 # <Theme name>
 
 ## Palette
 
-| Role   | Value     | Notes                          |
-| ------ | --------- | ------------------------------ |
-| bg     | `#0f172a` | page background                |
-| text   | `#f8fafc` | primary copy                   |
-| accent | `#fbbf24` | callouts, eyebrow, key numbers |
-| muted  | `#94a3b8` | secondary copy, dividers       |
-| ...    | ...       | extend as the theme requires   |
+| Role | Tailwind | Notes |
+| --- | --- | --- |
+| text | `text-slate-900` | primary copy |
+| muted | `text-slate-500` | secondary copy, labels |
+| accent | `text-indigo-600` | doc number, links, key figures |
+| rule | `border-slate-300` | table borders, dividers |
+| band | `bg-slate-100` | table header fill, callout fill |
 
 ## Typography
 
-- Display font: `<stack>` — weight 800–900 for headlines.
-- Body font: `<stack>` — weight 400–500.
-- Webfont import (omit for system stacks): `<stylesheet URL>` — see `references/webfonts.md` in `doc-authoring` for loading rules.
+- Font: engine default only — do not declare font families.
 - Type-scale overrides (only list what differs from `doc-authoring` defaults):
-  - Hero title: 180 px (default 140–200 ✓)
-  - Body text: 36 px
+  - Document title: 30px, `font-bold tracking-tight`
+  - Section heading: 16px, `font-bold`
+  - Body: 11.5px, `leading-relaxed`
 
 ## Layout
 
-- Content padding: 120 px from canvas edges (1920 × 1080).
-- Alignment: left-aligned, single column.
-- Grid notes: optional 12-column overlay at 80 px gutter for content pages.
+- Page: `size: 'a4'`, margins `{ top: 56, right: 64, bottom: 72, left: 64 }`.
+- Section rhythm: `mt-8` between sections, hairline `border-b border-slate-200` under section headings.
+- Alignment: left-aligned; numbers right-aligned.
 
 ## Fixed components
 
-These are paste-ready. Copy them verbatim into a doc that uses this theme.
+These are paste-ready Takumi-dialect JSX. Copy them verbatim into a doc that uses this theme.
 
-### Title
-
-```tsx
-const Title = ({ children }: { children: React.ReactNode }) => (
-  <h1
-    style={{
-      fontSize: 140,
-      fontWeight: 900,
-      lineHeight: 1.05,
-      letterSpacing: '-0.02em',
-      margin: 0,
-      color: '#f8fafc',
-    }}
-  >
-    {children}
-  </h1>
-);
-```
-
-### Footer
-
-Pull the page number from `useDocPageNumber()` — never hardcode `pageNum` / `total` props.
+### Letterhead
 
 ```tsx
-import { useDocPageNumber } from '@open-pdf/core';
-
-const Footer = () => {
-  const { current, total } = useDocPageNumber();
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        left: 120,
-        right: 120,
-        bottom: 60,
-        display: 'flex',
-        justifyContent: 'space-between',
-        fontSize: 24,
-        color: '#94a3b8',
-      }}
-    >
-      <span>EDITORIAL NOIR · 2026</span>
-      <span>{current} / {total}</span>
-    </div>
-  );
-};
-```
-
-### Eyebrow / accents (optional)
-
-```tsx
-const Eyebrow = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ fontSize: 26, letterSpacing: '0.2em', color: '#fbbf24' }}>
-    {children}
+const Letterhead = ({ company, lines }: { company: string; lines: string[] }) => (
+  <div tw="flex flex-col">
+    <span tw="text-[20px] font-bold text-slate-900">{company}</span>
+    {lines.map((l) => (
+      <span key={l} tw="text-slate-500">{l}</span>
+    ))}
   </div>
 );
 ```
 
-## Motion
+### Footer band (goes in `pageOptions.footer`, not in content)
 
-- Philosophy: static / subtle / rich — pick one and explain in one sentence.
-- Reusable keyframes (paste-ready, only if the philosophy is subtle or rich):
+```tsx
+footer: (
+  <div tw="flex w-full items-center justify-between text-[9px] text-slate-400">
+    <span>{'<company>'}</span>
+    <span tw="flex">Page <PageNumber /> of <TotalPages /></span>
+  </div>
+),
+```
 
-```css
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+### Callout (optional)
+
+```tsx
+const Callout = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <div tw="mt-8 flex flex-col rounded bg-slate-50 p-4 text-[10px] text-slate-600" style={{ breakInside: 'avoid' }}>
+    <span tw="font-bold text-slate-700">{title}</span>
+    {children}
+  </div>
+);
 ```
 
 ## Aesthetic
 
-One paragraph. What it feels like, the references it draws on, what to avoid (e.g. "no rounded corners; no gradients; no decorative emoji"). Commit to a single direction — minimal, maximalist, editorial, retro, brutalist, soft/pastel, neon, paper/print.
+One paragraph. What it feels like, the references it draws on, what to avoid (e.g. "no rounded corners; no color fills except the table band; hairline rules only"). Commit to a single direction.
 
 ## Example usage
 
 ```tsx
-const Cover: Page = () => (
-  <div style={{ width: '100%', height: '100%', background: '#0f172a', color: '#f8fafc', padding: 120, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-    <Eyebrow>CHAPTER 01</Eyebrow>
-    <Title>The Big Idea</Title>
-    <p style={{ fontSize: 36, color: '#94a3b8', maxWidth: 1200, marginTop: 32 }}>
-      A short subtitle that explains what this doc is about.
-    </p>
-    <Footer />
-  </div>
-);
+<main tw="flex flex-col text-[11.5px] leading-relaxed text-slate-900">
+  <Letterhead company="Meridian Systems LLC" lines={['2201 Biscayne Blvd', 'Miami, FL 33137']} />
+  <h1 tw="mt-8 text-[30px] font-bold tracking-tight">Services Proposal</h1>
+  {/* … */}
+</main>
 ```
 ````
 
 ## Step 4b — Write `themes/<id>.demo.tsx`
 
-The demo is a normal doc module — same shape as `docs/<id>/index.tsx`, just sitting under `themes/` so the runtime knows it's preview-only. The dev-UI Themes panel imports it and renders it inside `DocCanvas` (1920×1080).
+The demo is a normal doc module — same shape as `docs/<id>/index.tsx`, just sitting under `themes/` so the runtime knows it's preview-only.
 
 Contract:
 
-- `import { type Page, useDocPageNumber } from '@open-pdf/core';`
-- Inline the **same** `Title`, `Footer`, `Eyebrow` components defined in the theme markdown — verbatim, no abstractions, no imports from elsewhere. The demo and the markdown must stay in lockstep so what the user sees in the panel matches what `create-doc` will paste into a real doc.
-- Export 2–3 `Page` components and a default array. Aim for: a Cover (Eyebrow + Title + subtitle), one Content page exercising body type + accent, and a Closer or "End" card. The "Example usage" block at the bottom of the markdown is a good starting point — extend it.
-- If the theme has runtime-tweakable tokens worth surfacing in the Design panel later, also `export const design: DesignSystem = {...}` (add `import type { DesignSystem } from '@open-pdf/core';` alongside the base import).
-- No asset file imports, no `import` from `@/`, no docs-only helpers (e.g. `WindowShell` from a real doc). Webfont stylesheet `@import`s inside an inline `<style>` are fine here — a deliberate exception to `webfonts.md`'s loader rules, since the demo only mounts in the Themes panel. Demo files must be self-contained.
-
-Skeleton:
-
-```tsx
-import { type Page, useDocPageNumber } from '@open-pdf/core';
-
-const Title = ({ children }: { children: React.ReactNode }) => (
-  // …same JSX as in themes/<id>.md
-);
-const Footer = () => {
-  const { current, total } = useDocPageNumber();
-  // …
-};
-const Eyebrow = ({ children }: { children: React.ReactNode }) => (
-  // …
-);
-
-const Cover: Page = () => (
-  // …
-);
-const Content: Page = () => (
-  // …
-);
-const Closer: Page = () => (
-  // …
-);
-
-export default [Cover, Content, Closer];
-```
+- `import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@open-pdf/core';` as needed.
+- **One default-exported component** (flowing content, 1–2 pages worth) plus `export const pageOptions` using the theme's page setup and footer band.
+- Inline the **same** fixed components defined in the theme markdown — verbatim, no abstractions. Demo and markdown must stay in lockstep so what `create-doc` pastes matches what the demo shows.
+- Content should exercise the theme's range: letterhead, a heading, a short table, a callout. Use plausible realistic content, not lorem ipsum.
+- Self-contained: no asset imports, no `@/` imports, no images, engine-default font only (see `references/fonts-and-assets.md` in `doc-authoring`).
 
 ## Step 5 — Self-review
 
-Run this checklist before finishing:
-
-- [ ] Palette covers `bg` / `text` / `accent` / `muted` at minimum, all as hex.
-- [ ] Frontmatter includes `mode` matching the palette's background.
-- [ ] Type scale specifies hero, heading, body, caption sizes (or explicitly defers to `doc-authoring` defaults).
-- [ ] At least Title and Footer are defined as paste-ready React with concrete inline styles.
-- [ ] Motion section commits to one of static / subtle / rich.
+- [ ] Palette table covers text / muted / accent / rule / band as Tailwind utilities.
+- [ ] Frontmatter has `name` and `description` only (the runtime reads nothing else).
+- [ ] Typography declares no font families (engine default only).
+- [ ] Layout specifies `pageOptions` size + margins.
+- [ ] Fixed components are paste-ready Takumi-dialect JSX (`tw` prop, no `className`, no hooks) and the footer band uses `<PageNumber/>`/`<TotalPages/>` inside `pageOptions`.
 - [ ] Aesthetic paragraph names a single coherent direction.
 - [ ] Both files written: `themes/<id>.md` and `themes/<id>.demo.tsx`. No doc changes, no config changes.
-- [ ] Demo `.tsx` exports 2–3 pages and inlines the same Title/Footer/Eyebrow components defined in the markdown.
-- [ ] Demo `.tsx` will load cleanly in the **Themes** panel: verify it against the Step 4b contract by reading the file — do not start a server.
+- [ ] Demo `.tsx` default-exports one component (not an array) and inlines the same fixed components as the markdown.
 
 ## Step 6 — Hand off
 
 Tell the user:
 
-- The theme id and the two file paths (`themes/<id>.md` + `themes/<id>.demo.tsx`).
-- That the demo will appear in the dev UI's **Themes** panel as a live card and detail view (HMR — no restart needed).
+- The theme id and the two file paths.
 - That `/create-doc` will list the theme as a picker option on its next run.
 - A one-line summary of the look (palette + aesthetic).
 
-Do not run the dev server. Do not modify real docs — even to demonstrate the theme; the demo `.tsx` is the demonstration.
+Do not run the dev server. Do not modify real docs — the demo `.tsx` is the demonstration.
 
 ## Anti-patterns
 
 - ❌ Writing executable code in `themes/<id>.md` outside the labeled component snippets — the markdown is documentation.
 - ❌ Producing only the markdown without the demo, or only the demo without the markdown. A theme is the **bundle** — both files, every time.
-- ❌ Treating `themes/<id>.demo.tsx` as a real doc. It is preview-only and lives outside the docs list; never put it under `docs/`.
-- ❌ Importing from `@/` or any doc-specific helper inside the demo. The demo is self-contained.
-- ❌ Inventing palette / fonts when the user supplied images or an existing doc. Extract, don't fabricate.
+- ❌ Slide-era shapes in the demo: page arrays, fixed-size page `<div>`s, `className`, hooks.
+- ❌ Declaring font families or embedding images — neither is wired yet.
+- ❌ Inventing palette / styling when the user supplied images or an existing doc. Extract, don't fabricate.
 - ❌ Editing `docs/`, `packages/`, `package.json`, or `open-pdf.config.ts`.
-- ❌ Skipping the Fixed components section. Title and Footer are the most common reuse target — they must be paste-ready.
+- ❌ Skipping Fixed components. The letterhead and footer band are the most common reuse targets — they must be paste-ready.

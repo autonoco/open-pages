@@ -37,10 +37,7 @@ export default function GettingStarted() {
         repeats table headers, and resolves page counters in the footer band below.
       </p>
 
-      <table
-        tw="mt-6 w-full border border-slate-200 text-[11px]"
-        style={{ borderCollapse: 'collapse' }}
-      >
+      <table tw="mt-6 w-full border border-slate-200 text-[11px]">
         <thead>
           <tr tw="bg-slate-50 font-bold">
             <th tw="border-b border-slate-200 p-2 text-left">You write</th>

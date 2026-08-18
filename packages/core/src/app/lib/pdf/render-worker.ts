@@ -42,7 +42,8 @@ export type RenderResponse =
     }
   | { type: 'render-error'; seq: number; message: string };
 
-const DEFAULT_PAGE = { size: 'a4', margin: '1cm' } as const;
+// Engine margins are numbers (CSS px) or 'auto' — CSS length strings throw.
+const DEFAULT_PAGE = { size: 'a4', margin: 48 } as const;
 
 type TakumiNode = {
   type?: string;

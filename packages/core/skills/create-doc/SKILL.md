@@ -1,11 +1,11 @@
 ---
 name: create-doc
-description: Use this skill when the user wants to create, draft, author, or generate new docs / a presentation in this open-pdf repo. Triggers on phrases like "make docs about X", "make a deck about X", "create a presentation", "draft docs for", "new doc", or when the user asks to add content under `docs/`. Do NOT use for editing the framework itself — only for authoring content inside `docs/<id>/`.
+description: Use this skill when the user wants to create, draft, author, or generate a new document / PDF in this open-pdf repo. Triggers on phrases like "make a PDF about X", "draft an invoice", "create a proposal", "write up a report", "new doc", or when the user asks to add content under `docs/`. Do NOT use for editing the framework itself — only for authoring content inside `docs/<id>/`.
 ---
 
-# Create a doc in open-pdf
+# Create a document in open-pdf
 
-This skill owns the **workflow** for drafting a new deck. The technical reference — file contract, 1920×1080 canvas, type scale, palette, layout, assets — lives in the **`doc-authoring`** skill. Read that skill whenever you need details on *how* a page is structured. This skill assumes you'll consult it before writing code.
+This skill owns the **workflow** for drafting a new document. The technical reference — file contract, the `tw` dialect, page geometry, tables, pagination, running bands — lives in the **`doc-authoring`** skill. Read that skill whenever you need details on *how* a document is structured. This skill assumes you'll consult it before writing code.
 
 You only write files under `docs/<id>/`. Never modify `package.json`, `open-pdf.config.ts`, or existing docs.
 
@@ -13,79 +13,76 @@ You only write files under `docs/<id>/`. Never modify `package.json`, `open-pdf.
 
 List files under `themes/`. If any theme markdown files exist (anything other than `README.md`), call `AskUserQuestion` with each theme id as an option plus a final **"no theme — design from scratch"** option. (`AskUserQuestion` holds at most 4 options — with 4+ themes, offer the 3 most topic-relevant plus "no theme"; the auto-added "Other" lets the user name any omitted theme.)
 
-- If the user picks a theme: read `themes/<id>.md` end-to-end. The theme's palette, typography, layout, and Title/Footer components are now authoritative — copy them directly into the doc. If the theme declares a webfont import, load it per `references/webfonts.md` in `doc-authoring` (module-level, doc-keyed injection) — don't let the doc silently fall back to system fonts. **Also set `theme: '<theme-id>'` on the `meta` export in `index.tsx`** (e.g. `export const meta: DocMeta = { title: '…', createdAt: '…', theme: '<theme-id>' };` — `createdAt` per the file contract in `doc-authoring`) so the doc back-links to the theme (chip on the doc card + listing on `/themes/<id>`). In Step 2, skip the **aesthetic direction** question (the theme already commits to one direction); you still need the topic itself, so confirm it before moving on. Page count and text density are independent of theme — ask those normally. For motion, if the theme's Motion section commits to a philosophy, present it as the "(Recommended)" option and reuse the theme's paste-ready keyframes; the user can still override.
+- If the user picks a theme: read `themes/<id>.md` end-to-end. The theme's palette, typography, and fixed components are now authoritative — copy them directly into the doc. **Also set `theme: '<theme-id>'` on the `meta` export** so the doc back-links to the theme. In Step 2, skip the **visual direction** question (the theme already commits to one); confirm the topic itself before moving on. Length and density are independent of theme — ask those normally.
 - If the user picks "no theme", or `themes/` contains no theme markdown files: proceed to Step 2 unchanged.
 
-If you skip the aesthetic question because a theme was picked, restate the theme name in Step 2 so the user can correct course before you start writing.
+If you skip the visual-direction question because a theme was picked, restate the theme name in Step 2 so the user can correct course before you start writing.
 
 ## Step 2 — Clarify requirements (MUST ask before writing code)
 
-**Before writing any code, lock in the four key style decisions below via `AskUserQuestion`.** They shape every downstream choice (layout, type scale, asset needs, motion code), so locking them in up front avoids rework. Only skip a question when it's already unambiguously answered — by the user's original message, or by a theme picked in Step 1 (a theme settles aesthetic direction, so ask only the remaining three) — and if you skip, restate your assumption so they can correct it.
+**Before writing any code, lock in the four key decisions below via `AskUserQuestion`.** They shape every downstream choice, so locking them in up front avoids rework. Only skip a question when it's already unambiguously answered — by the user's original message, or by a theme picked in Step 1 — and if you skip, restate your assumption so they can correct it.
 
-**Topic comes first.** A meaningful aesthetic recommendation requires knowing what the deck is about. If the user's initial request is thin ("make me a deck", "draft some docs"), make a *separate* `AskUserQuestion` call first to gather topic, audience, and any draft outline. Skip this only if the topic is already clear from the user's message — in which case restate your reading of the topic in the next call so they can correct course.
+**Topic comes first.** If the user's initial request is thin ("make me a PDF", "draft a doc"), make a *separate* `AskUserQuestion` call first to gather what the document is, who receives it, and any content they already have (line items, terms, data). Skip this only if already clear — then restate your reading so they can correct course.
 
 Then ask these four in a single `AskUserQuestion` call (multi-question form):
 
-1. **Aesthetic direction** — propose 3 visual directions tailored to *this* topic. Do **not** pull from a fixed preset list. Each option must combine a vibe word + a concrete visual cue (palette, typography, motif) so the user can picture it; bare labels like "minimal" or "corporate" alone are too vague. The three options should feel meaningfully different from each other — not three flavors of the same idea.
+1. **Visual direction** — propose 3 directions tailored to *this* document and its audience. Do **not** pull from a fixed preset list. Each option must combine a vibe word + a concrete visual cue (palette, weight, ruling) so the user can picture it; bare labels like "corporate" are too vague. The three options should feel meaningfully different.
 
-   How options should shift with topic:
-   - *"Intro to Rust for backend engineers"* → **rust-orange technical editorial** (warm rust/charcoal, mono headings, code-grid layout) · **blueprint dev-doc** (cyan grid on near-black, monospace, schematic feel) · **brutalist terminal** (lime-on-black, ASCII rules, no-nonsense)
-   - *"Q2 product roadmap for stakeholders"* → **calm corporate clean** (off-white, single accent, generous whitespace) · **confident editorial** (large display serif, tight grid, one bold accent) · **data-forward dashboard** (charts as hero, muted neutrals + status colors)
-   - *"Kindergarten parent night"* → **playful crayon** (paper texture, hand-drawn accents, primary colors) · **soft pastel storybook** (peach/mint, rounded type, illustrated icons) · **warm photo-led** (full-bleed kid photos, simple captions)
+   How options should shift with document type:
+   - *Invoice for a logistics client* → **classic ledger** (near-black on white, hairline rules, tabular rigor) · **modern SaaS clean** (slate palette, soft table banding, one accent) · **bold brand-forward** (heavy display title, accent block header)
+   - *Consulting proposal* → **confident editorial** (large serif-feel headings, generous margins) · **calm corporate** (single accent, restrained rules) · **data-forward** (KPI tiles and tables as the spine)
+   - *Internal runbook* → **technical doc** (mono accents, numbered sections, tight tables) · **friendly field guide** (callout boxes, roomy line-height) · **compliance-formal** (dense, numbered clauses, footer legalese)
 
-   Mark the option that best fits the topic and audience as "(Recommended)" so the user has a sensible default. (`AskUserQuestion` already auto-adds "Other" — don't add a generic catch-all yourself.)
+   Mark the best fit "(Recommended)". (`AskUserQuestion` auto-adds "Other" — don't add a catch-all yourself.)
 
-2. **Page count** — rough length. Offer brackets: 3–5 (short), 6–10 (standard), 11–20 (deep dive). The auto-added "Other" covers custom counts.
-3. **Text density per page** — how much copy lives on each page? Offer: minimal (one line / big number), light (heading + 2–3 bullets), standard (heading + 4–5 bullets or short paragraph), dense (multi-column / detailed). This directly drives type scale and layout.
-4. **Motion** — does the user want CSS/React animations and transitions, or a fully static deck? Offer: static (no motion), subtle (fades / entrance only), rich (keyframes, staggered reveals, looping visuals). If animated, plan around the framework primitives first — `<Steps>`/`<Step>` for staged reveals, `DocTransition` for page changes, morph for shared-element continuity (see `doc-authoring`) — plus CSS `@keyframes` / inline `style` + `useEffect` for in-page motion; no extra libraries.
+2. **Length** — rough page count. Offer brackets: 1–2 (letter/invoice), 3–6 (proposal/report), 7–15 (long-form). The auto-added "Other" covers custom counts.
+3. **Content density** — how packed is a page? Offer: airy (headings + short paragraphs, lots of white space), standard (sections with mixed prose/tables), dense (multi-column data, long tables, small type). This drives the type scale.
+4. **Page setup** — offer: A4 with page-number footer (Recommended), Letter with page-number footer, or no running bands (single-page pieces). Running header (company name / confidentiality line) is a natural follow-up for contracts and reports.
 
-After those four, ask follow-ups **only if still unclear**: brand colors, required assets. Don't pad the conversation with questions already answered.
+After those four, ask follow-ups **only if still unclear**: brand colors, actual content data (names, amounts, dates, terms). Real documents live on real data — placeholder content like "Acme Corp, $1,000" is a last resort; prefer asking for the real values.
 
 ## Step 3 — Pick a doc id
 
-Use **kebab-case**, short, descriptive. Examples: `rust-intro`, `q2-roadmap`, `team-offsite-2026`. Check `docs/` to avoid collisions.
+Use **kebab-case**, short, descriptive. Examples: `invoice-harborline-0147`, `q3-services-proposal`, `onboarding-runbook`. Check `docs/` to avoid collisions.
 
 ## Step 4 — Plan the structure
 
-Sketch the doc as a list of page roles before writing code. Common page types:
+Sketch the document as an ordered list of sections before writing code. Common shapes:
 
-| Role             | Purpose                                       |
-| ---------------- | --------------------------------------------- |
-| Cover            | Title + subtitle, strong visual               |
-| Agenda           | What's coming (3–5 items)                     |
-| Section divider  | Big label between chapters                    |
-| Content          | Heading + 2–5 bullets OR heading + one visual |
-| Big number       | One statistic the size of the canvas          |
-| Quote            | Pull-quote with attribution                   |
-| Comparison       | Two-column before/after or A vs B             |
-| Closing          | CTA, thanks, contact                          |
+| Section | Purpose |
+| --- | --- |
+| Letterhead | Issuer identity, addressee block, doc number/date |
+| Title block | Document title + one-line summary |
+| Body sections | Headed prose, numbered clauses |
+| Data table | Line items, schedules, comparisons |
+| Totals / summary | Right-aligned money block, key figures |
+| Callout box | Payment details, notes, warnings |
+| Signature block | Names, titles, date lines |
+| Footer band | Running page numbers, identity line |
 
-**Rule of thumb**: one idea per page. If you're tempted to put two, split them.
+**Rule of thumb:** structure over prose. If a paragraph is listing things, it wants to be a table or a key-value block.
 
-If the deck topic naturally calls for specific real images the user must supply (product screenshots, team photos, customer dashboards), plan where those go and use `<ImagePlaceholder>` from `@open-pdf/core` — see the **Image placeholders** section in `doc-authoring`. Default is **no placeholders**: only insert one when a real image is genuinely required.
+Decide the page-break plan now (which sections get `breakBefore: 'page'`, which blocks get `breakInside: 'avoid'`) — `references/pagination.md` in `doc-authoring` has the per-document-shape defaults.
 
 ## Step 5 — Commit to a visual direction
 
-Pick one coherent palette / type scale / aesthetic and hold it across every page. The full set of constraints (palette structure, type scale, padding, aesthetic options) lives in `doc-authoring` — apply it.
-
-**Default: declare a top-level `export const design: DesignSystem = { … }`** at the top of `index.tsx` (after imports) using the chosen palette / type scale, and reference the values via `var(--osd-X)` from inline styles. This keeps the doc tweakable from the Design panel after generation, which is what the user almost always wants. Only skip the `design` const for a one-off doc whose palette is intentionally locked and not meant to be re-themed — in that case, fall back to the local `palette` constants pattern. The "Design system" section of `doc-authoring` covers the format and available tokens.
-
-If the `frontend-design` skill is available, consult it for deeper aesthetic guidance when the user wants something bold.
+One palette, one type scale, held for the whole document. The constraints (print type scale, palette structure, spacing) live in `doc-authoring` — apply them. Define the palette as plain consts or repeat Tailwind color utilities consistently (`slate-900`/`slate-500`/one accent). Fonts: the engine's bundled default only — do not declare font families (see `references/fonts-and-assets.md`).
 
 ## Step 6 — Write `docs/<id>/index.tsx`
 
-Read the **`doc-authoring`** skill before writing — it covers the file contract, canvas rules, type scale, spacing, and asset imports, and it includes a starter template you can copy. Don't duplicate that knowledge here; use it.
+Read the **`doc-authoring`** skill before writing — file contract, dialect, tables, pagination, page counters, and the engine pitfalls list. Its file-contract example is the starter template.
 
 ## Step 7 — Self-review
 
-Run the checklist in `doc-authoring` ("Self-review before finishing"). It covers structural correctness, layout discipline, and asset existence.
+Run the checklist in `doc-authoring` ("Self-review before finishing").
 
 ## Step 8 — Hand off to the user
 
 Tell the user:
 
 - The doc id and file path you created.
-- That the dev server will hot-reload — they can open `http://localhost:5173/s/<id>` (or refresh the home page).
+- The preview URL — `http://localhost:5173/s/<id>` — hot-reloads on every edit, and the **Download** button hands them a clean render of the same document.
+- That they can hit **Inspect** (or `i`) in the preview, click any element, and leave comments — then ask you to run `apply-comments`.
 - If dev isn't running: run the project's `dev` script from the project root with its package manager (`npm run dev`, `pnpm dev`, … — match the lockfile).
 
 Don't run the dev server yourself unless asked.

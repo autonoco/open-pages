@@ -47,15 +47,14 @@ Path is relative to the project root (the user's `cwd`, the directory that conta
 ```
 
 - `docId` — folder name under `docs/`. Use as-is for any `/__docs/<id>/...` API or as the URL segment.
-- `pageIndex` — 0-based, for use with the page array in `index.tsx` (`export default [Cover, Body, ...]`).
-- `pageNumber` — 1-based, for use in messages to the user ("page 3 of 8") and for the URL `?p=N`.
-- `pagePath` — relative path to the doc source. Hand straight to `Read` / `Edit`.
-- `view` — `"docs"` (canvas view) or `"assets"` (asset manager). If `"assets"`, the user is browsing files for that doc rather than viewing a page.
+- `pageIndex` / `pageNumber` — the PDF page the viewer reports (0-based / 1-based). Pages are produced by the engine's pagination, not by source structure — there is no page array in the source. The current viewer reports the doc-level view; treat `totalPages` as reliable and the page index as approximate.
+- `pagePath` — doc source path **relative to the project root**; prefix it with the project root before handing it to `Read` / `Edit`.
+- `view` — `"docs"` today. (`"assets"` is reserved for the asset manager, which does not yet publish its state — treat any non-"docs" value as unknown.) If `"assets"`, the user is browsing files for that doc rather than viewing a page.
 - `selection` — `null` if nothing is selected. Otherwise, the JSX element the user picked in the inspector overlay:
-  - `line` (1-indexed) and `column` (0-indexed) point to the JSX opening tag inside `pagePath`. This is the canonical handle — match against the source line, not the rendered DOM.
-  - `tagName` is the rendered DOM tag, lowercased (`"h1"`, `"div"`, `"img"`).
-  - `text` is a trimmed text snippet (≤120 chars) from the element's `textContent`, useful as a sanity check that you're looking at the right node.
-  - Selection auto-clears whenever the user navigates to a different doc or page.
+  - `line` (1-indexed) and `column` (0-indexed) point to the JSX opening tag inside `pagePath`. This is the canonical handle — match against the source line.
+  - `tagName` is the source JSX tag, lowercased (`"h1"`, `"div"`, `"span"`).
+  - `text` is a trimmed text snippet (≤120 chars) extracted from the PDF under the selected element — a sanity check that you're looking at the right node.
+  - Selection auto-clears whenever the user navigates to a different doc or clears it in the viewer.
 - `updatedAt` — ISO timestamp of the last navigation or selection change. Use it to detect staleness.
 
 ## When to use this
@@ -86,17 +85,17 @@ A *newer* `updatedAt` than the one you saw last turn is the normal signal that t
 - The dev server hasn't been opened on a doc yet, or has never run.
 - Don't create the file or guess. Ask the user which doc they mean, or suggest they open the doc in the dev server first.
 
-## Example — page-level reference
+## Example — doc-level reference
 
-User: "tighten the spacing on this page"
+User: "tighten the spacing on this doc"
 
 1. Read `node_modules/.open-pdf/current.json`.
 2. Check `updatedAt` is recent.
 3. Read `pagePath` (e.g. `docs/q2-roadmap/index.tsx`).
-4. Identify the page at `pageIndex` in the default-exported array.
-5. Consult the `doc-authoring` skill for spacing rules, then edit that page in place.
+4. If `selection` is set, jump to that line; otherwise identify the relevant section from the user's words.
+5. Consult the `doc-authoring` skill for spacing rules, then edit in place.
 
-If `current.json` is missing or stale, ask: "Which doc and page should I tighten? The dev server hasn't published a current page recently."
+If `current.json` is missing or stale, ask: "Which doc should I tighten? The dev server hasn't published a current page recently."
 
 ## Example — element-level reference
 
@@ -107,4 +106,4 @@ User: "make this bigger"
 3. Consult `doc-authoring` for type-scale and layout rules before editing.
 4. Edit the JSX node in place.
 
-If `selection` is null, fall back to the page-level flow above — and consider asking "which element?" since the user used a deictic but hasn't picked one in the inspector.
+If `selection` is null, fall back to the doc-level flow above — and consider asking "which element?" since the user used a deictic but hasn't picked one in the inspector.

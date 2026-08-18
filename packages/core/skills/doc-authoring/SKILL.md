@@ -1,350 +1,166 @@
 ---
 name: doc-authoring
-description: Technical reference for writing or editing open-pdf pages — file contract, 1920×1080 canvas, type scale, layout, palette/visual direction, assets, stepped reveals, page transitions, and morph transitions. Consult this whenever you are about to write or modify any file under `docs/<id>/`, including from inside the `create-doc` or `apply-comments` workflows, or for any ad-hoc doc edit. Triggers on phrases like "edit doc", "tweak this page", "fix the layout", "change the palette", "reveal one by one", "add a transition", "morph transition", "investigate the doc framework", "how do docs work here".
+description: Technical reference for writing or editing open-pdf documents — file contract, the Takumi JSX dialect (`tw` prop), page geometry and margins, print type scale, tables, pagination control, running headers/footers with page counters, and known engine pitfalls. Consult this whenever you are about to write or modify any file under `docs/<id>/`, including from inside the `create-doc` or `apply-comments` workflows, or for any ad-hoc doc edit. Triggers on phrases like "edit the doc", "fix the layout", "change the palette", "add a section", "make a table", "page break", "investigate the doc framework", "how do docs work here".
 ---
 
-# Authoring open-pdf pages
+# Authoring open-pdf documents
 
 This skill is the **technical reference** for everything that happens inside `docs/<id>/index.tsx`. It does not own a workflow:
 
-- `create-doc` owns "draft a new deck" — it asks the user scoping questions, then delegates the *how* to this skill.
+- `create-doc` owns "draft a new document" — it asks the user scoping questions, then delegates the *how* to this skill.
 - `apply-comments` owns "process inspector markers" — it finds markers and applies edits, but the edits themselves follow the rules here.
-- `current-doc` resolves deictic references ("this page", "the doc I'm on") to a concrete `docId` + `pageIndex`. Consult it **first** when the user references the current doc without naming it, then come back here for how to edit it.
+- `current-doc` resolves deictic references ("this doc", "this element") to a concrete `docId` + selection. Consult it **first** when the user references the current doc without naming it, then come back here for how to edit it.
 - Any ad-hoc doc edit (manual tweak, one-off fix) should also consult this skill before touching the file.
 
-When any of those paths reach the point of *writing React code for a page*, this is the source of truth. Do not duplicate the knowledge below into other skills — link here instead.
+A document here is not a web page and not a slide: it renders to a **real PDF** — the preview in the browser is the same bytes a reader downloads. Content flows top to bottom and the engine paginates it. Your job is flowing, print-shaped content; the engine's job is pages.
 
-## Primitive references
+## Topic references
 
-Each framework primitive has a full reference file under `references/` in this skill — contract, worked examples, and its own anti-patterns. This file keeps only the always-on rules and a short summary per primitive. **Read the relevant reference file before using a primitive on a page**:
+Details live under `references/` in this skill. **Read the relevant file before using the feature**:
 
-| Primitive | Read before | File |
+| Topic | Read before | File |
 | --- | --- | --- |
-| `design` const + `var(--osd-X)` tokens | writing any new doc (default baseline) | `references/design-system.md` |
-| Assets + `<ImagePlaceholder>` | importing images/videos or leaving a placeholder | `references/assets.md` |
-| Webfonts | loading any non-system font | `references/webfonts.md` |
-| `useDocPageNumber()` | rendering a page-number footer | `references/page-numbers.md` |
-| `<Steps>` / `<Step>` | staging a page's reveal | `references/steps.md` |
-| `DocTransition` | declaring any enter/exit animation | `references/transitions.md` |
-| `MorphElement` + `morph` | morphing a shared element across pages | `references/morph.md` |
+| Tables | any tabular data — line items, comparisons, schedules | `references/tables.md` |
+| Pagination control | hard page starts, keep-together blocks, multi-section docs | `references/pagination.md` |
+| Page counters + running bands | any header/footer, "Page N of M" | `references/page-numbers.md` |
+| Fonts + assets | anything beyond the bundled default font, images | `references/fonts-and-assets.md` |
 
 ## Hard rules
 
 - Put the doc under `docs/<kebab-case-id>/`.
-- Entry is `docs/<id>/index.tsx`. Images/videos/fonts go under `docs/<id>/assets/`.
+- Entry is `docs/<id>/index.tsx`.
 - Do **not** touch `package.json`, `open-pdf.config.ts`, or other docs.
-- Do not add dependencies. Only `react`, `@open-pdf/core`, and standard web APIs are available.
-- A doc is **one `index.tsx` plus `assets/`** — nothing else. Do not create sibling `.tsx`/`.ts` files (`Card.tsx`, `components/`, `helpers.ts`, etc.); helper components and constants go inside `index.tsx`. Do not create `README.md` or other prose files either.
+- Do not add dependencies. Only `react`, `@open-pdf/core`, and plain JS are available.
+- A doc is **one `index.tsx`** — helper components and constants go inside it. No sibling files, no `README.md`, no CSS files.
+- Components must be **pure and synchronous**: no hooks, no state, no `window`/`document`, no `fetch`. The doc renders in a worker to static PDF bytes — anything dynamic has nowhere to run.
 
 ## File contract
 
 ```tsx
 // docs/<id>/index.tsx
-import type { Page, DocMeta } from '@open-pdf/core';
-
-const Cover: Page = () => <div>…</div>;
-const Body: Page = () => <div>…</div>;
+import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@open-pdf/core';
 
 export const meta: DocMeta = {
-  title: 'My doc',
-  createdAt: '2026-05-16T12:00:00Z',
-};
-export default [Cover, Body] satisfies Page[];
-```
-
-- `export default` is a **non-empty array of zero-prop React components**, one per page, in order.
-- `meta.title` (optional) shows in the doc header. Default is the folder name.
-- The doc id is the kebab-case folder name. Pick something short and descriptive (`q2-roadmap`, `team-offsite-2026`).
-- `meta.theme` (optional) marks the doc as built from a theme under `themes/`. The id must match a `<id>.md` basename. Surfaces a back-link chip on the doc card and lists the doc on `/themes/<id>`. Omit if the doc isn't derived from a registered theme.
-- `meta.createdAt` is an **ISO 8601 string literal** (e.g. `'2026-05-16T12:00:00Z'`) set once when the doc is scaffolded. The home page uses it for the default "newest first" sort. Always include it on new docs — **immediately before writing the file, run `node -e "console.log(new Date().toISOString())"` via Bash and paste the exact output** as the value. Don't type a timestamp from memory — you will get the date or time wrong. Must be a plain string literal (no `new Date(...)` or imports in the doc itself) — the framework reads it via a regex at build time, not by evaluating the module.
-
-## Editing an existing doc
-
-A finished doc commonly runs 1000–1800 lines. When you only need to touch one page, **don't read the whole file** — locate the page first, then read just that range:
-
-```bash
-grep -n ": Page = " docs/<id>/index.tsx
-```
-
-This lists every `const Foo: Page = …` declaration with its line number. Read the target page with `Read` using `offset` + `limit` (~150 lines is usually enough to capture one page plus its helper components). Read the whole file only when you need cross-page context (palette audit, reordering, design const tweaks).
-
-## Canvas
-
-Every page renders into a fixed **1920 × 1080** canvas. The framework scales it; you design as if the viewport is literally 1920×1080.
-
-- Use **absolute pixel values** for `font-size`, padding, positioning. No `rem`, no `vw`/`vh`, no `%` for type.
-- The root element of each page should fill the canvas: `width: '100%'; height: '100%'`.
-- Prefer inline `style={{ … }}`. Any CSS you load is global — scope classnames carefully.
-
-### Type scale (start here, adjust to taste)
-
-| Element          | Size       |
-| ---------------- | ---------- |
-| Hero title       | 140–200px  |
-| Section heading  | 80–120px   |
-| Page heading     | 56–80px    |
-| Body text        | 32–44px    |
-| Caption / label  | 22–28px    |
-
-### Spacing
-
-- Content padding: **100–160px** from canvas edges. Never let text touch the edge.
-- Line-height: 1.2 for headings, 1.5–1.7 for body.
-- Breathing room between elements: 32–64px.
-
-### Vertical budget — content MUST fit 1080px
-
-The canvas does **not** scroll. Anything past the 1080px bottom edge is silently cropped. Before writing JSX, do the math on paper and confirm the page fits. This is the #1 cause of broken docs — assume you will overflow unless you've checked.
-
-**Usable height** = `1080 − top_padding − bottom_padding`. With 120px padding on each side that's **840px**. With 160px each side, **760px**. Pick the padding first, then design within that budget.
-
-**Element height** = `font_size × line_height × number_of_lines`. A bullet that wraps to 2 lines counts as 2 lines. Add the gap below it (32–64px) before summing the next element.
-
-**Worked example — single content page, 120px padding (budget = 840px):**
-
-| Element                                  | Height                  |
-| ---------------------------------------- | ----------------------- |
-| Heading: 80px × 1.2 × 1 line             | 96px                    |
-| Gap                                      | 64px                    |
-| Body paragraph: 40px × 1.6 × 3 lines     | 192px                   |
-| Gap                                      | 48px                    |
-| 5 bullets: 40px × 1.6 × 1 line each      | 320px (5 × 64px)        |
-| 4 gaps between bullets: 24px each        | 96px                    |
-| **Total**                                | **816px ✅ fits in 840** |
-
-Swap the heading to 120px or add a 6th bullet and you're over. **Verify every page like this before you write it.**
-
-**Page-level rules:**
-
-- One heading + body OR one heading + ≤5 short bullets. Not both blocks of body copy *and* a long bullet list.
-- A bullet should fit on one line at the chosen font size. If it wraps, either shorten the copy or move it to its own page.
-- Hero title pages (140–200px) carry a title + 1 subtitle + maybe an eyebrow — nothing else.
-- Section headings (80–120px) need almost nothing else on the page.
-- If you find yourself raising padding, shrinking type below the scale's lower bound, or tightening body line-height under 1.4 to make things fit — **split into two pages instead**. Splitting is always the right answer when the budget is tight.
-
-**Never** use `overflow: auto/scroll`, negative margins, or transforms to hide overflow. The canvas is fixed; cropped content is gone.
-
-## Visual direction
-
-Pick a coherent look and hold it across every page:
-
-- **Palette** — 1 background, 1 primary text, 1 accent, 1 muted. Put bg/text/accent in the `design` const (see Design system below); extra colors like muted stay as plain consts.
-- **Typography** — one display font + one body font. System stack unless the user specifies. Heavy weight for headlines (800–900), normal for body (400–500).
-- **Layout grid** — pick a single content padding (e.g. 120px) and stick to it. Left-aligned content feels editorial; centered feels ceremonial.
-- **Aesthetic commitment** — choose ONE: minimal, maximalist, editorial, retro, brutalist, soft/pastel, neon, paper/print. Don't mix.
-
-If the `frontend-design` skill is available, consult it for deeper aesthetic guidance when the user wants something bold.
-
-## Webfonts
-
-The default is a system font stack — prefer it. When a deck genuinely needs a webfont (a brand font, or CJK / Thai / Arabic where system coverage is poor), read `references/webfonts.md` first — loading the stylesheet inside a page component registers the whole `@font-face` set once per mounted page, and CJK families need subsetting.
-
-## Themes
-
-If `themes/<id>.md` exists at the project root and the doc is meant to follow it, **the theme file overrides the defaults in this skill** — its palette, typography, layout padding, and Title/Footer components are authoritative. Read the theme file before applying anything else in this section.
-
-Themes are produced by the `create-theme` skill and are pure documentation: copy the palette and the paste-ready Title / Footer / Eyebrow components straight into your doc. If the theme's frontmatter has `mode: dark` or `mode: light`, treat that as the doc's background mode (e.g. when picking which logo variant to import).
-
-## Design system (opt-in, per-doc)
-
-A doc can declare typed design tokens at the top of `index.tsx` — `export const design: DesignSystem = { palette, fonts, typeScale, radius }` — and consume them via `var(--osd-X)` in inline styles. The framework injects the CSS variables at the canvas root, and the dev UI's Design panel can live-tweak them.
-
-**Default to using it.** Every new doc should declare a `design` const so it stays tweakable from the panel after generation. Only fall back to plain palette constants for a one-off doc whose palette is intentionally locked (`references/design-system.md` covers the fallback).
-
-`references/design-system.md` has the full token shape, the two consumption surfaces (`var(--osd-X)` vs direct `design.X` reads), Design panel behavior, and the format constraints the panel's AST writer requires. Read it before writing the const.
-
-## Starter template
-
-```tsx
-import type { DesignSystem, Page, DocMeta } from '@open-pdf/core';
-
-export const design: DesignSystem = {
-  palette: { bg: '#0f172a', text: '#f8fafc', accent: '#fbbf24' },
-  fonts: {
-    display: 'system-ui, -apple-system, sans-serif',
-    body: 'system-ui, -apple-system, sans-serif',
-  },
-  typeScale: { hero: 180, body: 40 },
-  radius: 12,
+  title: 'Q3 Services Agreement',
+  createdAt: '2026-08-18T12:00:00Z',
 };
 
-// Extra colors / sizes outside the DesignSystem shape stay as plain consts.
-const muted = '#94a3b8';
-
-const fill = {
-  width: '100%',
-  height: '100%',
-  fontFamily: 'var(--osd-font-body)',
-} as const;
-
-const Cover: Page = () => (
-  <div
-    style={{
-      ...fill,
-      background: 'var(--osd-bg)',
-      color: 'var(--osd-text)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: '0 160px',
-    }}
-  >
-    <div style={{ fontSize: 28, color: 'var(--osd-accent)', letterSpacing: '0.2em' }}>
-      CHAPTER 01
+export const pageOptions: PageOptions = {
+  size: 'a4',                                       // or 'letter', 'legal', …
+  margin: { top: 56, right: 64, bottom: 72, left: 64 },
+  footer: (
+    <div tw="flex w-full justify-center text-[9px] text-slate-400">
+      <span tw="flex">
+        Page <PageNumber /> of <TotalPages />
+      </span>
     </div>
-    <h1
-      style={{
-        fontFamily: 'var(--osd-font-display)',
-        fontSize: 'var(--osd-size-hero)',
-        fontWeight: 900,
-        margin: '32px 0',
-        lineHeight: 1.05,
-      }}
-    >
-      The Big Idea
-    </h1>
-    <p style={{ fontSize: 'var(--osd-size-body)', color: muted, maxWidth: 1200 }}>
-      A short subtitle that explains what this doc is about.
-    </p>
-  </div>
-);
-
-const Content: Page = () => (
-  <div style={{ ...fill, background: 'var(--osd-bg)', color: 'var(--osd-text)', padding: 120 }}>
-    <h2 style={{ fontFamily: 'var(--osd-font-display)', fontSize: 80, fontWeight: 800, margin: 0 }}>
-      Section heading
-    </h2>
-    <ul style={{ fontSize: 'var(--osd-size-body)', lineHeight: 1.6, marginTop: 64, paddingLeft: 48 }}>
-      <li>One clear point per line</li>
-      <li>Keep to 3–5 bullets</li>
-      <li>Let the space breathe</li>
-    </ul>
-  </div>
-);
-
-export const meta: DocMeta = {
-  title: 'The Big Idea',
-  createdAt: '2026-05-16T12:00:00Z',
+  ),
 };
-export default [Cover, Content] satisfies Page[];
+
+export default function Document() {
+  return (
+    <main tw="flex flex-col text-[12px] leading-relaxed text-slate-800">
+      {/* flowing content */}
+    </main>
+  );
+}
 ```
 
-## Assets
+- `export default` is **one zero-prop React component** — the whole document as flowing content. Not an array, not one component per page.
+- `pageOptions` (optional) sets page size, margins, and running `header`/`footer` bands. Defaults: `a4`, 48px margins, no bands. **Margin values are numbers (CSS px) or `'auto'` — never CSS length strings** (`'1cm'` fails the render). A side set to `'auto'` sizes itself to fit that side's band. Page counters (`<PageNumber/>`, `<TotalPages/>`) only work inside the bands — see `references/page-numbers.md`.
+- `meta.title` (optional) shows in the doc header and browser tab. Default is the folder name.
+- `meta.theme` (optional) marks the doc as built from a theme under `themes/`. The id must match a `<id>.md` basename. Omit if not derived from a registered theme.
+- `meta.createdAt` is an **ISO 8601 string literal** set once when the doc is scaffolded — **immediately before writing the file, run `node -e "console.log(new Date().toISOString())"` via Bash and paste the exact output**. Must stay a plain string literal (the framework reads it via regex, never by evaluating the module).
 
-Doc-local assets live under `docs/<id>/assets/` and are imported as ES modules (`import hero from './assets/hero.jpg'`). Global assets shared across decks (logos, avatars, recurring icons) live in the project root `assets/` and are imported via the `@assets` alias. For a pure-text doc, don't create `docs/<id>/assets/` at all.
+## The dialect: HTML-shaped JSX + `tw`
 
-`references/assets.md` covers import forms (module vs `new URL(...)`), the `@assets` alias, and how themes name asset paths.
-
-## Image placeholders
-
-When a page genuinely needs a real image **the user has to provide** (product screenshot, team photo, chart from their data), leave a typed `<ImagePlaceholder hint="…" />` from `@open-pdf/core` instead of inventing a stand-in — the user replaces it via the Assets panel + inspector. **Do not** use placeholders for decoration or generic stock-photo filler; if type, layout, and color can carry the page, do that.
-
-`references/assets.md` has the full usage rules, sizing guidance, and examples of when a placeholder is (and isn't) warranted.
-
-## Page numbers
-
-If a footer shows the current page (`03 / 12`), read it from `useDocPageNumber()` — **never hardcode** `n` / `TOTAL`. See `references/page-numbers.md` for the hook's contract and where it can be called.
-
-## Stepped reveals (`<Steps>` / `<Step>`)
-
-Reveal a page one beat at a time: wrap deferred parts in `<Step>`, the group in `<Steps>`; each `→` reveals the next step. Use it when the *order* of ideas is the point — not reflexively on every page. Two rules are load-bearing: `<Step>` must be a **direct child** of `<Steps>` (otherwise it silently renders fully revealed), and a page must still read as complete when jumped to via the overview grid (jumping in shows all steps revealed).
-
-Read `references/steps.md` before authoring a stepped page — it covers composition order across multiple `<Steps>` blocks, the "headline always, body in turn" pattern, and entry-direction behavior. If `docs/build-on-reveal/` exists in this project, it is the canonical worked example.
-
-## Page transitions
-
-The framework can run an enter/exit animation between doc changes, declared as a `DocTransition` (module-level default, per-page override; the **incoming page wins**). There's **no default** — pages snap unless you opt in, and snap-swap is a perfectly tasteful default. If you do opt in: one motion DNA per deck, 140–280 ms, magnitude under 12 px / 3% scale, opacity always part of it.
-
-Read `references/transitions.md` before declaring one — it has the full type contract, design principles, a six-member "tasteful family" of ready-to-use transitions sharing one DNA, direction-aware keyframes, and the anti-pattern list.
-
-## Morph transitions
-
-When the *same visual object* exists on two adjacent pages, wrap it on both pages in `MorphElement` with the same `id` and enable `morph` on the incoming page's transition — position, size, radius, and colors interpolate in one continuous move (Keynote's "Magic Move"). Morph is for **state continuity** (a toggle sliding, a card expanding, a box joining a row); don't morph decoration.
-
-Read `references/morph.md` before writing one — the seven rules there (opacity-only enter/exit, deterministic geometry, no `transform` on the morph node, `useIsActivePage()` gating, …) were each earned on a real deck, and violating any of them produces a visibly broken morph.
-
-## Repeated elements: component, not `map`
-
-When a page has visually repeated items — cards, logo rows, gallery tiles, list rows, step indicators — **define a small component and instantiate it once per item**. Do **not** render the group with `array.map` over a data array.
-
-Define the component **in the same `index.tsx`**, alongside the `Page` components. Never split it into a sibling file like `Card.tsx` — a doc is always a single `index.tsx` plus its `assets/`.
+Write the HTML you already know — `div`, `span`, `p`, `h1`–`h3`, `table`, `ul`/`li`, `main`, `section` — styled with **Tailwind utilities via the `tw` prop**:
 
 ```tsx
-// ✅ Each card is its own JSX node — inspector edits one at a time.
-const Card = ({ src, label }: { src: string; label: string }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-    <img src={src} style={{ width: 320, height: 320, objectFit: 'cover', borderRadius: 12 }} />
-    <p style={{ fontSize: 32 }}>{label}</p>
-  </div>
-);
-
-<div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 64 }}>
-  <Card src={alpha} label="Alpha" />
-  <Card src={beta}  label="Beta"  />
-  <Card src={gamma} label="Gamma" />
+<div tw="mt-6 flex items-baseline justify-between border-b border-slate-200 pb-2">
+  <h2 tw="text-[18px] font-bold text-slate-900">Deliverables</h2>
+  <span tw="text-[10px] uppercase tracking-widest text-slate-400">Section 2</span>
 </div>
 ```
 
-```tsx
-// ❌ One shared template — replacing the image or text in the inspector
-//    changes every rendered card at once.
-const items = [
-  { src: alpha, label: 'Alpha' },
-  { src: beta,  label: 'Beta'  },
-  { src: gamma, label: 'Gamma' },
-];
-items.map((item) => (
-  <div>
-    <img src={item.src} />
-    <p>{item.label}</p>
-  </div>
-));
+- `tw`, not `className` — `className` is silently stripped.
+- Use `style={{ … }}` for the handful of properties Tailwind can't express or that read better inline: `{ breakBefore: 'page' }`, `{ breakInside: 'avoid' }`.
+- Arbitrary values are the norm for print sizing: `text-[11px]`, `w-[260px]`, `p-[6px]`.
+- Bare strings and numbers are valid children anywhere — no wrapper element needed.
+- Inline `<svg>` elements render as vector paths — fine for rules, marks, and simple charts.
+
+## Page geometry and the print type scale
+
+Sizes are CSS pixels at 96 dpi; an A4 page is **794 × 1123 px** inside which your margins carve the text column. With the starter margins above you have roughly **666 px of width** — design for that column.
+
+| Element | Size |
+| --- | --- |
+| Document title | 24–34px |
+| Section heading | 15–20px |
+| Body text | 11–13px |
+| Table body / dense data | 10–11px |
+| Caption, legal, footer band | 8–10px |
+
+- Line-height: 1.3–1.4 for headings, 1.4–1.7 for body.
+- One document = one palette (1 text color, 1 muted, 1 accent, 1 rule/border tint) and the engine's default font unless a theme says otherwise (`references/fonts-and-assets.md`).
+- Space between blocks: `mt-4` to `mt-10`. Generous white space reads as professional print; cramped reads as a form letter.
+
+**There is no vertical budget.** Content flows and the engine adds pages. What you control is *where* breaks happen — read `references/pagination.md` before writing any doc longer than a page.
+
+## Engine pitfalls (encountered on real documents — avoid, don't rediscover)
+
+1. **No explicit widths on `<th>`.** `tw="w-[45%]"` on a header cell leaves an unpainted gap in the header row's background. Let the table size its own tracks; put width hints on `<td>` content instead if you must.
+2. **`breakInside: 'avoid'` on `<tr>` is unreliable inside flex wrappers.** If the table's ancestor chain includes a flex container, a tall row can still split across pages. Keep row content short (one title line + one detail line), and don't build load-bearing keep-together logic around table rows.
+3. **No CSS grid layouts for structure you could express as a table.** Real `<table>` markup gets you column tracks, repeated `<thead>` on every page, and correct breaks. Hand-rolled flex/grid tables get none of that.
+4. **Missing glyphs fail the render** (an error, not a blank). Stick to Latin text, common punctuation, and standard symbols unless a font that covers your script is configured (`references/fonts-and-assets.md`).
+
+## Data rows vs designed repeats
+
+- **Tabular data belongs in a `.map` over a data array** — invoice line items, schedules, roster rows. Put the data in a typed const at the top of the file; keep the row JSX in the map body. This is the one shape where a shared source location is correct: a comment on any row means "this row template".
+- **Designed repeats (feature cards, testimonial blocks, KPI tiles) are explicit instances** of a small helper component defined in the same file — one JSX call per item, data as props. The inspector targets source JSX; explicit instances give each card its own address, so "make the middle one green" is one edit, not three.
+
+## Editing an existing doc
+
+Locate the section first instead of reading the whole file:
+
+```bash
+grep -n 'tw="[^"]*text-\[1[5-9]px\]\|<h[12]' docs/<id>/index.tsx
 ```
 
-The inspector edits source JSX in place. A `map` body is **one source location** shared by every rendered instance, so when the user replaces an image or tweaks a label there, every card mutates together. Explicit instances give each card its own JSX node and its own props — the unit the inspector can target.
+Headings anchor sections; read the target range with `offset` + `limit`. Read the whole file when auditing palette or restructuring.
 
-The component definition stays the single source of truth for layout/styling (change it once → all cards update). Only the per-instance data — `src`, `label`, accent color — lives at the call site.
+## Themes
 
-This applies whenever the *visual element* repeats, not whenever the *data* does. Pure-text lists (`<ul><li>` bullets) are fine: each `<li>` is already its own JSX node, so plain literal markup is the correct shape — no need to wrap them in a component.
+If `themes/<id>.md` exists and the doc is meant to follow it, **the theme file overrides the defaults in this skill** — its palette, typography, and fixed components are authoritative. Read the theme before applying anything else here. Themes are produced by the `create-theme` skill.
 
 ## Runtime behavior you get for free
 
-- Home page lists every folder under `docs/`.
-- Clicking a doc shows a left thumbnail rail, main page, prev/next, page counter.
-- Arrow keys / PageUp / PageDown navigate. `F` enters fullscreen play mode.
-- In play mode: Space/→ next, ← prev, Esc exit.
-- Hot reload: edit `index.tsx` and the browser updates live.
+- Home page lists every folder under `docs/`; cards show a live first-page preview.
+- The doc view renders the actual PDF: page scroll, thumbnail rail, page count and render time in the toolbar, **Download** (a clean render of the same document, without inspector metadata).
+- **Inspect mode** (toolbar button or `i`): the user clicks any element on the PDF, sees its source location, and can leave a comment that lands in your source as an `@pdf-comment` marker (see `apply-comments`). The current selection is always in `node_modules/.open-pdf/current.json` (see `current-doc`).
+- Hot reload: save `index.tsx` and the PDF re-renders in well under half a second.
 
 ## Self-review before finishing
 
-- [ ] `docs/<id>/index.tsx` `export default`s a non-empty `Page[]`.
-- [ ] Every page's root fills `100% × 100%`.
-- [ ] Content lives inside padding (no text kisses the edge).
-- [ ] **For every page, sum (font_size × line_height × lines) + gaps + 2×padding ≤ 1080px.** If close, split the page. No `overflow: auto` escape hatches.
-- [ ] No bullet wraps to a second line at the chosen font size.
-- [ ] One coherent visual direction across every page (palette + type scale).
-- [ ] Doc declares a top-level `export const design: DesignSystem = { … }` and references the values via `var(--osd-X)` (use `design.X` only when you need a JS number for arithmetic). Only omit the `design` const for a one-off doc whose palette is intentionally locked.
-- [ ] One idea per page.
-- [ ] Visually repeated elements (cards, tiles, logo rows) are rendered as explicit `<Component />` instances, not via `array.map` over a data list.
-- [ ] All imported assets exist on disk — doc-local under `docs/<id>/assets/`, or global under `assets/` (imported via `@assets/...`).
-- [ ] Every `<ImagePlaceholder>` corresponds to a real image the user must supply — not decorative filler. If it could be replaced by typography or layout, it should be.
-- [ ] If a page uses `<Steps>`/`<Step>`, every `<Step>` is a direct child of a `<Steps>`, and the page still reads as complete when jumped to via the overview grid (entering forward builds up; jumping in shows it fully revealed).
-- [ ] If a `DocTransition` is declared, every page sits in one family — same duration band (140–280 ms), same easing pair, same out-then-in stagger, magnitude under 12 px / 3%. No six-different-vocabularies decks. When in doubt, omit transitions entirely. (Pages that opt into `morph` may exceed the band to match the morph — see `references/morph.md`.)
-- [ ] If a transition opts into `morph`: every morph `id` is unique per page and stable across the pair, morph geometry is pixel-constant (never measured after mount), no `transform` sits on the morph node, and entrance animations are gated behind `useIsActivePage()`.
+- [ ] `docs/<id>/index.tsx` default-exports **one** component; `meta` has `title` + fresh `createdAt` literal.
+- [ ] `pageOptions` declares size, margins, and a footer band with `<PageNumber/> of <TotalPages/>` for any doc over ~2 pages.
+- [ ] Preview it: open `http://localhost:5173/s/<id>` (or ask the user to). No render error banner; page breaks fall between sections, not mid-heading.
+- [ ] Every `tw` value is Tailwind the engine understands; nothing uses `className`.
+- [ ] Tables are real `<table>` markup; no explicit widths on `<th>`.
+- [ ] Sections that must start fresh use `breakBefore: 'page'`; blocks that must not straddle pages (signature block, totals) use `breakInside: 'avoid'` on a non-table-row element.
+- [ ] One coherent palette and type scale across the whole document.
+- [ ] Designed repeats are explicit component instances; data rows are a `.map` over a typed const.
+- [ ] No hooks, no browser APIs, no non-Latin glyphs without a covering font.
 - [ ] Nothing outside `docs/<id>/` was edited.
 
 ## Anti-patterns
 
-- ❌ Walls of text. If a page has more than ~40 words, split it.
-- ❌ Using the full canvas for body copy. Respect 100–160px padding.
-- ❌ Overflowing 1080px vertically. Cropped content is invisible — split the page.
-- ❌ `overflow: auto` / `overflow: scroll` / `overflow: hidden` to "hide" too much content. The canvas doesn't scroll; you've just hidden the bug.
-- ❌ Shrinking type below the scale's lower bound, or padding below 100px, to cram more in. Split instead.
-- ❌ Bullets that wrap to a second line — either shorten or move to its own page.
-- ❌ Body type under 28px — unreadable on a projector.
-- ❌ Inconsistent palette across pages.
-- ❌ Installing packages. Only `react`, `@open-pdf/core`, and standard web APIs are available.
-- ❌ Writing CSS to a shared file. Inline styles or scoped classnames only.
-- ❌ Creating `README.md` or other prose files inside the doc folder.
-- ❌ Editing `package.json`, `open-pdf.config.ts`, or other docs.
-- ❌ Using a primitive without reading its reference file — each `references/*.md` carries the primitive's own anti-pattern list (placeholder misuse, transition vocabulary, `<Step>` nesting, morph geometry).
+- ❌ An array of page components, fixed page `<div>`s sized to the paper, or any "slide" thinking. Content flows; the engine paginates.
+- ❌ `className`, external CSS, `<style>` blocks. `tw` + inline `style` only.
+- ❌ Hand-rolled flex tables for tabular data — you lose repeated headers and column tracks.
+- ❌ Explicit widths on `<th>` (engine paint bug).
+- ❌ Web-scale typography (16px+ body). Print body is 11–13px.
+- ❌ Hooks, state, event handlers, `Date.now()` in render — the output is static bytes.
+- ❌ Screens of unbroken body text — break long docs into headed sections; use tables, key-value rows, and callout boxes for structure.
+- ❌ Hardcoded page numbers in content, or `<PageNumber/>` outside a header/footer band.
+- ❌ Installing packages, sibling files, editing `package.json`/config/other docs.

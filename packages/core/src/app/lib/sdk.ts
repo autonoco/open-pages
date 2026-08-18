@@ -15,7 +15,8 @@ export type DocMeta = {
   createdAt?: string;
 };
 
-export type PageMarginSide = number | string;
+/** CSS px, or 'auto' to size the side to fit its running band. */
+export type PageMarginSide = number | 'auto';
 
 /** Per-document page geometry and running bands, passed to the PDF engine. */
 export type PageOptions = {

@@ -143,10 +143,7 @@ export default function Invoice() {
         </div>
       </div>
 
-      <table
-        tw="mt-8 w-full border border-slate-300 text-[10.5px]"
-        style={{ borderCollapse: 'collapse' }}
-      >
+      <table tw="mt-8 w-full border border-slate-300 text-[10.5px]">
         <thead>
           <tr tw="bg-slate-100 font-bold">
             <th tw="border-b border-slate-300 p-2 text-left">SKU</th>
