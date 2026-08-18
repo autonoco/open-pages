@@ -106,7 +106,7 @@ const items = [
 ];
 
 const money = (n: number) =>
-  '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const subtotal = items.reduce((sum, it) => sum + it.qty * it.unit, 0);
 const tax = subtotal * 0.07;

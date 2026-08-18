@@ -36,6 +36,8 @@ let seqCounter = 0;
 export type DocPdfState = {
   /** Latest successfully rendered PDF bytes. Stays mounted while re-rendering. */
   bytes: Uint8Array | null;
+  /** data-pdf-loc -> tag name for the latest render's inspector geometry. */
+  tags: Record<string, string>;
   /** True while a newer render is in flight. */
   rendering: boolean;
   error: string | null;
@@ -47,6 +49,7 @@ export type DocPdfState = {
 export function useDocPdf(docId: string): DocPdfState & { rerender: () => void } {
   const [state, setState] = useState<DocPdfState>({
     bytes: null,
+    tags: {},
     rendering: true,
     error: null,
     durationMs: null,
@@ -69,6 +72,7 @@ export function useDocPdf(docId: string): DocPdfState & { rerender: () => void }
         if (msg.type === 'rendered') {
           setState((s) => ({
             bytes: msg.bytes,
+            tags: msg.tags,
             rendering: false,
             error: null,
             durationMs: msg.durationMs,
@@ -80,13 +84,18 @@ export function useDocPdf(docId: string): DocPdfState & { rerender: () => void }
         }
       };
       worker.addEventListener('message', onMessage);
-      const req: RenderRequest = { type: 'render', seq, moduleUrl: docImportUrl(docId) };
+      const req: RenderRequest = {
+        type: 'render',
+        seq,
+        moduleUrl: docImportUrl(docId),
+        inspect: true,
+      };
       worker.postMessage(req);
     });
   }, [docId]);
 
   useEffect(() => {
-    setState({ bytes: null, rendering: true, error: null, durationMs: null, version: 0 });
+    setState({ bytes: null, tags: {}, rendering: true, error: null, durationMs: null, version: 0 });
     kick();
   }, [kick]);
 
@@ -110,4 +119,29 @@ export function useDocPdf(docId: string): DocPdfState & { rerender: () => void }
   }, [docId, kick]);
 
   return { ...state, rerender: kick };
+}
+
+/** One-shot clean render (no inspector annotations) for download/export. */
+export function renderCleanPdf(docId: string): Promise<Uint8Array> {
+  const seq = ++seqCounter;
+  return getWorker().then(
+    (worker) =>
+      new Promise<Uint8Array>((resolve, reject) => {
+        const onMessage = (event: MessageEvent<RenderResponse>) => {
+          const msg = event.data;
+          if (msg.seq !== seq || (msg.type !== 'rendered' && msg.type !== 'render-error')) return;
+          worker.removeEventListener('message', onMessage);
+          if (msg.type === 'rendered') resolve(msg.bytes);
+          else reject(new Error(msg.message));
+        };
+        worker.addEventListener('message', onMessage);
+        const req: RenderRequest = {
+          type: 'render',
+          seq,
+          moduleUrl: docImportUrl(docId),
+          inspect: false,
+        };
+        worker.postMessage(req);
+      }),
+  );
 }
