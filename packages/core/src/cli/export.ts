@@ -15,6 +15,8 @@ export interface ExportOptions {
   docs?: string[];
   /** Output directory, relative to the project root. Default: `export`. */
   outDir?: string;
+  /** Output format. Default: pdf. */
+  format?: 'pdf' | 'docx';
 }
 
 const ENTRY_GLOB = '*/index.{tsx,jsx,ts,js}';
@@ -39,6 +41,10 @@ async function resolveUrlBytes(url: string, userCwd: string): Promise<Uint8Array
 
 export async function exportPdfs(opts: ExportOptions = {}): Promise<void> {
   const userCwd = process.cwd();
+  const format = opts.format ?? 'pdf';
+  if (format !== 'pdf' && format !== 'docx') {
+    throw new Error(`Unknown format: ${format} (expected pdf or docx)`);
+  }
   const config = await loadUserConfig(userCwd);
   const docsDir = config.docsDir ?? 'docs';
   const docsRoot = path.resolve(userCwd, docsDir);
@@ -83,29 +89,49 @@ export async function exportPdfs(opts: ExportOptions = {}): Promise<void> {
       }
       const element = createElement(mod.default as Parameters<typeof createElement>[0]);
       const { node, stylesheets } = await fromJsx(element);
-      const images = await Promise.all(
+      const imageEntries = await Promise.all(
         collectImageSrcs(node as TakumiNode).map(async (src) => ({
           src,
           data: await resolveUrlBytes(src, userCwd),
         })),
       );
       const pageOptions = { ...(mod.pageOptions ?? {}) };
-      if (Array.isArray(pageOptions.fonts)) {
-        pageOptions.fonts = await Promise.all(
-          pageOptions.fonts.map(async (f) =>
-            typeof f === 'string' && !/^https?:/.test(f)
-              ? { data: await resolveUrlBytes(f, userCwd) }
-              : f,
-          ),
-        );
+
+      let bytes: Uint8Array;
+      if (format === 'docx') {
+        const { docxFromNodeTree } = await import('../export/docx.ts');
+        const meta = (mod as { meta?: { title?: string } }).meta;
+        const bandNode = async (band: unknown) =>
+          band ? ((await fromJsx(band as Parameters<typeof fromJsx>[0])).node as TakumiNode) : null;
+        const result = docxFromNodeTree(node as TakumiNode, {
+          title: meta?.title ?? id,
+          pageOptions,
+          headerNode: await bandNode(pageOptions.header),
+          footerNode: await bandNode(pageOptions.footer),
+          images: new Map(imageEntries.map((e) => [e.src, e.data])),
+        });
+        for (const warning of result.warnings) {
+          process.stderr.write(`${chalk.yellow('!')} ${id}: ${warning}\n`);
+        }
+        bytes = result.bytes;
+      } else {
+        if (Array.isArray(pageOptions.fonts)) {
+          pageOptions.fonts = await Promise.all(
+            pageOptions.fonts.map(async (f) =>
+              typeof f === 'string' && !/^https?:/.test(f)
+                ? { data: await resolveUrlBytes(f, userCwd) }
+                : f,
+            ),
+          );
+        }
+        bytes = await render(node, {
+          stylesheets,
+          images: imageEntries,
+          ...DEFAULT_PAGE,
+          ...pageOptions,
+        });
       }
-      const bytes: Uint8Array = await render(node, {
-        stylesheets,
-        images,
-        ...DEFAULT_PAGE,
-        ...pageOptions,
-      });
-      const outFile = path.join(outDir, `${id}.pdf`);
+      const outFile = path.join(outDir, `${id}.${format}`);
       await writeFile(outFile, bytes);
       const ms = Math.round(performance.now() - started);
       const kb = (bytes.length / 1024).toFixed(1);

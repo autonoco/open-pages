@@ -81,7 +81,7 @@ Run the checklist in `doc-authoring` ("Self-review before finishing").
 Tell the user:
 
 - The doc id and file path you created.
-- The preview URL — `http://localhost:5173/s/<id>` — hot-reloads on every edit, and the **Download** button hands them a clean render of the same document.
+- The preview URL — `http://localhost:5173/s/<id>` — hot-reloads on every edit, and the **Download** button hands them a clean render of the same document. For Word or Google Docs, `open-pdf export <id> --format docx` produces an editable .docx (drop it into Google Drive to convert it to a Google Doc).
 - That they can hit **Inspect** (or `i`) in the preview, click any element, and leave comments — then ask you to run `apply-comments`.
 - If dev isn't running: run the project's `dev` script from the project root with its package manager (`npm run dev`, `pnpm dev`, … — match the lockfile).
 
