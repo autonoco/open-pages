@@ -1,8 +1,12 @@
-import type { ComponentType } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import type { DesignSystem } from './design.ts';
-import type { DocTransition } from './transition.ts';
 
-export type Page = ComponentType & { transition?: DocTransition };
+/**
+ * A document is one React component returning HTML-shaped JSX in the Takumi
+ * dialect (div/span/table/p with `tw` Tailwind props and/or `style`). Content
+ * flows; the engine paginates. Hard page starts use `breakBefore: 'page'`.
+ */
+export type DocComponent = ComponentType;
 
 export type DocMeta = {
   title?: string;
@@ -11,13 +15,31 @@ export type DocMeta = {
   createdAt?: string;
 };
 
+export type PageMarginSide = number | string;
+
+/** Per-document page geometry and running bands, passed to the PDF engine. */
+export type PageOptions = {
+  /** Page size preset ('a4', 'letter', ...) or {width, height} in CSS px. */
+  size?: string | { width: number; height: number };
+  margin?:
+    | PageMarginSide
+    | {
+        top?: PageMarginSide;
+        right?: PageMarginSide;
+        bottom?: PageMarginSide;
+        left?: PageMarginSide;
+      };
+  /** Running header band, rendered on every page. */
+  header?: ReactNode;
+  /** Running footer band, rendered on every page. May use <PageNumber/> / <TotalPages/>. */
+  footer?: ReactNode;
+};
+
 export type DocModule = {
-  default: Page[];
+  default: DocComponent;
   meta?: DocMeta;
   design?: DesignSystem;
-  // Index-aligned with `default`.
-  notes?: (string | undefined)[];
-  transition?: DocTransition;
+  pageOptions?: PageOptions;
 };
 
 export type FolderIcon = { type: 'emoji'; value: string } | { type: 'color'; value: string };
@@ -32,6 +54,3 @@ export type FoldersManifest = {
   folders: Folder[];
   assignments: Record<string, string>;
 };
-
-export const CANVAS_WIDTH = 1920;
-export const CANVAS_HEIGHT = 1080;

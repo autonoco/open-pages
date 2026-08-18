@@ -2,7 +2,7 @@ import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@open-pd
 
 export const meta: DocMeta = {
   title: 'Welcome to open-pdf',
-  createdAt: '2026-08-18T00:00:00.000Z',
+  createdAt: '2026-08-18T00:00:01.000Z',
 };
 
 export const pageOptions: PageOptions = {

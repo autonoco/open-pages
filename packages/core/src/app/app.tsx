@@ -6,7 +6,6 @@ import { AssetsPage } from './routes/assets';
 import { Doc } from './routes/doc';
 import { Home } from './routes/home';
 import { HomeShell } from './routes/home-shell';
-import { Presenter } from './routes/presenter';
 import { ThemeDetailPage, ThemesGalleryPage } from './routes/themes';
 
 export function App() {
@@ -24,7 +23,6 @@ export function App() {
           <Route path="/" element={<NotFound />} />
         )}
         <Route path="/s/:docId" element={<Doc />} />
-        <Route path="/s/:docId/presenter" element={<Presenter />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />

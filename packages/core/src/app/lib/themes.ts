@@ -1,6 +1,6 @@
 import { loadThemeDemo as load, themes as raw } from 'virtual:open-pdf/themes';
 import type { DesignSystem } from './design';
-import type { Page } from './sdk';
+import type { DocComponent } from './sdk';
 
 export type Theme = {
   id: string;
@@ -11,7 +11,7 @@ export type Theme = {
 };
 
 export type ThemeDemoModule = {
-  default: Page[];
+  default: DocComponent;
   design?: DesignSystem;
 };
 

@@ -1,7 +1,7 @@
-export type { ImagePlaceholderProps } from './app/components/image-placeholder.tsx';
-export { ImagePlaceholder } from './app/components/image-placeholder.tsx';
-export type { MorphElementProps } from './app/components/morph-element.tsx';
-export { MorphElement } from './app/components/morph-element.tsx';
+// Page-counter primitives, resolved by the PDF engine at render time. Use in
+// running header/footer bands (`pageOptions.header` / `pageOptions.footer`).
+export type { CounterProps, CounterStyle } from 'takumi-pdf/primitives';
+export { PageNumber, TargetPageNumber, TotalPages } from 'takumi-pdf/primitives';
 export type {
   DesignFonts,
   DesignPalette,
@@ -9,15 +9,21 @@ export type {
   DesignTypeScale,
 } from './app/lib/design.ts';
 export { cssVarsToString, defaultDesign, designToCssVars } from './app/lib/design.ts';
-export { useDocPageNumber } from './app/lib/page-context.tsx';
-export type { DocMeta, DocModule, Page } from './app/lib/sdk.ts';
-export { CANVAS_HEIGHT, CANVAS_WIDTH } from './app/lib/sdk.ts';
-export type { StepProps, StepsProps } from './app/lib/step-context.tsx';
-export { Step, Steps, useIsActivePage } from './app/lib/step-context.tsx';
 export type {
-  DocTransition,
-  MorphTransition,
-  TransitionPhase,
-} from './app/lib/transition.ts';
+  DocComponent,
+  DocMeta,
+  DocModule,
+  PageMarginSide,
+  PageOptions,
+} from './app/lib/sdk.ts';
 export type { OpenPdfConfig } from './config.ts';
 export type { Locale, Plural } from './locale/types.ts';
+
+// Docs style with Tailwind via the `tw` prop (Takumi dialect). Importing
+// '@open-pdf/core' applies this JSX augmentation to the doc module.
+declare module 'react' {
+  interface HTMLAttributes<T> {
+    /** Tailwind utility classes, resolved by the PDF engine at render time. */
+    tw?: string;
+  }
+}

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import type { InlineConfig } from 'vite';
+import { type InlineConfig, searchForWorkspaceRoot } from 'vite';
 import { apiPlugin } from './api-plugin.ts';
 import { currentPlugin } from './current-plugin.ts';
 import { designPlugin } from './design-plugin.ts';
@@ -75,6 +75,9 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
     },
     optimizeDeps: {
       entries: [path.join(APP_ROOT, 'main.tsx')],
+      // takumi-pdf's Vite entry top-level-awaits WASM init; esbuild pre-bundling
+      // targets es2020 and rejects TLA. Serve it as native ESM instead.
+      exclude: ['takumi-pdf', '@takumi-rs/helpers'],
       include: [
         'react',
         'react-dom',
@@ -98,6 +101,7 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
       // Vite's dep scanner traverses it as if it were a third-party dep and
       // tries to bundle our virtual imports with esbuild. Mark them external.
       esbuildOptions: {
+        target: 'es2022',
         plugins: [
           {
             name: 'open-pdf:virtual-externals',
@@ -114,7 +118,19 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
     server: {
       port: config.port ?? 5173,
       ...(config.allowedHosts !== undefined ? { allowedHosts: config.allowedHosts } : {}),
-      fs: { allow: [APP_ROOT, userCwd, docsAbs, themesAbs, assetsAbs] },
+      fs: {
+        // The workspace root covers node_modules however the package manager
+        // lays it out (incl. pnpm's virtual store realpaths for fonts + WASM).
+        allow: [
+          APP_ROOT,
+          PKG_ROOT,
+          searchForWorkspaceRoot(userCwd),
+          userCwd,
+          docsAbs,
+          themesAbs,
+          assetsAbs,
+        ],
+      },
     },
     build: {
       outDir: path.resolve(userCwd, 'dist'),

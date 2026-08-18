@@ -4,6 +4,7 @@ declare module 'virtual:open-pdf/docs' {
   export const docThemes: Record<string, string>;
   export const docCreatedAt: Record<string, number>;
   export function loadDoc(id: string): Promise<DocModule>;
+  export function docImportUrl(id: string): string;
 }
 
 declare module 'virtual:open-pdf/config' {
@@ -33,7 +34,7 @@ declare module 'virtual:open-pdf/folders' {
 
 declare module 'virtual:open-pdf/themes' {
   import type { DesignSystem } from './lib/design';
-  import type { Page } from './lib/sdk';
+  import type { DocComponent } from './lib/sdk';
 
   export type ThemeMeta = {
     id: string;
@@ -45,7 +46,7 @@ declare module 'virtual:open-pdf/themes' {
 
   export const themes: ThemeMeta[];
   export function loadThemeDemo(id: string): Promise<{
-    default: Page[];
+    default: DocComponent;
     design?: DesignSystem;
   }>;
 }

@@ -174,6 +174,15 @@ if (import.meta.hot) {
     })
     .join('\n');
 
+  const urlCases = entries
+    .map((e) => {
+      const urlExpr = isDev
+        ? `import.meta.env.BASE_URL + ${JSON.stringify(`${e.importPath}?t=`)} + docImportTokens[${JSON.stringify(e.id)}]`
+        : `${JSON.stringify(e.importPath)}`;
+      return `    case ${JSON.stringify(e.id)}: return ${urlExpr};`;
+    })
+    .join('\n');
+
   const code = `// virtual:open-pdf/docs — generated
 export const docIds = ${ids};
 export const docThemes = ${themesJson};
@@ -183,6 +192,15 @@ ${devRuntime}
 export async function loadDoc(id) {
   switch (id) {
 ${cases}
+    default: throw new Error('Doc not found: ' + id);
+  }
+}
+
+// Absolute-from-BASE_URL module URL with the live cache-bust token, so the
+// render worker can import the same doc module the main thread just loaded.
+export function docImportUrl(id) {
+  switch (id) {
+${urlCases}
     default: throw new Error('Doc not found: ' + id);
   }
 }

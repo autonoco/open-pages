@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { format, useLocale } from '@/lib/use-locale';
-import { DocPageProvider } from '../../lib/page-context';
 import { loadThemeDemo, type Theme, type ThemeDemoModule, themes } from '../../lib/themes';
-import { DocCanvas } from '../doc-canvas';
 
 export function ThemesGallery({ onOpen }: { onOpen: (id: string) => void }) {
   const t = useLocale();
@@ -73,18 +71,11 @@ function ThemePreview({ theme }: { theme: Theme }) {
       </div>
     );
   }
-  const FirstPage = demo.default[0];
-  if (!FirstPage) return <NoDemoState />;
+  if (!demo.default) return <NoDemoState />;
 
-  return (
-    <div className="h-full w-full motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]">
-      <DocCanvas flat freezeMotion design={demo.design}>
-        <DocPageProvider index={0} total={demo.default.length}>
-          <FirstPage />
-        </DocPageProvider>
-      </DocCanvas>
-    </div>
-  );
+  // TODO(pdf): render the demo through the PDF worker once theme demos move to
+  // the Takumi dialect (theme rewrite pass).
+  return <NoDemoState />;
 }
 
 function NoDemoState() {

@@ -32,11 +32,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
-import { DocCanvas } from '../components/doc-canvas';
 import { DOC_DND_MIME, FolderIconChip } from '../components/sidebar/folder-item';
 import { ALL_DOCS_ID, DRAFT_ID } from '../components/sidebar/sidebar';
 import { docCreatedAt, docIds, loadDoc } from '../lib/docs';
-import { DocPageProvider } from '../lib/page-context';
+import { DocPdfThumb } from '../lib/pdf/doc-pdf-thumb';
 import type { DocModule, Folder, FolderIcon } from '../lib/sdk';
 import type { HomeOutletContext } from './home-shell';
 
@@ -479,7 +478,6 @@ function DocCard({
     };
   }, [id]);
 
-  const FirstPage = doc?.default[0];
   const displayTitle = doc?.meta?.title ?? id;
 
   useEffect(() => {
@@ -507,19 +505,9 @@ function DocCard({
         <Link to={`/s/${id}`} className="block focus-visible:outline-none">
           {/* Doc thumb — tight border, grey baseboard, no shadcn rounded-xl */}
           <div className="relative aspect-video overflow-hidden rounded-[6px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04] group-hover:shadow-floating group-hover:ring-foreground/20 motion-safe:transition-[box-shadow,--tw-ring-color] motion-safe:duration-200">
-            {FirstPage ? (
-              <div className="h-full w-full motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]">
-                <DocCanvas flat freezeMotion design={doc?.design}>
-                  <DocPageProvider index={0} total={doc?.default.length ?? 1}>
-                    <FirstPage />
-                  </DocPageProvider>
-                </DocCanvas>
-              </div>
-            ) : (
-              <div className="grid h-full w-full place-items-center text-[10px] tracking-[0.08em] uppercase text-muted-foreground/60">
-                {tCard.common.loading}
-              </div>
-            )}
+            <div className="h-full w-full motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]">
+              <DocPdfThumb docId={id} />
+            </div>
           </div>
         </Link>
         <div className="mt-3 flex items-center gap-2">

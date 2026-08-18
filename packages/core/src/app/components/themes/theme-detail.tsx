@@ -5,10 +5,9 @@ import { Button } from '@/components/ui/button';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import { docsByTheme, loadDoc } from '../../lib/docs';
-import { DocPageProvider } from '../../lib/page-context';
+import { DocPdfThumb } from '../../lib/pdf/doc-pdf-thumb';
 import type { DocModule } from '../../lib/sdk';
 import { loadThemeDemo, type ThemeDemoModule, themes } from '../../lib/themes';
-import { DocCanvas } from '../doc-canvas';
 
 export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () => void }) {
   const t = useLocale();
@@ -31,8 +30,7 @@ export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () =
     };
   }, [theme]);
 
-  const pages = demo?.default ?? [];
-  const totalPages = pages.length;
+  const totalPages = 0; // TODO(pdf): page count from worker-rendered demo PDF (theme rewrite pass)
   const usedByDocIds = useMemo(() => (theme ? docsByTheme(theme.id) : []), [theme]);
 
   const promptRef = useRef<HTMLPreElement>(null);
@@ -60,7 +58,7 @@ export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () =
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [totalPages]);
+  }, []);
 
   if (!theme) {
     return (
@@ -72,8 +70,6 @@ export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () =
       </div>
     );
   }
-
-  const Current = pages[pageIndex];
 
   return (
     <div className="flex flex-col gap-6 md:gap-8">
@@ -105,13 +101,11 @@ export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () =
                 <div className="grid h-full w-full place-items-center text-[11px] tracking-[0.08em] uppercase text-muted-foreground/60">
                   {t.common.loading}
                 </div>
-              ) : Current ? (
-                <DocCanvas flat freezeMotion design={demo.design}>
-                  <DocPageProvider index={pageIndex} total={totalPages}>
-                    <Current />
-                  </DocPageProvider>
-                </DocCanvas>
-              ) : null}
+              ) : (
+                // TODO(pdf): render demo via the PDF worker once theme demos move
+                // to the Takumi dialect (theme rewrite pass).
+                <NoDemoLargeState />
+              )}
             </div>
 
             {totalPages > 1 ? (
@@ -206,7 +200,6 @@ export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () =
 }
 
 function ThemeDocCard({ id }: { id: string }) {
-  const t = useLocale();
   const [doc, setDoc] = useState<DocModule | null>(null);
 
   useEffect(() => {
@@ -221,25 +214,14 @@ function ThemeDocCard({ id }: { id: string }) {
     };
   }, [id]);
 
-  const FirstPage = doc?.default[0];
   const displayTitle = doc?.meta?.title ?? id;
 
   return (
     <Link to={`/s/${id}`} className="group block focus-visible:outline-none">
       <div className="relative aspect-video overflow-hidden rounded-[6px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04] group-hover:shadow-floating group-hover:ring-foreground/20 motion-safe:transition-[box-shadow,--tw-ring-color] motion-safe:duration-200">
-        {FirstPage ? (
-          <div className="h-full w-full motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]">
-            <DocCanvas flat freezeMotion design={doc?.design}>
-              <DocPageProvider index={0} total={doc?.default.length ?? 1}>
-                <FirstPage />
-              </DocPageProvider>
-            </DocCanvas>
-          </div>
-        ) : (
-          <div className="grid h-full w-full place-items-center text-[10px] tracking-[0.08em] uppercase text-muted-foreground/60">
-            {t.common.loading}
-          </div>
-        )}
+        <div className="h-full w-full motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]">
+          <DocPdfThumb docId={id} />
+        </div>
       </div>
       <div className="mt-2.5">
         <h3 className="min-w-0 truncate font-heading text-[13px] font-medium tracking-tight">
