@@ -1,0 +1,77 @@
+---
+title: "Inspect mode"
+description: "Click any element on the rendered PDF, see its source location, and leave comments your agent applies."
+icon: "crosshair"
+---
+
+The preview at `localhost:5173` renders actual PDF bytes. Inspect mode adds a click-to-source layer on top: every element on the page maps back to the exact line and column in `docs/<id>/index.tsx` that produced it. That mapping is what lets a human point at a rendered PDF and have an agent edit the right JSX.
+
+## Toggling inspect mode
+
+Two ways:
+
+- Click the **Inspect** button (crosshair icon) in the doc toolbar.
+- Press <kbd>i</kbd> anywhere in the viewer. Pressing it again toggles off. The shortcut is ignored while you are typing in an input or textarea.
+
+The button is disabled until the source map for the current render is ready, which happens automatically after each render.
+
+## Selecting an element
+
+With inspect mode on, hover highlights elements on the page. Click one and a selection panel appears with:
+
+- **Tag**: the source JSX tag, like `h1` or `div`.
+- **Source location**: line and column of the opening tag in `docs/<id>/index.tsx`.
+- **Text**: a snippet extracted from the PDF under the selected region, so you can confirm you picked the right node.
+
+Press <kbd>Escape</kbd> or click the **×** to clear the selection.
+
+Every selection is also written to the agent cursor at `node_modules/.open-pdf/current.json`, so you can skip the comment entirely and just tell your agent "make this bigger". See [For agents](/for-agents) for how that file works.
+
+## Leaving a comment
+
+The selection panel has a note field. Write what you want changed, in plain language:
+
+- "make this bold"
+- "change to 'Open Doc Rocks'"
+- "this table is too cramped, add breathing room"
+
+Click **Comment**. The dev server writes the comment directly into the doc's source as an invisible marker:
+
+```
+{/* @pdf-comment id="c-3f9a1b2c" ts="2026-08-18T14:32:11.123Z" text="eyJub3RlIjoibWFrZSB0aGlzIGJvbGQifQ" */}
+```
+
+The marker is a JSX comment inserted as the first child of the element you selected. It never renders, so the PDF output is unchanged. Because it lives in source, comments survive dev server restarts and show up in git diffs. The `text` attribute is base64url-encoded JSON containing your note.
+
+You can leave several comments across a doc, or across multiple docs, before handing off.
+
+## Applying comments
+
+Tell your agent to apply the comments. In Claude Code that is the bundled `apply-comments` skill:
+
+```
+/apply-comments
+```
+
+The agent finds every `@pdf-comment` marker, reads the note, edits the enclosing JSX element accordingly, and deletes the marker. Comments it cannot resolve are left in place and reported as skipped rather than guessed at.
+
+As soon as the agent saves the file, HMR re-renders the PDF in your preview. The loop end to end:
+
+<Steps>
+  <Step title="Press i">
+    Toggle inspect mode in the running preview.
+  </Step>
+  <Step title="Click and comment">
+    Select an element, write a note, click Comment. Repeat for as many elements as you want.
+  </Step>
+  <Step title="Agent applies">
+    Run `/apply-comments`. The agent edits the source and removes the markers.
+  </Step>
+  <Step title="Preview updates">
+    HMR re-renders the PDF. Verify the change, or leave another comment.
+  </Step>
+</Steps>
+
+<Note>
+The preview bytes carry inspector annotations for the click-to-source mapping. The toolbar's download button and [`open-pdf export`](/export) both re-render a clean PDF without them.
+</Note>

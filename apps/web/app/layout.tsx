@@ -1,104 +1,33 @@
-import { RootProvider } from 'fumadocs-ui/provider/next';
+import type { Metadata } from 'next';
+import { Inter, JetBrains_Mono, Source_Serif_4 } from 'next/font/google';
 import './global.css';
-import { GeistMono } from 'geist/font/mono';
-import { GeistPixelSquare } from 'geist/font/pixel';
-import { GeistSans } from 'geist/font/sans';
-import type { Metadata, Viewport } from 'next';
-import { appName, gitConfig, siteUrl } from '@/lib/shared';
 
-const title = `${appName} — a doc framework built for agents`;
+const inter = Inter({ subsets: ['latin'], variable: '--font-ui' });
+const serif = Source_Serif_4({ subsets: ['latin'], variable: '--font-doc' });
+const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-code' });
+
+const title = 'open-pdf — The PDF framework built for agents';
 const description =
-  'A React-first doc framework authored by AI agents. Each page is arbitrary code on a 1920×1080 canvas — versioned, reviewable, yours.';
+  'Your coding agent writes documents as React components. You get a live preview that is the actual PDF, click any element to comment, and export PDF or editable Word. MIT.';
 
 export const metadata: Metadata = {
-  title: {
-    default: title,
-    template: `%s — ${appName}`,
-  },
+  title,
   description,
-  metadataBase: new URL(siteUrl),
-  applicationName: appName,
-  keywords: [
-    'open-pdf',
-    'docs',
-    'presentation framework',
-    'React docs',
-    'Next.js docs',
-    'AI agents',
-    'Claude Code',
-    'MDX docs',
-    'docs as code',
-    'developer presentations',
-  ],
-  authors: [{ name: gitConfig.user, url: `https://github.com/${gitConfig.user}` }],
-  creator: gitConfig.user,
-  publisher: appName,
-  category: 'technology',
-  alternates: {
-    canonical: '/',
-  },
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
+  metadataBase: new URL('https://openpdf.sh'),
+  icons: { icon: '/favicon.svg' },
   openGraph: {
     title,
     description,
+    url: 'https://openpdf.sh',
+    siteName: 'open-pdf',
     type: 'website',
-    url: siteUrl,
-    siteName: appName,
-    locale: 'en_US',
-    images: [
-      {
-        url: '/opengraph-image.png',
-        width: 1200,
-        height: 630,
-        alt: `${appName} — React-first doc framework for AI agents`,
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title,
-    description,
-    creator: '@autonoco',
-    images: ['/opengraph-image.png'],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-      'max-video-preview': -1,
-    },
-  },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
   },
 };
 
-export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FCFCFC' },
-    { media: '(prefers-color-scheme: dark)', color: '#0A0A0A' },
-  ],
-};
-
-export default function Layout({ children }: LayoutProps<'/'>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${GeistSans.className} ${GeistSans.variable} ${GeistMono.variable} ${GeistPixelSquare.variable}`}
-    >
-      <body className="flex flex-col min-h-screen">
-        <RootProvider>{children}</RootProvider>
-      </body>
+    <html lang="en" className={`${inter.variable} ${serif.variable} ${mono.variable}`}>
+      <body>{children}</body>
     </html>
   );
 }

@@ -2,7 +2,7 @@
 
 **The PDF framework built for agents.** An AI coding agent authors documents as React components; you get a live in-browser PDF preview with click-to-edit and click-to-comment; the preview bytes are the exported file.
 
-> **Status: pre-release.** This codebase started as a hard fork of [open-slide](https://github.com/1weiho/open-slide) v1.18.0 (MIT, © Yiwei Ho) — the same agent-first architecture, retargeted from slide decks to real PDFs rendered by [Takumi](https://takumi.kane.tw). The engine swap is in progress; see [docs/PLAN.md](docs/PLAN.md) for the full blueprint and the empirical engine bake-off behind it.
+> **Status: pre-release.** This codebase started as a hard fork of [open-slide](https://github.com/1weiho/open-slide) v1.18.0 (MIT, © Yiwei Ho) — the same agent-first architecture, retargeted from slide decks to real PDFs rendered by [Takumi](https://takumi.kane.tw). The engine swap is in progress; see [notes/PLAN.md](notes/PLAN.md) for the full blueprint and the empirical engine bake-off behind it.
 
 ## How it will work
 

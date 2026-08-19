@@ -1,0 +1,107 @@
+---
+title: "Export"
+description: "Render finished documents to PDF or editable DOCX, from the preview or the CLI."
+icon: "download"
+---
+
+There are two ways out of open-pdf: the **Download** button in the preview, and the `open-pdf export` CLI. Both render through the same Takumi engine that draws the preview, so what you export is what you saw.
+
+## The Download button
+
+The preview toolbar has a Download button that saves the current document as a PDF. It is a clean render: no inspector metadata, no source-line mapping, none of the instrumentation that powers [click-to-inspect](/inspector). Just the document.
+
+Use it when a human is looking at the preview and wants the file now. Use the CLI when an agent or a script needs to produce files headlessly.
+
+## The export CLI
+
+`open-pdf export` renders docs to files without starting a server. It spins up a middleware-mode Vite instance internally, so your TSX compiles through the exact same pipeline as the dev preview: same plugins, same aliases, same JSX transform.
+
+```bash
+# Every doc in the workspace → export/<id>.pdf
+npx open-pdf export
+
+# Specific docs by id
+npx open-pdf export invoice services-proposal
+
+# Custom output directory (default: export/)
+npx open-pdf export invoice --out-dir dist/pdfs
+```
+
+Doc ids are the folder names under `docs/`, the same ids the preview uses. Passing an unknown id fails with the list of available docs. Each rendered file prints with its size and render time:
+
+```text
+ok  export/invoice.pdf  38.2 KB · 412ms
+1 document → export/
+```
+
+Flags:
+
+| Flag | Meaning | Default |
+|------|---------|---------|
+| `[docs...]` | Doc ids to export | all docs |
+| `--out-dir <dir>` | Output directory, relative to the project root | `export` |
+| `--format <format>` | `pdf` or `docx` | `pdf` |
+
+## Editable Word files
+
+```bash
+npx open-pdf export invoice --format docx
+```
+
+`--format docx` does not embed a PDF or rasterize pages. It serializes the document tree into real OOXML, so the result opens in Word as a document someone can keep editing:
+
+- **Real paragraphs and headings.** `h1` through `h3` map to Word's Heading 1 to 3 styles with outline levels, so the document has a navigable structure pane. Deeper headings clamp to Heading 3.
+- **Tables with repeating headers.** `<thead>` rows carry Word's repeat-on-every-page flag, so long tables stay labeled as the reader scrolls, the same behavior described in [Tables](/authoring/tables).
+- **Images.** Embedded as native media at their rendered dimensions.
+- **Live page-number fields.** `<PageNumber />` and `<TotalPages />` become Word `PAGE` and `NUMPAGES` fields. When the reader edits and the document reflows, the numbers update.
+- **Headers and footers.** `pageOptions.header` and `pageOptions.footer` become Word running bands, including justified layouts like `Page X of Y` on the right.
+- **Lists, bold, italic, underline, colors, alignment, page breaks.** `break-before-page` becomes a Word page break, `break-inside-avoid` becomes keep-lines.
+
+Page size and margins carry over from `pageOptions` for named sizes (`a4`, `letter`, `legal`, `a3`, `a5`).
+
+### The Google Docs path
+
+Google Drive converts `.docx` files to Google Docs natively. This is the intended path for handing a document to someone who lives in Docs:
+
+<Steps>
+  <Step title="Export">
+    `npx open-pdf export proposal --format docx`
+  </Step>
+  <Step title="Upload to Google Drive">
+    Drag `export/proposal.docx` into Drive, or upload it via the Drive API.
+  </Step>
+  <Step title="Open with Google Docs">
+    Drive converts on open. Headings, tables with repeating headers, images, and page-number fields survive the conversion. Verified.
+  </Step>
+</Steps>
+
+The result is a real Google Doc the recipient edits and comments on, with no awareness that it started as JSX.
+
+### What does not carry over
+
+DOCX export is faithful to structure and text. It approximates visual styling, because Word is a different layout engine, and that is the point of exporting to Word: the reader edits on.
+
+- **Exact visual fidelity.** Spacing, line breaks, and font rendering will differ from the PDF. If pixel-exact output matters, ship the PDF.
+- **Inline `<svg>`.** Skipped, with a warning. Rasterize to an image if a graphic must survive.
+- **Custom pixel page sizes.** `size: { width, height }` falls back to A4 in DOCX. Named sizes carry over.
+
+Skipped content prints as warnings on stderr during export, per doc, so an agent can see exactly what was dropped:
+
+```text
+!  proposal: inline <svg> skipped (not representable in DOCX v1)
+```
+
+<Note>
+  The PDF output of `open-pdf export` is byte-identical in rendering to the preview. DOCX is a translation, not a render. Review the `.docx` once in Word or Google Docs before sending it somewhere important.
+</Note>
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="CLI reference" href="/reference/cli">
+    All commands and flags, including `dev`, `build`, and `sync:skills`.
+  </Card>
+  <Card title="Pagination" href="/authoring/pagination">
+    Page sizes, margins, headers, footers, and break control.
+  </Card>
+</CardGroup>

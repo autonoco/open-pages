@@ -1,0 +1,96 @@
+---
+title: "Quickstart"
+description: "Scaffold a workspace, author a document with your agent, review it in the live PDF preview, and export it."
+icon: "rocket"
+---
+
+<Steps>
+  <Step title="Scaffold a workspace">
+    Run the init command. It copies the workspace template, installs dependencies, and makes an initial git commit.
+
+    <CodeGroup>
+    ```bash npm
+    npx @open-pdf/cli init my-docs
+    ```
+    ```bash pnpm
+    pnpm dlx @open-pdf/cli init my-docs --use-pnpm
+    ```
+    ```bash yarn
+    yarn dlx @open-pdf/cli init my-docs --use-yarn
+    ```
+    ```bash bun
+    bunx @open-pdf/cli init my-docs --use-bun
+    ```
+    </CodeGroup>
+
+    Useful flags: `--name <name>` overrides the package name, `--force` scaffolds into a non-empty directory, `--no-install` skips dependency installation, `--no-git` skips git init. Run interactively without a directory argument and the CLI prompts for the target and package manager.
+
+    The workspace includes `AGENTS.md` (linked as `CLAUDE.md`) and five bundled agent skills: `create-doc`, `doc-authoring`, `apply-comments`, `current-doc`, and `create-theme`.
+  </Step>
+
+  <Step title="Create a document with your agent">
+    Open the workspace in your coding agent (Claude Code, Cursor, Codex) and run `/create-doc` with a prompt:
+
+    ```
+    /create-doc an invoice for Harborline Freight, 3 line items, net 30
+    ```
+
+    The skill asks a few scoping questions (visual direction, length, density, page setup), then writes `docs/<id>/index.tsx`: one React component in HTML-shaped JSX, styled with Tailwind via the `tw` prop.
+  </Step>
+
+  <Step title="Start the live preview">
+    ```bash
+    cd my-docs
+    npm run dev
+    ```
+
+    Open `http://localhost:5173`. Each document lives at `http://localhost:5173/s/<id>`. The preview renders actual PDF bytes with the Takumi engine in a web worker and hot-reloads on every edit. What you see is the PDF, not an HTML rendition of it.
+  </Step>
+
+  <Step title="Inspect, comment, apply">
+    In the preview, press `i` (or hit **Inspect**) and click any element. The inspector maps your click to the exact source lines and saves each comment into the document as a `@pdf-comment` marker.
+
+    Back in your agent, ask it to apply them:
+
+    ```
+    apply the comments on the invoice
+    ```
+
+    The `apply-comments` skill reads the markers, makes the edits, and removes the markers. The dev server also tracks which document and element you last selected in `node_modules/.open-pdf/current.json`, so "make this bigger" resolves without naming anything.
+  </Step>
+
+  <Step title="Export">
+    Render headlessly to `export/`:
+
+    ```bash
+    # every doc, as PDF
+    npm run export
+
+    # one doc, as editable Word
+    npm run export -- invoice-harborline --format docx
+    ```
+
+    The PDF export is the same bytes as the preview. The DOCX output opens in Word, and dropping it into Google Drive converts it to an editable Google Doc. `--out-dir <dir>` changes the output directory.
+  </Step>
+</Steps>
+
+<Note>
+  The agent never needs to touch `package.json` or `open-pdf.config.ts`. Documents are self-contained under `docs/<id>/`, with per-doc assets in `docs/<id>/assets/`.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Documents" icon="file-code" href="/authoring/documents">
+    The full file contract and the `tw` styling dialect.
+  </Card>
+  <Card title="Inspector" icon="mouse-pointer-click" href="/inspector">
+    How comments become source markers and edits.
+  </Card>
+  <Card title="Export" icon="download" href="/export">
+    PDF and DOCX output in depth.
+  </Card>
+  <Card title="What is open-pdf" icon="file-text" href="/">
+    The architecture and the authoring loop.
+  </Card>
+</CardGroup>

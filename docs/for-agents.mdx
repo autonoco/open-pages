@@ -1,0 +1,99 @@
+---
+title: "For agents"
+description: "The file-based integration surface: bundled skills, the agent cursor, and the comment marker format."
+icon: "bot"
+---
+
+open-pdf's agent integration is entirely file-based. There is no MCP server, no plugin, no SDK to wire up. A scaffolded workspace ships skills as markdown, instructions as `AGENTS.md`, and live state as a JSON file. Any agent that can read and write files works: Claude Code, Cursor, Codex, or anything else.
+
+## The five skills
+
+`npx @open-pdf/cli init` installs five skills into `.agents/skills/` and symlinks each into `.claude/skills/`, so Claude Code picks them up natively while other agents read them from the neutral `.agents/` location.
+
+| Skill | Owns |
+| --- | --- |
+| `create-doc` | The workflow for drafting a new document: scoping questions, theme selection, structure, hand-off. |
+| `doc-authoring` | The technical reference: file contract, the Takumi `tw` dialect, page geometry, print type scale, tables, pagination, running headers and footers, engine pitfalls. `create-doc` and `apply-comments` defer to it for the how. |
+| `apply-comments` | Processing `@pdf-comment` markers left by the [inspector](/inspector): find markers, apply the described edits, delete the markers. |
+| `current-doc` | Resolving deictic references. When the user says "this page" or "this element" without naming a doc, this skill reads the agent cursor to find what they mean. |
+| `create-theme` | Authoring a theme bundle under `themes/`: a `<id>.md` spec (palette, typography, layout, fixed components) plus a runnable `<id>.demo.tsx`. |
+
+## AGENTS.md and CLAUDE.md
+
+The workspace root carries `AGENTS.md` and an identical `CLAUDE.md`. They are deliberately short: the hard rules (docs live at `docs/<kebab-id>/index.tsx`, do not touch `package.json` or `open-pdf.config.ts`, no new dependencies) plus a routing table that points each kind of task at the right skill. Everything deeper lives in the skills, so the always-loaded context stays small.
+
+## Keeping skills in sync
+
+Skills are managed by `@open-pdf/core`. Do not edit them in place; local edits are overwritten on the next sync. To pull the latest versions:
+
+```bash
+npm install @open-pdf/core@latest
+npm run sync:skills
+```
+
+`npm run dev` also detects drift on startup and offers to sync. To preview what a sync would change without writing anything:
+
+```bash
+npx open-pdf sync:skills --dry-run
+```
+
+The drift check hashes each skill directory and reports every skill as `added`, `updated`, or `unchanged`. Sync copies changed skills into `.agents/skills/` and maintains the `.claude/skills/` symlinks, falling back to a plain copy on filesystems that refuse symlinks.
+
+## The agent cursor: current.json
+
+The dev server writes a live cursor on every navigation and inspector pick:
+
+```
+node_modules/.open-pdf/current.json
+```
+
+```json
+{
+  "docId": "q2-roadmap",
+  "pageIndex": 2,
+  "pageNumber": 3,
+  "totalPages": 8,
+  "docTitle": "Q2 Roadmap",
+  "view": "docs",
+  "pagePath": "docs/q2-roadmap/index.tsx",
+  "selection": {
+    "line": 42,
+    "column": 6,
+    "tagName": "h1",
+    "text": "Q2 Roadmap"
+  },
+  "updatedAt": "2026-05-09T14:32:11.123Z"
+}
+```
+
+- `docId` and `pagePath` identify the doc the human has open. `pagePath` is relative to the project root.
+- `selection` is `null` unless the human has picked an element in [inspect mode](/inspector). When set, `line` (1-indexed) and `column` (0-indexed) point at the JSX opening tag in `pagePath`, `tagName` is the source tag, and `text` is a snippet (up to 120 chars) extracted from the PDF under the element as a sanity check.
+- `updatedAt` is the last navigation or selection change. Use it to judge staleness: trust a fresh read, confirm before acting on one older than a few minutes.
+
+This is what makes deictic instructions work. When the user says "make this bigger" or "tighten this doc", the agent reads `current.json`, jumps to `pagePath` at `selection.line`, and edits, without asking "which doc?". The cursor is live state, not conversation history: the `current-doc` skill instructs agents to re-read it at the start of every deictic turn, because the human navigates between turns.
+
+If the file is missing, the dev server has not been opened on a doc yet. Agents are instructed to ask rather than guess.
+
+## The @pdf-comment marker
+
+Inspector comments persist as JSX comment markers inside `docs/<id>/index.tsx`:
+
+```
+{/* @pdf-comment id="c-<8hex>" ts="<ISO>" text="<base64url(JSON)>" */}
+```
+
+- Inserted as the first child inside the element the comment refers to, spliced immediately after the opening tag's `>`.
+- `text` decodes to JSON: `{"note": "...", "hint"?: "..."}`. The `note` is the human's verbatim comment.
+- Being a JSX comment, it renders nothing and never affects PDF output.
+
+The `apply-comments` skill carries the authoritative detection regex, the procedure for resolving each marker's target element, and the edge cases (self-closing elements, stacked markers, unresolvable notes). Agents apply edits in reverse line order so earlier edits do not invalidate later line numbers, then delete each marker they applied. A marker left behind means the edit was skipped, not forgotten.
+
+## Working outside Claude Code
+
+Nothing above depends on Claude Code. Cursor, Codex, and other agents get the same surface:
+
+- `AGENTS.md` at the root is the standard entry point most agents already read.
+- Skills in `.agents/skills/<name>/SKILL.md` are plain markdown. Point your agent at the relevant one, or reference it in your agent's rules file.
+- `current.json` and `@pdf-comment` markers are plain files the dev server maintains regardless of which agent is attached.
+
+For the human side of the loop, see [Inspect mode](/inspector). For what agents actually write, see [Documents](/authoring/documents).

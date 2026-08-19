@@ -1,0 +1,37 @@
+---
+title: "Themes"
+description: "Reusable visual identities under themes/, consumed by the create-doc skill when scaffolding new documents."
+icon: "palette"
+---
+
+A theme is a reusable visual identity for your PDFs: palette, typography, layout, and paste-ready fixed components like a letterhead and footer band. Themes let every document a team (or its agent) produces share one look.
+
+## The bundle
+
+A theme is two paired files under `themes/`, sharing the same stem so the runtime can pair them:
+
+```
+themes/
+  ledger-classic.md         # the theme definition
+  ledger-classic.demo.tsx   # a runnable 1-2 page demo of the theme
+```
+
+**`<id>.md`** is the definition the agent reads: a palette table (text, muted, accent, rule, band roles as Tailwind utilities), type-scale overrides, `pageOptions` layout, fixed components as paste-ready JSX, and an aesthetic paragraph that commits to one direction.
+
+**`<id>.demo.tsx`** is a runnable mini-doc with the same module shape as `docs/<id>/index.tsx`: one default-exported component plus `pageOptions`. It inlines the same fixed components the markdown defines, so what the demo shows matches what gets pasted into real docs.
+
+<Note>
+The dev UI's Themes panel currently shows a placeholder card for theme demos. Live demo previews are being re-enabled. The demo file stays valid and pairable regardless, so keep writing it.
+</Note>
+
+## How themes get used
+
+- The bundled **create-theme** skill authors the bundle. It can derive a theme from screenshots or brand images, a free-text description, or an existing doc whose look you want to lift out and reuse. See [Working with agents](/for-agents).
+- The **create-doc** skill lists registered themes as a picker option when scaffolding a new document, then copies the theme's palette, utilities, and fixed components into the doc's source.
+- A doc built from a theme sets `meta.theme` to the theme id (matching the `<id>.md` basename). When editing such a doc, the theme file is authoritative over the framework's default palette and type scale.
+
+The theme markdown is authoring-time direction, not a runtime import. Its styles are copied into each doc's source, so a doc stays self-contained and a theme change never silently reflows shipped documents.
+
+## Writing one
+
+Ask your agent to "create a theme called X from these images" (or from an existing doc), and the create-theme skill handles structure, pairing, and self-review. If you write one by hand, match an existing bundle's section order: Palette, Typography, Layout, Fixed components, Aesthetic, Example usage. The fixed components must be valid Takumi-dialect JSX (`tw` prop, no `className`, no hooks), because they get pasted verbatim into documents. See [Documents](/authoring/documents) for the dialect.

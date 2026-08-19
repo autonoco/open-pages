@@ -1,0 +1,168 @@
+---
+title: "CLI"
+description: "Every open-pdf command, flag by flag."
+icon: "terminal"
+---
+
+open-pdf ships two packages that both register an `open-pdf` binary:
+
+- **`@open-pdf/cli`** provides `init`. Run it with `npx @open-pdf/cli init` from anywhere, no install needed.
+- **`@open-pdf/core`** provides everything else (`dev`, `build`, `preview`, `export`, `sync:skills`). It is a dependency of every workspace, so inside a workspace `npx open-pdf <command>` resolves to it. The scaffolded `package.json` also maps npm scripts: `npm run dev`, `npm run build`, `npm run preview`, `npm run export`, `npm run sync:skills`.
+
+When passing flags through an npm script, separate them with `--`:
+
+```bash
+npm run export -- --format docx
+```
+
+Both binaries accept `-v, --version` and `-h, --help`.
+
+## init
+
+Create a new open-pdf workspace.
+
+```bash
+npx @open-pdf/cli init [dir]
+```
+
+| Flag | Description |
+| --- | --- |
+| `[dir]` | Target directory. Prompted interactively when omitted in a terminal (defaults to `.`). |
+| `-f, --force` | Scaffold into a non-empty target directory. Without it, a non-empty target errors (or asks for confirmation in a terminal). |
+| `-n, --name <name>` | Override the package name. Defaults to the folder name. |
+| `--use-npm` / `--use-pnpm` / `--use-yarn` / `--use-bun` | Pick the package manager for the dependency install. Only one may be passed. Without one, init detects your package manager and asks in a terminal. |
+| `--no-install` | Skip dependency installation. |
+| `--no-git` | Skip `git init` and the initial commit. |
+
+What init does:
+
+1. Copies the workspace template into the target directory: `docs/`, `assets/`, `themes/`, `open-pdf.config.ts`, an `AGENTS.md` agent guide (linked as `CLAUDE.md`), and the five bundled agent skills under `.agents/skills/` (symlinked into `.claude/skills/`).
+2. Sets the package name, marks the package private, and sets `@open-pdf/core` to a caret range on the version the CLI was built against (`^x.y.z`).
+3. Writes a `.gitignore` covering `node_modules`, `dist`, `export`, and `.DS_Store`.
+4. Installs dependencies (unless `--no-install`) and creates a git repository with a first commit (unless `--no-git`). Git setup is skipped automatically when the target sits inside an existing repository.
+
+Directory names with characters that break shell commands (spaces, quotes) are rejected in non-interactive mode and corrected via a prompt in a terminal.
+
+<Note>
+On Windows, the `CLAUDE.md` link and skill symlinks are created as copies instead.
+</Note>
+
+## dev
+
+Start the dev server. The preview renders actual PDF bytes and updates as docs change. See [Quickstart](/quickstart).
+
+```bash
+open-pdf dev
+```
+
+| Flag | Description |
+| --- | --- |
+| `-p, --port <port>` | Port to listen on. Must be an integer between 0 and 65535. Defaults to `port` from [open-pdf.config.ts](/reference/config), then 5173. |
+| `--host [host]` | Expose the server on the network. Optionally pass a specific host. |
+| `--open` | Open the browser on start. |
+| `--no-skills-check` | Skip the built-in skills drift check. |
+
+### Skills drift check
+
+Before starting, `dev` compares the skills bundled in your installed `@open-pdf/core` against the copies in `.agents/skills/`, by content hash. If any skill was added or updated upstream:
+
+- In a terminal, it asks `Sync now? (Y/n)` and runs the sync on confirmation.
+- In non-interactive contexts (CI, agent shells), it prints a warning telling you to run `open-pdf sync:skills` and continues.
+
+Skip the check with `--no-skills-check` or by setting the environment variable:
+
+```bash
+OPEN_PDF_SKIP_SKILLS_CHECK=1 open-pdf dev
+```
+
+### Supervised process
+
+The server runs in a supervised child process. An in-app update of `@open-pdf/core` can restart the server against the freshly installed package, and restarts reuse the same port.
+
+## build
+
+Build the workspace as a static site: the doc browser and PDF viewer, deployable to any static host.
+
+```bash
+open-pdf build
+```
+
+| Flag | Description |
+| --- | --- |
+| `--out-dir <dir>` | Output directory. Defaults to `dist`. |
+
+The `build` section of [open-pdf.config.ts](/reference/config) controls which UI features the built site includes (doc browser, viewer chrome, download commands).
+
+## preview
+
+Serve the production build locally.
+
+```bash
+open-pdf preview
+```
+
+| Flag | Description |
+| --- | --- |
+| `-p, --port <port>` | Port to listen on (integer, 0 to 65535). |
+| `--host [host]` | Expose the server on the network. Optionally pass a specific host. |
+| `--open` | Open the browser on start. |
+
+## export
+
+Render docs to files headlessly, without a running dev server. See [Export](/export).
+
+```bash
+open-pdf export [docs...]
+```
+
+| Flag | Description |
+| --- | --- |
+| `[docs...]` | Doc ids to export (the folder names under `docs/`). Omit to export every doc. Unknown ids error and list the available ids. |
+| `--out-dir <dir>` | Output directory. Defaults to `export`. |
+| `--format <format>` | `pdf` or `docx`. Defaults to `pdf`. |
+
+Each doc is written as `<out-dir>/<id>.<format>`, with a per-doc line reporting size and render time:
+
+```
+ok  export/quarterly-report.pdf  184.2 KB · 312ms
+```
+
+Behavior by format:
+
+- **`pdf`**: byte-identical to the preview. Export compiles each doc with the same Vite pipeline the dev server uses (a middleware-mode server, no port), then renders through the same Takumi engine. Font paths in `pageOptions.fonts` are resolved from disk.
+- **`docx`**: an editable Word file built from the same rendered node tree. The document title comes from `meta.title`, falling back to the doc id. Running bands from `pageOptions.header` and `pageOptions.footer` become Word headers and footers. Constructs that do not map cleanly to DOCX are reported as warnings on stderr. Upload the file to Google Drive and it converts to an editable Google Doc.
+
+```bash
+# Export one doc as DOCX
+open-pdf export quarterly-report --format docx
+
+# Export everything as PDF into out/
+open-pdf export --out-dir out
+```
+
+## sync:skills
+
+Sync the bundled agent skills from your installed `@open-pdf/core` into the workspace.
+
+```bash
+open-pdf sync:skills
+```
+
+| Flag | Description |
+| --- | --- |
+| `--dry-run` | Show what would change without writing. |
+
+Drift detection is hash based: each skill directory (file paths plus contents) is hashed and compared against the workspace copy in `.agents/skills/`. Each skill reports one of three statuses:
+
+- `added`: not yet present in the workspace
+- `updated`: present but content differs from the installed package
+- `unchanged`: identical
+
+Changed skills are copied into `.agents/skills/` and symlinked into `.claude/skills/` (copied where symlinks are unavailable). To pull newer skills, upgrade the package first:
+
+```bash
+npm install @open-pdf/core@latest
+npm run sync:skills
+```
+
+`open-pdf dev` runs the same drift detection on startup, so most workspaces never need to call this by hand. See [For agents](/for-agents) for what the skills do.

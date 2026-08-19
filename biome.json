@@ -13,7 +13,8 @@
       "!**/*.tsbuildinfo",
       "!**/*.svg",
       "!packages/core/src/app/components/ui",
-      "!docs"
+      "!docs",
+      "!notes"
     ]
   },
   "formatter": {

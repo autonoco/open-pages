@@ -1,0 +1,64 @@
+---
+title: "Configuration"
+description: "Every field of open-pdf.config.ts, with defaults."
+icon: "settings"
+---
+
+`open-pdf.config.ts` sits at the workspace root and default-exports an `OpenPdfConfig`. The scaffolded file is empty, and every field is optional. A missing file means all defaults.
+
+```ts open-pdf.config.ts
+import type { OpenPdfConfig } from '@open-pdf/core';
+
+const openPdfConfig: OpenPdfConfig = {};
+
+export default openPdfConfig;
+```
+
+The file is loaded with Vite's config loader, so it can be TypeScript and use imports. `dev`, `build`, `preview`, and `export` all read it. It is loaded once at startup, so restart the dev server after changing it.
+
+<Note>
+The agent guide scaffolded by `init` tells agents not to modify this file. Config changes are yours to make.
+</Note>
+
+## Fields
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `base` | `string` | `'/'` | Base public path (Vite's `base`). Set it when hosting a `build` output under a subpath. |
+| `docsDir` | `string` | `'docs'` | Directory scanned for docs. Each doc is a folder with an `index.tsx` entry, see [Documents](/authoring/documents). |
+| `themesDir` | `string` | `'themes'` | Directory holding theme markdown files, see [Themes](/authoring/themes). |
+| `assetsDir` | `string` | `'assets'` | Shared assets directory, importable from docs via the `@assets` alias. |
+| `port` | `number` | `5173` | Dev server port. The `-p, --port` flag on [`open-pdf dev`](/reference/cli) overrides it. |
+| `allowedHosts` | `string[] \| true` | unset | Hostnames allowed to reach the dev server (Vite's `server.allowedHosts`). Needed when accessing the server through a proxy or tunnel hostname. `true` allows any host. |
+| `locale` | `Locale` | unset | Deprecated. Seeds the initial UI language until the viewer picks one in the language switcher (their choice is then remembered locally). Locale objects (`en`, `ja`, `zhCN`, `zhTW`) come from `@open-pdf/core/locale`. |
+| `build` | `OpenPdfBuildConfig` | all `true` | Feature flags for the static site produced by `open-pdf build`. Ignored in dev, where everything is always enabled. |
+
+## build
+
+`build` controls which UI features ship in the built static site. All three default to `true`.
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `showDocBrowser` | `boolean` | `true` | Include the doc browser home page and back-to-docs navigation. Turn off to publish a single doc without a way to browse the rest. |
+| `showDocUi` | `boolean` | `true` | Include the viewer chrome around the document: the header toolbar and the page thumbnail sidebar. Turn off to show only the rendered document. |
+| `allowHtmlDownload` | `boolean` | `true` | Include the export and download commands in the built site's command menu. |
+
+## Example
+
+A workspace served under a subpath, on a fixed port, building a viewer-only site:
+
+```ts open-pdf.config.ts
+import type { OpenPdfConfig } from '@open-pdf/core';
+
+const openPdfConfig: OpenPdfConfig = {
+  base: '/reports/',
+  port: 4000,
+  allowedHosts: ['docs.internal.example.com'],
+  build: {
+    showDocBrowser: false,
+    allowHtmlDownload: false,
+  },
+};
+
+export default openPdfConfig;
+```
