@@ -1,38 +1,45 @@
 # @open-pdf/cli
 
-Scaffold a workspace for [open-pdf](https://github.com/autonoco/open-pdf) — a React-based doc framework with Claude Code skills preconfigured.
+Scaffold a workspace for [open-pdf](https://openpdf.sh) — the PDF framework built for agents. Your coding agent writes documents as React components; you get a live preview that **is** the PDF, click-to-comment, and export to PDF or editable Word.
 
 ## Usage
 
 ```bash
-npx @open-pdf/cli init my-doc
-cd my-doc
-pnpm install
-pnpm dev
+npx @open-pdf/cli init my-docs
+cd my-docs
+npm run dev
 ```
 
 This creates a workspace containing:
 
 - `docs/getting-started/` — a starter doc you can edit or delete.
-- `package.json` — depends on `@open-pdf/core`, which provides the runtime (home page, doc viewer, fullscreen mode) and the `open-pdf` CLI.
-- `open-pdf.config.ts` — optional typed config (docsDir, port).
-- `.claude/skills/` and `.agents/skills/` — Claude Code skills (`create-doc`, `apply-comments`, …).
-- `CLAUDE.md` — agent guide for authoring docs.
+- `package.json` — depends on `@open-pdf/core`, which provides the runtime (viewer, inspector, export) and the `open-pdf` CLI.
+- `open-pdf.config.ts` — optional typed config (docsDir, port, base).
+- `.claude/skills/` and `.agents/skills/` — agent skills (`create-doc`, `apply-comments`, …).
+- `CLAUDE.md` — agent guide for authoring documents.
 
 You won't see any Vite, React, or tsconfig files in the workspace. They live inside `@open-pdf/core` and you never touch them.
 
-## Commands
+## Flags
 
-| Command | Description |
+| Flag | Description |
 | --- | --- |
-| `open-pdf init [dir]` | Scaffold a new workspace in `dir` (defaults to current dir). |
-| `open-pdf init --force` | Scaffold into a non-empty directory. |
-| `open-pdf init --name <name>` | Override the generated `package.json` name. |
+| `init [dir]` | Scaffold into `dir` (defaults to the current directory). |
+| `-f, --force` | Scaffold into a non-empty directory. |
+| `-n, --name <name>` | Override the generated `package.json` name. |
+| `--use-npm` / `--use-pnpm` / `--use-yarn` / `--use-bun` | Pick the package manager for the install step. |
+| `--no-install` | Skip dependency installation. |
+| `--no-git` | Skip git init and the initial commit. |
 
-(Once installed in the workspace, `@open-pdf/core` provides `open-pdf dev`, `open-pdf build`, and `open-pdf preview` via its own bin.)
+## The loop
 
-## Authoring
+1. Ask your agent to "make a doc about X" — the `create-doc` skill writes the React.
+2. `npm run dev` shows the live PDF preview; every save re-renders real PDF bytes.
+3. Press `i`, click anything, leave a note — it lands in the source as a marker.
+4. The agent runs `apply-comments`; `open-pdf export` ships PDF or editable Word.
 
-Inside the scaffolded workspace, docs live under `docs/<kebab-case-id>/index.tsx` and default-export an array of `Page` components. Each page renders into a fixed 1920×1080 canvas; the framework handles scaling.
+Full documentation: [docs.openpdf.sh](https://docs.openpdf.sh)
 
-Ask Claude Code to "make docs about X" and the `create-doc` skill will take it from there.
+## License
+
+MIT

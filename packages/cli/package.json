@@ -1,7 +1,7 @@
 {
   "name": "@open-pdf/cli",
   "version": "0.1.0",
-  "description": "Scaffold an open-pdf workspace with Claude Code skills preconfigured.",
+  "description": "Scaffold an open-pdf workspace — agent skills preconfigured, live real-PDF preview out of the box.",
   "type": "module",
   "bin": {
     "open-pdf": "dist/cli.js"
@@ -21,9 +21,10 @@
     "node": ">=18"
   },
   "keywords": [
-    "docs",
-    "presentation",
+    "pdf",
+    "documents",
     "claude-code",
+    "agents",
     "scaffold"
   ],
   "license": "MIT",
@@ -31,7 +32,7 @@
     "name": "autonoco",
     "url": "https://github.com/autonoco"
   },
-  "homepage": "https://open-pdf.dev",
+  "homepage": "https://openpdf.sh",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/autonoco/open-pdf.git",
