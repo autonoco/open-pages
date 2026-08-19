@@ -39,15 +39,16 @@ const LINE_ITEMS = [
 ];
 
 const SOURCE = [
-  'import { PageNumber, TotalPages,',
-  "  type PageOptions } from '@open-pdf/core';",
+  'import { PageNumber, TotalPages }',
+  "  from '@open-pdf/core';",
   '',
-  'export const pageOptions: PageOptions = {',
+  'export const pageOptions = {',
   "  size: 'a4',",
   '  margin: { top: 56, bottom: 72 },',
   '  footer: (',
   '    <span tw="flex">',
-  '      Page <PageNumber /> of <TotalPages />',
+  '      Page <PageNumber /> of',
+  '      <TotalPages />',
   '    </span>',
   '  ),',
   '};',
@@ -197,8 +198,8 @@ function Sheet() {
 
 function SourceStrip() {
   return (
-    <div className="anim-strip hidden w-[300px] shrink-0 xl:block">
-      <div className="code-font sticky top-8 rounded-lg border border-[#25241f] bg-[#171714] p-4 text-[10.5px] leading-[1.7] text-[#8a867a]">
+    <div className="anim-strip hidden w-[320px] shrink-0 xl:block">
+      <div className="code-font sticky top-8 overflow-hidden rounded-lg border border-[#25241f] bg-[#171714] p-4 text-[10.5px] leading-[1.7] text-[#8a867a]">
         <div className="mb-3 flex items-center justify-between text-[10px]">
           <span className="text-[#605d54]">docs/the-pitch/index.tsx</span>
           <span className="text-[#4d4a42]">agent-written</span>
@@ -209,7 +210,7 @@ function SourceStrip() {
             <span className="mr-3 inline-block w-4 select-none text-right text-[#45423b]">
               {i + 1}
             </span>
-            <span className={i === 16 || i === 17 || i === 18 ? 'text-[#d9d5ca]' : undefined}>
+            <span className={i === 17 || i === 18 || i === 19 ? 'text-[#d9d5ca]' : undefined}>
               {line || ' '}
             </span>
           </div>
