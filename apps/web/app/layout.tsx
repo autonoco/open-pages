@@ -22,6 +22,11 @@ export const metadata: Metadata = {
     siteName: 'open-pdf',
     type: 'website',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title,
+    description,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
