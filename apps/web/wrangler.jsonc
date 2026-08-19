@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "openpdf-sh",
+  "compatibility_date": "2026-08-01",
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "404-page"
+  },
+  "routes": [
+    { "pattern": "openpdf.sh", "custom_domain": true },
+    { "pattern": "www.openpdf.sh", "custom_domain": true }
+  ],
+  "workers_dev": true
+}

@@ -12,3 +12,4 @@ test-results
 .DS_Store
 .vscode/
 apps/demo/export
+apps/web/out
