@@ -91,7 +91,7 @@ export async function init(opts: InitOptions): Promise<void> {
 
   if (!existsSync(TEMPLATE_DIR)) {
     throw new Error(
-      `Template missing at ${TEMPLATE_DIR}. If you are running from source, run \`pnpm --filter @open-pdf/cli build\` first.`,
+      `Template missing at ${TEMPLATE_DIR}. If you are running from source, run \`pnpm --filter @autono/create-open-pdf build\` first.`,
     );
   }
 
@@ -113,8 +113,8 @@ export async function init(opts: InitOptions): Promise<void> {
     pkg.name = name ?? basename(target);
     pkg.version = '0.0.0';
     pkg.private = true;
-    if (pkg.dependencies?.['@open-pdf/core']) {
-      pkg.dependencies['@open-pdf/core'] = coreVersionRange();
+    if (pkg.dependencies?.['@autono/open-pdf']) {
+      pkg.dependencies['@autono/open-pdf'] = coreVersionRange();
     }
     await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
   }

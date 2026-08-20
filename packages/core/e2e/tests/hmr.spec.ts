@@ -9,7 +9,7 @@ import {
   refreshDocsModule,
 } from './helpers.ts';
 
-const FRESH_DECK = `import type { Page, DocMeta } from '@open-pdf/core';
+const FRESH_DECK = `import type { Page, DocMeta } from '@autono/open-pdf';
 
 export const meta: DocMeta = {
   title: 'Fresh Deck',

@@ -22,10 +22,10 @@ Keep this file short: hard rules only. All deeper guidance lives in the skills a
 
 ## Updating skills
 
-The skills above are managed by `@open-pdf/core`. Do not edit them in place. To pull the latest versions:
+The skills above are managed by `@autono/open-pdf`. Do not edit them in place. To pull the latest versions:
 
 ```
-pnpm add @open-pdf/core@latest
+pnpm add @autono/open-pdf@latest
 pnpm sync:skills
 ```
 

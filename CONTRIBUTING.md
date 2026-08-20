@@ -1,6 +1,6 @@
 # Contributing to open-pdf
 
-Thanks for your interest in improving open-pdf! This guide covers the workflow for contributing to the framework itself — the `@open-pdf/core` runtime, the `@open-pdf/cli` scaffolder, and the supporting apps.
+Thanks for your interest in improving open-pdf! This guide covers the workflow for contributing to the framework itself — the `@autono/open-pdf` runtime, the `@autono/create-open-pdf` scaffolder, and the supporting apps.
 
 If you're authoring docs inside a scaffolded project, you don't need this file — drive your deck through your coding agent or edit `docs/<id>/index.tsx` directly.
 
@@ -19,9 +19,9 @@ pnpm + Turbo monorepo.
 
 | Path | Package | Role |
 | --- | --- | --- |
-| [`packages/core`](packages/core) | `@open-pdf/core` | Runtime (viewer, present mode, inspector), Vite plugin, `open-pdf` dev/build CLI. |
-| [`packages/cli`](packages/cli) | `@open-pdf/cli` | `npx @open-pdf/cli init` scaffolder + project template. |
-| [`apps/demo`](apps/demo) | private | Local consumer of `@open-pdf/core` via `workspace:*`. The dogfood target for the framework. |
+| [`packages/core`](packages/core) | `@autono/open-pdf` | Runtime (viewer, present mode, inspector), Vite plugin, `open-pdf` dev/build CLI. |
+| [`packages/cli`](packages/cli) | `@autono/create-open-pdf` | `npm create @autono/open-pdf@latest` scaffolder + project template. |
+| [`apps/demo`](apps/demo) | private | Local consumer of `@autono/open-pdf` via `workspace:*`. The dogfood target for the framework. |
 | [`apps/web`](apps/web) | private | Marketing site (Next.js). |
 
 ## Prerequisites
@@ -38,7 +38,7 @@ cd open-pdf
 pnpm install
 ```
 
-Then run the demo against the local `@open-pdf/core`:
+Then run the demo against the local `@autono/open-pdf`:
 
 ```bash
 pnpm dev
@@ -110,7 +110,7 @@ pnpm cli <script>
 
 ## Releases
 
-Releases are cut by the maintainer via `pnpm release`, which builds `@open-pdf/core` + `@open-pdf/cli` and runs `changeset publish`. Contributors don't need to publish anything — just land the changeset alongside your code.
+Releases are cut by the maintainer via `pnpm release`, which builds `@autono/open-pdf` + `@autono/create-open-pdf` and runs `changeset publish`. Contributors don't need to publish anything — just land the changeset alongside your code.
 
 ## Questions
 

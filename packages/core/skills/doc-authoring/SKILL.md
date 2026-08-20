@@ -30,7 +30,7 @@ Details live under `references/` in this skill. **Read the relevant file before 
 - Put the doc under `docs/<kebab-case-id>/`.
 - Entry is `docs/<id>/index.tsx`.
 - Do **not** touch `package.json`, `open-pdf.config.ts`, or other docs.
-- Do not add dependencies. Only `react`, `@open-pdf/core`, and plain JS are available.
+- Do not add dependencies. Only `react`, `@autono/open-pdf`, and plain JS are available.
 - A doc is **one `index.tsx` plus `docs/<id>/assets/`** for its images/fonts — helper components and constants go inside the tsx. No other sibling files, no `README.md`, no CSS files.
 - Components must be **pure and synchronous**: no hooks, no state, no `window`/`document`, no `fetch`. The doc renders in a worker to static PDF bytes — anything dynamic has nowhere to run.
 
@@ -38,7 +38,7 @@ Details live under `references/` in this skill. **Read the relevant file before 
 
 ```tsx
 // docs/<id>/index.tsx
-import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@open-pdf/core';
+import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@autono/open-pdf';
 
 export const meta: DocMeta = {
   title: 'Q3 Services Agreement',

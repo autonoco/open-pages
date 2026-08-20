@@ -23,7 +23,7 @@ const HEADLINE_2 = 'built for agents.';
 const SERIF_600 = `open-pdfA FRAMEWORK${HEADLINE_1}${HEADLINE_2}SIGN HERE TO BEGIN`;
 const SERIF_400 =
   '“make the headline bigger”applied by your agent · re-rendered in 24msOP-0001 · PDF 1.7';
-const MONO_400 = 'h1 · index.tsx:17$ npx @open-pdf/cli init openpdf.sh';
+const MONO_400 = 'h1 · index.tsx:17$ npm create @autono/open-pdf openpdf.sh';
 
 export default async function OgImage() {
   const [serif600, serif400, mono400] = await Promise.all([
@@ -170,7 +170,7 @@ export default async function OgImage() {
           }}
         >
           <div style={{ color: '#c63a21' }}>$</div>
-          <div>npx @open-pdf/cli init</div>
+          <div>npm create @autono/open-pdf</div>
         </div>
       </div>
 

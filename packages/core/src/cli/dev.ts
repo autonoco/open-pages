@@ -103,7 +103,7 @@ function devArgs(opts: DevOptions): string[] {
 function resolveDevEntry(userCwd: string): string {
   // resolved on every spawn so a restart after an in-app update follows the
   // node_modules symlink to the newly installed version
-  const installed = path.join(userCwd, 'node_modules', '@open-pdf', 'core', 'bin.js');
+  const installed = path.join(userCwd, 'node_modules', '@autono', 'open-pdf', 'bin.js');
   if (existsSync(installed)) return installed;
   return process.argv[1] as string;
 }

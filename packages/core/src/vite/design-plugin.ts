@@ -249,7 +249,7 @@ function ensureDesignSystemImport(
   ast: AstNode,
 ): { source: string; offsetShift: number } {
   const imports = findImports(ast);
-  const coreImport = imports.find((imp) => imp.source === '@open-pdf/core');
+  const coreImport = imports.find((imp) => imp.source === '@autono/open-pdf');
   if (coreImport) {
     const hasDesignSystem = coreImport.specifiers.some((spec) => {
       if (spec.type !== 'ImportSpecifier') return false;
@@ -271,8 +271,8 @@ function ensureDesignSystemImport(
     return { source: next, offsetShift: insertText.length };
   }
 
-  // No @open-pdf/core import — add one after the last import (or at top).
-  const stmt = `import type { DesignSystem } from '@open-pdf/core';\n`;
+  // No @autono/open-pdf import — add one after the last import (or at top).
+  const stmt = `import type { DesignSystem } from '@autono/open-pdf';\n`;
   if (imports.length > 0) {
     const last = imports[imports.length - 1];
     const insertAt = last.node.end;

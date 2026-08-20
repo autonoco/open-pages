@@ -12,7 +12,7 @@ docs/<kebab-case-id>/
   assets/          # optional: images and fonts this doc uses
 ```
 
-That is the entire footprint. Helper components and constants live inside `index.tsx`. No sibling files, no CSS files, no extra dependencies. Only `react`, `@open-pdf/core`, and plain JavaScript are available.
+That is the entire footprint. Helper components and constants live inside `index.tsx`. No sibling files, no CSS files, no extra dependencies. Only `react`, `@autono/open-pdf`, and plain JavaScript are available.
 
 A document is not a web page and not a slide deck. It renders to a real PDF, and the preview in the browser is the same bytes a reader downloads. Content flows top to bottom and the engine paginates it. You write flowing, print-shaped content; the engine owns pages.
 
@@ -21,7 +21,7 @@ A document is not a web page and not a slide deck. It renders to a real PDF, and
 `index.tsx` exports exactly three things:
 
 ```tsx docs/q3-agreement/index.tsx
-import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@open-pdf/core';
+import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@autono/open-pdf';
 
 export const meta: DocMeta = {
   title: 'Q3 Services Agreement',

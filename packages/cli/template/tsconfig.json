@@ -11,7 +11,7 @@
     "noEmit": true,
     "strict": true,
     "skipLibCheck": true,
-    "types": ["@open-pdf/core/env"]
+    "types": ["@autono/open-pdf/env"]
   },
   "include": ["docs/**/*", "open-pdf.config.ts"]
 }

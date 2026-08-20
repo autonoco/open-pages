@@ -1,4 +1,4 @@
-import type { Page } from '@open-pdf/core';
+import type { Page } from '@autono/open-pdf';
 
 const base = {
   width: '100%',

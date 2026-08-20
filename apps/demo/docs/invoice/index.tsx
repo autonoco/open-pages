@@ -1,4 +1,4 @@
-import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@open-pdf/core';
+import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@autono/open-pdf';
 import logo from './assets/logo.png';
 
 export const meta: DocMeta = {

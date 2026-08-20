@@ -8,7 +8,7 @@ open-pdf's agent integration is entirely file-based. There is no MCP server, no 
 
 ## The five skills
 
-`npx @open-pdf/cli init` installs five skills into `.agents/skills/` and symlinks each into `.claude/skills/`, so Claude Code picks them up natively while other agents read them from the neutral `.agents/` location.
+`npm create @autono/open-pdf@latest` installs five skills into `.agents/skills/` and symlinks each into `.claude/skills/`, so Claude Code picks them up natively while other agents read them from the neutral `.agents/` location.
 
 | Skill | Owns |
 | --- | --- |
@@ -24,10 +24,10 @@ The workspace root carries `AGENTS.md` and an identical `CLAUDE.md`. They are de
 
 ## Keeping skills in sync
 
-Skills are managed by `@open-pdf/core`. Do not edit them in place; local edits are overwritten on the next sync. To pull the latest versions:
+Skills are managed by `@autono/open-pdf`. Do not edit them in place; local edits are overwritten on the next sync. To pull the latest versions:
 
 ```bash
-npm install @open-pdf/core@latest
+npm install @autono/open-pdf@latest
 npm run sync:skills
 ```
 

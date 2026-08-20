@@ -1,11 +1,11 @@
-# @open-pdf/cli
+# @autono/create-open-pdf
 
 Scaffold a workspace for [open-pdf](https://openpdf.sh) — the PDF framework built for agents. Your coding agent writes documents as React components; you get a live preview that **is** the PDF, click-to-comment, and export to PDF or editable Word.
 
 ## Usage
 
 ```bash
-npx @open-pdf/cli init my-docs
+npm create @autono/open-pdf@latest my-docs
 cd my-docs
 npm run dev
 ```
@@ -13,12 +13,12 @@ npm run dev
 This creates a workspace containing:
 
 - `docs/getting-started/` — a starter doc you can edit or delete.
-- `package.json` — depends on `@open-pdf/core`, which provides the runtime (viewer, inspector, export) and the `open-pdf` CLI.
+- `package.json` — depends on `@autono/open-pdf`, which provides the runtime (viewer, inspector, export) and the `open-pdf` CLI.
 - `open-pdf.config.ts` — optional typed config (docsDir, port, base).
 - `.claude/skills/` and `.agents/skills/` — agent skills (`create-doc`, `apply-comments`, …).
 - `CLAUDE.md` — agent guide for authoring documents.
 
-You won't see any Vite, React, or tsconfig files in the workspace. They live inside `@open-pdf/core` and you never touch them.
+You won't see any Vite, React, or tsconfig files in the workspace. They live inside `@autono/open-pdf` and you never touch them.
 
 ## Flags
 

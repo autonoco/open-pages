@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { type DesignSystem, defaultDesign } from '../app/lib/design.ts';
 import { applyDesignWrite, mergeDesign, parseDocDesign, serializeDesign } from './design-plugin.ts';
 
-const DOC_WITH_DESIGN = `import type { DesignSystem, Page } from '@open-pdf/core';
+const DOC_WITH_DESIGN = `import type { DesignSystem, Page } from '@autono/open-pdf';
 
 const design: DesignSystem = {
   palette: {
@@ -27,7 +27,7 @@ const Cover: Page = () => (
 export default [Cover];
 `;
 
-const DOC_WITHOUT_DESIGN = `import type { Page } from '@open-pdf/core';
+const DOC_WITHOUT_DESIGN = `import type { Page } from '@autono/open-pdf';
 
 const Cover: Page = () => (
   <div style={{ background: '#fff', color: '#000' }}>Hi</div>
@@ -94,7 +94,7 @@ describe('applyDesignWrite — doc with existing design', () => {
     const r = applyDesignWrite(DOC_WITH_DESIGN, next);
     if (!r.ok) throw new Error(r.error);
     expect(r.created).toBe(false);
-    expect(r.source).toContain("import type { DesignSystem, Page } from '@open-pdf/core'");
+    expect(r.source).toContain("import type { DesignSystem, Page } from '@autono/open-pdf'");
     expect(r.source).toContain('const design: DesignSystem =');
     expect(r.source).toContain("accent: '#ff0000'");
     expect(r.source).not.toContain("'#6d4cff'");
@@ -127,11 +127,11 @@ describe('applyDesignWrite — doc without design', () => {
     expect(parsed.design).toEqual(defaultDesign);
   });
 
-  it('adds a fresh @open-pdf/core type import when none exists', () => {
+  it('adds a fresh @autono/open-pdf type import when none exists', () => {
     const doc = `const Cover = () => <div>Hi</div>;\nexport default [Cover];\n`;
     const r = applyDesignWrite(doc, defaultDesign);
     if (!r.ok) throw new Error(r.error);
-    expect(r.source).toContain("import type { DesignSystem } from '@open-pdf/core'");
+    expect(r.source).toContain("import type { DesignSystem } from '@autono/open-pdf'");
     expect(r.source).toContain('const design: DesignSystem =');
     const parsed = parseDocDesign(r.source);
     if (!parsed.ok) throw new Error('inserted design is not parseable');

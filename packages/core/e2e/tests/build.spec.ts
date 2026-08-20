@@ -10,7 +10,7 @@ import {
   waitForHttpOk,
 } from './helpers.ts';
 
-const FLAGS_CONFIG = `import type { OpenPdfConfig } from '@open-pdf/core';
+const FLAGS_CONFIG = `import type { OpenPdfConfig } from '@autono/open-pdf';
 
 const openPdfConfig: OpenPdfConfig = {
   build: { showDocBrowser: false, showDocUi: false },

@@ -1,5 +1,5 @@
 {
-  "name": "@open-pdf/core",
+  "name": "@autono/open-pdf",
   "version": "0.1.0",
   "description": "Runtime and CLI for open-pdf — live real-PDF preview, click-to-comment inspector, and export to PDF or editable Word.",
   "type": "module",

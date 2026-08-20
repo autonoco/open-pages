@@ -46,19 +46,19 @@ describe('update routes helpers', () => {
   it('uses fixed update commands for each package manager', () => {
     expect(updateCommandFor('pnpm')).toEqual({
       cmd: 'pnpm',
-      args: ['add', '@open-pdf/core@latest'],
+      args: ['add', '@autono/open-pdf@latest'],
     });
     expect(updateCommandFor('yarn')).toEqual({
       cmd: 'yarn',
-      args: ['add', '@open-pdf/core@latest'],
+      args: ['add', '@autono/open-pdf@latest'],
     });
     expect(updateCommandFor('bun')).toEqual({
       cmd: 'bun',
-      args: ['add', '@open-pdf/core@latest'],
+      args: ['add', '@autono/open-pdf@latest'],
     });
     expect(updateCommandFor('npm')).toEqual({
       cmd: 'npm',
-      args: ['install', '@open-pdf/core@latest'],
+      args: ['install', '@autono/open-pdf@latest'],
     });
   });
 });

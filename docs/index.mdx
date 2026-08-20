@@ -21,7 +21,7 @@ The preview is not an HTML approximation. The dev server renders actual PDF byte
 A document is one folder under `docs/` with a kebab-case id. Its `index.tsx` default-exports one component and optionally exports `meta` and `pageOptions`:
 
 ```tsx docs/getting-started/index.tsx
-import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@open-pdf/core';
+import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@autono/open-pdf';
 
 export const meta: DocMeta = {
   title: 'Welcome to open-pdf',

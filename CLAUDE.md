@@ -10,9 +10,9 @@ pnpm + Turbo monorepo.
 
 | Path | Package | Role |
 | --- | --- | --- |
-| `packages/core` | `@open-pdf/core` | Runtime (viewer, present mode, inspector), Vite plugin, `open-pdf` dev/build CLI. |
-| `packages/cli` | `@open-pdf/cli` | `npx @open-pdf/cli init` scaffolder + project template. |
-| `apps/demo` | private | Local consumer of `@open-pdf/core` via `workspace:*`. Dogfood target — run `pnpm dev` here to exercise the framework. |
+| `packages/core` | `@autono/open-pdf` | Runtime (viewer, present mode, inspector), Vite plugin, `open-pdf` dev/build CLI. |
+| `packages/cli` | `@autono/create-open-pdf` | `npm create @autono/open-pdf@latest` scaffolder + project template. |
+| `apps/demo` | private | Local consumer of `@autono/open-pdf` via `workspace:*`. Dogfood target — run `pnpm dev` here to exercise the framework. |
 | `apps/web` | private | Marketing site (Next.js). |
 
 Shared config: `biome.json`, `turbo.json`, `pnpm-workspace.yaml`, `tsconfig` per package.

@@ -10,7 +10,7 @@
     "preview": "open-pdf preview"
   },
   "dependencies": {
-    "@open-pdf/core": "workspace:*",
+    "@autono/open-pdf": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

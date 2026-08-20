@@ -17,12 +17,12 @@
     "check:fix": "biome check --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "pnpm --filter @open-pdf/core test:e2e",
-    "core": "pnpm --filter @open-pdf/core",
-    "cli": "pnpm --filter @open-pdf/cli",
+    "test:e2e": "pnpm --filter @autono/open-pdf test:e2e",
+    "core": "pnpm --filter @autono/open-pdf",
+    "cli": "pnpm --filter @autono/create-open-pdf",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build --filter=@open-pdf/core --filter=@open-pdf/cli && changeset publish"
+    "release": "turbo run build --filter=@autono/open-pdf --filter=@autono/create-open-pdf && changeset publish"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.7",

@@ -139,7 +139,7 @@ The demo is a normal doc module — same shape as `docs/<id>/index.tsx`, just si
 
 Contract:
 
-- `import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@open-pdf/core';` as needed.
+- `import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@autono/open-pdf';` as needed.
 - **One default-exported component** (flowing content, 1–2 pages worth) plus `export const pageOptions` using the theme's page setup and footer band.
 - Inline the **same** fixed components defined in the theme markdown — verbatim, no abstractions. Demo and markdown must stay in lockstep so what `create-doc` pastes matches what the demo shows.
 - Content should exercise the theme's range: letterhead, a heading, a short table, a callout. Use plausible realistic content, not lorem ipsum.

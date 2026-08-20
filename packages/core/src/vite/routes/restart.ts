@@ -8,7 +8,7 @@ import { json } from './context.ts';
 //   after a restart means the new process is up.
 // POST /__restart-server → { restarting: true }
 //   Exits with RESTART_EXIT_CODE so the CLI supervisor respawns the server
-//   against the currently installed @open-pdf/core.
+//   against the currently installed @autono/open-pdf.
 
 export const RESTART_EXIT_CODE = 52;
 export const DEV_SUPERVISED_ENV = 'OPEN_PDF_DEV_SUPERVISED';

@@ -3,7 +3,7 @@
 //
 // Consumers opt in via tsconfig:
 //
-//   { "compilerOptions": { "types": ["@open-pdf/core/env"] } }
+//   { "compilerOptions": { "types": ["@autono/open-pdf/env"] } }
 
 declare module '*.svg' {
   const src: string;

@@ -6,8 +6,8 @@ icon: "terminal"
 
 open-pdf ships two packages that both register an `open-pdf` binary:
 
-- **`@open-pdf/cli`** provides `init`. Run it with `npx @open-pdf/cli init` from anywhere, no install needed.
-- **`@open-pdf/core`** provides everything else (`dev`, `build`, `preview`, `export`, `sync:skills`). It is a dependency of every workspace, so inside a workspace `npx open-pdf <command>` resolves to it. The scaffolded `package.json` also maps npm scripts: `npm run dev`, `npm run build`, `npm run preview`, `npm run export`, `npm run sync:skills`.
+- **`@autono/create-open-pdf`** provides `init`. Run it with `npm create @autono/open-pdf@latest` from anywhere, no install needed.
+- **`@autono/open-pdf`** provides everything else (`dev`, `build`, `preview`, `export`, `sync:skills`). It is a dependency of every workspace, so inside a workspace `npx open-pdf <command>` resolves to it. The scaffolded `package.json` also maps npm scripts: `npm run dev`, `npm run build`, `npm run preview`, `npm run export`, `npm run sync:skills`.
 
 When passing flags through an npm script, separate them with `--`:
 
@@ -22,7 +22,7 @@ Both binaries accept `-v, --version` and `-h, --help`.
 Create a new open-pdf workspace.
 
 ```bash
-npx @open-pdf/cli init [dir]
+npm create @autono/open-pdf@latest [dir]
 ```
 
 | Flag | Description |
@@ -37,7 +37,7 @@ npx @open-pdf/cli init [dir]
 What init does:
 
 1. Copies the workspace template into the target directory: `docs/`, `assets/`, `themes/`, `open-pdf.config.ts`, an `AGENTS.md` agent guide (linked as `CLAUDE.md`), and the five bundled agent skills under `.agents/skills/` (symlinked into `.claude/skills/`).
-2. Sets the package name, marks the package private, and sets `@open-pdf/core` to a caret range on the version the CLI was built against (`^x.y.z`).
+2. Sets the package name, marks the package private, and sets `@autono/open-pdf` to a caret range on the version the CLI was built against (`^x.y.z`).
 3. Writes a `.gitignore` covering `node_modules`, `dist`, `export`, and `.DS_Store`.
 4. Installs dependencies (unless `--no-install`) and creates a git repository with a first commit (unless `--no-git`). Git setup is skipped automatically when the target sits inside an existing repository.
 
@@ -64,7 +64,7 @@ open-pdf dev
 
 ### Skills drift check
 
-Before starting, `dev` compares the skills bundled in your installed `@open-pdf/core` against the copies in `.agents/skills/`, by content hash. If any skill was added or updated upstream:
+Before starting, `dev` compares the skills bundled in your installed `@autono/open-pdf` against the copies in `.agents/skills/`, by content hash. If any skill was added or updated upstream:
 
 - In a terminal, it asks `Sync now? (Y/n)` and runs the sync on confirmation.
 - In non-interactive contexts (CI, agent shells), it prints a warning telling you to run `open-pdf sync:skills` and continues.
@@ -77,7 +77,7 @@ OPEN_PDF_SKIP_SKILLS_CHECK=1 open-pdf dev
 
 ### Supervised process
 
-The server runs in a supervised child process. An in-app update of `@open-pdf/core` can restart the server against the freshly installed package, and restarts reuse the same port.
+The server runs in a supervised child process. An in-app update of `@autono/open-pdf` can restart the server against the freshly installed package, and restarts reuse the same port.
 
 ## build
 
@@ -142,7 +142,7 @@ open-pdf export --out-dir out
 
 ## sync:skills
 
-Sync the bundled agent skills from your installed `@open-pdf/core` into the workspace.
+Sync the bundled agent skills from your installed `@autono/open-pdf` into the workspace.
 
 ```bash
 open-pdf sync:skills
@@ -161,7 +161,7 @@ Drift detection is hash based: each skill directory (file paths plus contents) i
 Changed skills are copied into `.agents/skills/` and symlinked into `.claude/skills/` (copied where symlinks are unavailable). To pull newer skills, upgrade the package first:
 
 ```bash
-npm install @open-pdf/core@latest
+npm install @autono/open-pdf@latest
 npm run sync:skills
 ```
 

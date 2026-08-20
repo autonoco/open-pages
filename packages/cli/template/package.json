@@ -11,7 +11,7 @@
     "sync:skills": "open-pdf sync:skills"
   },
   "dependencies": {
-    "@open-pdf/core": "^0.0.6",
+    "@autono/open-pdf": "^0.0.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

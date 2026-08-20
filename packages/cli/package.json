@@ -1,10 +1,10 @@
 {
-  "name": "@open-pdf/cli",
+  "name": "@autono/create-open-pdf",
   "version": "0.1.0",
   "description": "Scaffold an open-pdf workspace — agent skills preconfigured, live real-PDF preview out of the box.",
   "type": "module",
   "bin": {
-    "open-pdf": "dist/cli.js"
+    "create-open-pdf": "dist/cli.js"
   },
   "files": [
     "dist",

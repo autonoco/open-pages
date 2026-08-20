@@ -21,7 +21,7 @@ export type { OpenPdfConfig } from './config.ts';
 export type { Locale, Plural } from './locale/types.ts';
 
 // Docs style with Tailwind via the `tw` prop (Takumi dialect). Importing
-// '@open-pdf/core' applies this JSX augmentation to the doc module.
+// '@autono/open-pdf' applies this JSX augmentation to the doc module.
 declare module 'react' {
   interface HTMLAttributes<T> {
     /** Tailwind utility classes, resolved by the PDF engine at render time. */

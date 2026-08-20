@@ -10,7 +10,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const coreRoot = path.resolve(here, '..');
 
 if (!existsSync(path.join(coreRoot, 'dist', 'cli', 'bin.js'))) {
-  console.error('packages/core/dist is missing. Run `pnpm --filter @open-pdf/core build` first.');
+  console.error('packages/core/dist is missing. Run `pnpm --filter @autono/open-pdf build` first.');
   process.exit(1);
 }
 if (!existsSync(path.join(fixtureDir, 'node_modules'))) {

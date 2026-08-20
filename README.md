@@ -7,7 +7,7 @@
 ## How it will work
 
 ```bash
-npx @open-pdf/cli init my-doc
+npm create @autono/open-pdf@latest my-doc
 cd my-doc && npm run dev
 ```
 
@@ -20,8 +20,8 @@ cd my-doc && npm run dev
 
 | Package | Purpose |
 |---|---|
-| `@open-pdf/core` | Runtime viewer, Vite plugins, inspector, `open-pdf` CLI (dev/build/preview/export/sync:skills) |
-| `@open-pdf/cli` | `init` scaffolder |
+| `@autono/open-pdf` | Runtime viewer, Vite plugins, inspector, `open-pdf` CLI (dev/build/preview/export/sync:skills) |
+| `@autono/create-open-pdf` | `init` scaffolder |
 | `apps/demo` | Example documents workspace |
 | `apps/web` | Docs site |
 

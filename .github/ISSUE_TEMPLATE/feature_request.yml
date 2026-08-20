@@ -28,8 +28,8 @@ body:
       label: Which package would this affect?
       multiple: true
       options:
-        - "@open-pdf/core (runtime, inspector, present mode, CLI)"
-        - "@open-pdf/cli (scaffolder / template)"
+        - "@autono/open-pdf (runtime, inspector, present mode, CLI)"
+        - "@autono/create-open-pdf (scaffolder / template)"
         - Agent skills (create-doc, doc-authoring, apply-comments)
         - Docs / marketing site
         - Not sure

@@ -8,7 +8,7 @@ shorter than the declared margin** (a one-line 9px band fits comfortably in
 the 56/72px margins used below).
 
 ```tsx
-import { type PageOptions, PageNumber, TotalPages } from '@open-pdf/core';
+import { type PageOptions, PageNumber, TotalPages } from '@autono/open-pdf';
 
 export const pageOptions: PageOptions = {
   size: 'a4',

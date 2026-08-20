@@ -1,4 +1,4 @@
-import type { DocMeta, Page } from '@open-pdf/core';
+import type { DocMeta, Page } from '@autono/open-pdf';
 
 export const meta: DocMeta = {
   title: 'Alpha Deck',

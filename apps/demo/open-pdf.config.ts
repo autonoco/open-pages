@@ -1,4 +1,4 @@
-import type { OpenPdfConfig } from '@open-pdf/core';
+import type { OpenPdfConfig } from '@autono/open-pdf';
 
 const openPdfConfig: OpenPdfConfig = {};
 

@@ -40,7 +40,7 @@ const LINE_ITEMS = [
 
 const SOURCE = [
   'import { PageNumber, TotalPages }',
-  "  from '@open-pdf/core';",
+  "  from '@autono/open-pdf';",
   '',
   'export const pageOptions = {',
   "  size: 'a4',",
@@ -183,7 +183,7 @@ function Sheet() {
         </div>
         <div className="code-font mt-3 flex items-baseline gap-3 text-[15px] sm:text-[17px]">
           <span className="select-none text-[var(--seal)]">$</span>
-          <span>npx @open-pdf/cli init my-docs</span>
+          <span>npm create @autono/open-pdf my-docs</span>
         </div>
       </div>
 

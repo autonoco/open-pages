@@ -1,4 +1,4 @@
-# @open-pdf/core
+# @autono/open-pdf
 
 Runtime and CLI for [open-pdf](https://openpdf.sh) — the PDF framework built for agents. Documents are React components; the dev server renders them to **real PDF bytes** on every save, so the preview you see in the browser is the file you ship.
 
@@ -7,13 +7,13 @@ Runtime and CLI for [open-pdf](https://openpdf.sh) — the PDF framework built f
 Most workspaces get this installed by the scaffolder:
 
 ```bash
-npx @open-pdf/cli init my-docs
+npm create @autono/open-pdf@latest my-docs
 ```
 
 Use this package directly only when wiring up an existing workspace by hand:
 
 ```bash
-pnpm add @open-pdf/core
+pnpm add @autono/open-pdf
 ```
 
 ## What's inside
@@ -41,8 +41,8 @@ Once installed, the `open-pdf` bin is available in the workspace:
 A document is one folder under `docs/` with an `index.tsx` that default-exports a React component. Style with Tailwind via the `tw` prop; content flows and the engine paginates.
 
 ```tsx
-import { PageNumber, TotalPages } from '@open-pdf/core';
-import type { PageOptions } from '@open-pdf/core';
+import { PageNumber, TotalPages } from '@autono/open-pdf';
+import type { PageOptions } from '@autono/open-pdf';
 
 export const pageOptions: PageOptions = {
   size: 'a4',
@@ -80,13 +80,13 @@ import {
   type PageFont,
   type PageMarginSide,
   type OpenPdfConfig,
-} from '@open-pdf/core';
+} from '@autono/open-pdf';
 ```
 
 The Vite plugin is exposed under a subpath for advanced setups:
 
 ```ts
-import { createViteConfig } from '@open-pdf/core/vite';
+import { createViteConfig } from '@autono/open-pdf/vite';
 ```
 
 ## Config
@@ -94,7 +94,7 @@ import { createViteConfig } from '@open-pdf/core/vite';
 Create `open-pdf.config.ts` in the workspace root (all fields optional):
 
 ```ts
-import type { OpenPdfConfig } from '@open-pdf/core';
+import type { OpenPdfConfig } from '@autono/open-pdf';
 
 const openPdfConfig: OpenPdfConfig = {
   docsDir: 'docs',

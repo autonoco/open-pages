@@ -31,7 +31,7 @@ open-slide's fixed page-per-component model exists because slides are fixed canv
 
 ## 2. What we're cloning (open-slide architecture, verified at source)
 
-- **Two packages.** `@open-pdf/core` — runtime viewer app (shipped as *source* in the npm tarball; Vite root points at `node_modules/@open-pdf/core/src/app`), Vite plugins, and the `open-pdf` bin (`dev`/`build`/`preview`/`export`/`sync:skills`). `@open-pdf/cli` — init-only scaffolder (commander + prompts): copies `template/`, rewrites package.json (core version baked at build time via tsdown `define` — don't forget this), symlinks `CLAUDE.md → AGENTS.md` and `.claude/skills/* → .agents/skills/*` (file copies on Windows), runs install + git init.
+- **Two packages.** `@autono/open-pdf` — runtime viewer app (shipped as *source* in the npm tarball; Vite root points at `node_modules/@autono/open-pdf/src/app`), Vite plugins, and the `open-pdf` bin (`dev`/`build`/`preview`/`export`/`sync:skills`). `@autono/create-open-pdf` — init-only scaffolder (commander + prompts): copies `template/`, rewrites package.json (core version baked at build time via tsdown `define` — don't forget this), symlinks `CLAUDE.md → AGENTS.md` and `.claude/skills/* → .agents/skills/*` (file copies on Windows), runs install + git init.
 - **Scaffolded workspace** contains only content + a typed config; all React/Vite plumbing hidden in core:
   ```
   docs/<kebab-id>/index.tsx      # default export: the document component + meta export
@@ -85,15 +85,15 @@ Also worth an early upstream ask: a layout-geometry/debug API in takumi-pdf (mai
 
 ## 6. Build order
 
-1. **Core viewer (week 1):** monorepo (pnpm + turbo + biome + vitest, mirroring open-slide), `@open-pdf/core` Vite plugin + virtual modules + doc discovery, viewer SPA (port open-slide's app shell), worker-side takumi render → pdf.js canvas with stale-while-revalidate. Milestone: edit `docs/demo/index.tsx`, PDF preview hot-updates in <500ms.
+1. **Core viewer (week 1):** monorepo (pnpm + turbo + biome + vitest, mirroring open-slide), `@autono/open-pdf` Vite plugin + virtual modules + doc discovery, viewer SPA (port open-slide's app shell), worker-side takumi render → pdf.js canvas with stale-while-revalidate. Milestone: edit `docs/demo/index.tsx`, PDF preview hot-updates in <500ms.
 2. **Inspector (week 2):** loc-tags plugin + id injection, struct-tree hit-map + overlay, comments route + `@pdf-comment` markers, `current.json`, then direct-edit ops (`set-text` first). File the two takumi layout bugs upstream (§8) with the minimal repros from the bake-off.
-3. **CLI + skills (week 3):** `@open-pdf/cli init`, template, AGENTS.md, five skills (adapt open-slide's; `/pdf-authoring` teaches the Takumi dialect + bug avoidances), `sync:skills` + drift check, vendored pdfcn component kit + fonts.
+3. **CLI + skills (week 3):** `@autono/create-open-pdf init`, template, AGENTS.md, five skills (adapt open-slide's; `/pdf-authoring` teaches the Takumi dialect + bug avoidances), `sync:skills` + drift check, vendored pdfcn component kit + fonts.
 4. **Export formats — SHIPPED 2026-08-18:** `open-pdf export --format docx` emits editable Word files (source node tree → OOXML: paragraphs, styled runs, tables with repeating headers, images, PAGE/NUMPAGES footer fields). Google Docs: upload the .docx to Drive — conversion verified end-to-end (structure, tables, images survive). Future: in-viewer Word button, direct Drive-upload flow.
 5. **Export + polish (week 4):** `open-pdf export` CLI, PDF/A config, themes + `/create-theme`, assets manager + svgl, demo workspace (invoice, report, proposal, contract), docs site (Next + fumadocs, llms.txt + per-page .md), changesets + CI **with a poppler-render smoke test** and veraPDF validation (takumi's own CI pattern), MIT, `demo.open-pdf.dev`.
 
 ## 7. Positioning
 
-- Tagline: **"The PDF framework built for agents."** CTA: `npx @open-pdf/cli init my-doc`. MIT, demo subdomain, docs with llms.txt.
+- Tagline: **"The PDF framework built for agents."** CTA: `npm create @autono/open-pdf@latest my-doc`. MIT, demo subdomain, docs with llms.txt.
 - Wedge (verified nobody does all three): AI-writes-code + live *real-PDF* preview + visual write-back. react-pdf REPL = preview only; molefrog's Claude skill = generation only; PDFx Builder = closed/commercial; htmldocs = HTML route, no agent loop; Fileforge = dormant since Sept 2024.
 - pdfcn relationship: **ally, not competitor** — we build the agent+inspector product layer above their component layer, vendor their MIT components, contribute fixes upstream. Their MCP + agent-skills endpoints show the ecosystem is already agent-native.
 

@@ -1,4 +1,4 @@
-import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@open-pdf/core';
+import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@autono/open-pdf';
 
 export const meta: DocMeta = {
   title: 'Q3 Services Proposal',

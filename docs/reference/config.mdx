@@ -7,7 +7,7 @@ icon: "settings"
 `open-pdf.config.ts` sits at the workspace root and default-exports an `OpenPdfConfig`. The scaffolded file is empty, and every field is optional. A missing file means all defaults.
 
 ```ts open-pdf.config.ts
-import type { OpenPdfConfig } from '@open-pdf/core';
+import type { OpenPdfConfig } from '@autono/open-pdf';
 
 const openPdfConfig: OpenPdfConfig = {};
 
@@ -30,7 +30,7 @@ The agent guide scaffolded by `init` tells agents not to modify this file. Confi
 | `assetsDir` | `string` | `'assets'` | Shared assets directory, importable from docs via the `@assets` alias. |
 | `port` | `number` | `5173` | Dev server port. The `-p, --port` flag on [`open-pdf dev`](/reference/cli) overrides it. |
 | `allowedHosts` | `string[] \| true` | unset | Hostnames allowed to reach the dev server (Vite's `server.allowedHosts`). Needed when accessing the server through a proxy or tunnel hostname. `true` allows any host. |
-| `locale` | `Locale` | unset | Deprecated. Seeds the initial UI language until the viewer picks one in the language switcher (their choice is then remembered locally). Locale objects (`en`, `ja`, `zhCN`, `zhTW`) come from `@open-pdf/core/locale`. |
+| `locale` | `Locale` | unset | Deprecated. Seeds the initial UI language until the viewer picks one in the language switcher (their choice is then remembered locally). Locale objects (`en`, `ja`, `zhCN`, `zhTW`) come from `@autono/open-pdf/locale`. |
 | `build` | `OpenPdfBuildConfig` | all `true` | Feature flags for the static site produced by `open-pdf build`. Ignored in dev, where everything is always enabled. |
 
 ## build
@@ -48,7 +48,7 @@ The agent guide scaffolded by `init` tells agents not to modify this file. Confi
 A workspace served under a subpath, on a fixed port, building a viewer-only site:
 
 ```ts open-pdf.config.ts
-import type { OpenPdfConfig } from '@open-pdf/core';
+import type { OpenPdfConfig } from '@autono/open-pdf';
 
 const openPdfConfig: OpenPdfConfig = {
   base: '/reports/',

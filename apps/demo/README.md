@@ -1,6 +1,6 @@
 # open-pdf workspace
 
-Docs as React components. Each doc lives under `docs/<id>/index.tsx` and default-exports an array of page components. The `@open-pdf/core` runtime handles layout, scaling, navigation, thumbnails, and fullscreen play mode — you just write the pages.
+Docs as React components. Each doc lives under `docs/<id>/index.tsx` and default-exports an array of page components. The `@autono/open-pdf` runtime handles layout, scaling, navigation, thumbnails, and fullscreen play mode — you just write the pages.
 
 ## Getting started
 
@@ -23,7 +23,7 @@ Then open the dev server and create a new doc at `docs/<your-doc>/index.tsx`.
 
 ```tsx
 // docs/my-doc/index.tsx
-import type { Page, DocMeta } from '@open-pdf/core';
+import type { Page, DocMeta } from '@autono/open-pdf';
 
 const Cover: Page = () => (
   <div style={{ width: '100%', height: '100%' }}>Hello</div>
@@ -52,7 +52,7 @@ This workspace ships with Claude Code skills preconfigured under `.claude/skills
 Optional `open-pdf.config.ts` at the workspace root:
 
 ```ts
-import type { OpenPdfConfig } from '@open-pdf/core';
+import type { OpenPdfConfig } from '@autono/open-pdf';
 
 const openPdfConfig: OpenPdfConfig = {
   port: 5173,
