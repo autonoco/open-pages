@@ -93,7 +93,7 @@ pnpm cli <script>
 
 ## Releases
 
-Every merge to `main` is a release. CI tags the next minor version, builds both packages, publishes them to npm with provenance, and creates a GitHub Release with generated notes. Contributors don't need to do anything beyond landing the PR.
+Every merge to `main` is a release by default. CI tags the next minor version, builds both packages, publishes them to npm with provenance, and creates a GitHub Release with generated notes. Merge commits containing `[skip release]` skip it. Contributors don't need to do anything beyond landing the PR.
 
 ## Questions
 

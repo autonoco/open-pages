@@ -104,7 +104,7 @@ pnpm test
 
 Bugs and feature requests go through the [issue templates](https://github.com/autonoco/open-pdf/issues/new/choose). Questions and show-and-tell belong in [Discussions](https://github.com/autonoco/open-pdf/discussions). Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-Every merge to `main` is a release: CI tags the next version, publishes both packages to npm with provenance, and cuts a [GitHub Release](https://github.com/autonoco/open-pdf/releases).
+Every merge to `main` is a release by default: CI tags the next version, publishes both packages to npm with provenance, and cuts a [GitHub Release](https://github.com/autonoco/open-pdf/releases). Merge commits containing `[skip release]` skip it.
 
 ## Security
 

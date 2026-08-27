@@ -97,8 +97,12 @@ jobs:
           # 0.1.0 shipped before this workflow existed, so with no v* tag yet
           # the baseline is whatever npm already has.
           if [ -z "$LATEST" ]; then
-            PUBLISHED=$(npm view @autono/open-pdf version 2>/dev/null || true)
-            LATEST="v${PUBLISHED:-0.0.0}"
+            PUBLISHED=$(npm view @autono/open-pdf version)
+            if ! printf '%s' "$PUBLISHED" | grep -Eq "^${SEMVER}$"; then
+              echo "Could not determine the published npm baseline: $PUBLISHED" >&2
+              exit 1
+            fi
+            LATEST="v$PUBLISHED"
           fi
           VERSION="${LATEST#v}"
           MAJOR=$(printf '%s' "$VERSION" | cut -d. -f1)
