@@ -17,7 +17,12 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/app/*"]
+      "@/*": ["./src/app/*"],
+      // The workspace has @types/react 18 (core, demo) and 19 (web). pnpm hoists one of
+      // them nondeterministically, and react-router/lucide types resolve `react` through the
+      // hoisted copy. Pin resolution to this package's own @types/react.
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"]
     },
     "types": ["node", "vite/client"]
   },
