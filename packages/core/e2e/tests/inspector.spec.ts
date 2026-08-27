@@ -1,7 +1,15 @@
 import { expect, test } from '@playwright/test';
-import { deleteDoc, duplicateDoc, editorCanvas, openPdf, readDocSource } from './helpers.ts';
+import {
+  deleteDoc,
+  duplicateDoc,
+  enableInspect,
+  inspectBoxes,
+  inspectToggle,
+  openDoc,
+  readDocSource,
+} from './helpers.ts';
 
-test.describe('inspector editing', () => {
+test.describe('inspector', () => {
   const createdDocs: string[] = [];
 
   test.afterEach(async ({ request }) => {
@@ -17,121 +25,83 @@ test.describe('inspector editing', () => {
   ) {
     createdDocs.push(docId);
     await duplicateDoc(request, 'edit-target', docId);
-    await openPdf(page, docId);
+    await openDoc(page, docId);
   }
 
-  test('selecting an element opens the panel with its tag and text', async ({ page, request }) => {
-    await openEditable(page, request, 'insp-select');
-    await page.getByTitle('Inspect').click();
-    await editorCanvas(page).getByText('Editable headline').click();
-
-    const panel = page.locator('aside[data-inspector-ui]');
-    await expect(panel).toBeVisible();
-    await expect(panel.getByText('<h1>')).toBeVisible();
-    await expect(panel.getByPlaceholder('Element text')).toHaveValue('Editable headline');
+  test('inspect mode overlays a hit box per source element', async ({ page }) => {
+    await openDoc(page, 'edit-target');
+    await enableInspect(page);
+    await expect(inspectBoxes(page, 'h1')).toHaveCount(1);
+    await expect(inspectBoxes(page, 'p')).toHaveCount(1);
   });
 
-  test('saving a text edit rewrites the doc source on disk', async ({ page, request }) => {
-    await openEditable(page, request, 'insp-save');
-    await page.getByTitle('Inspect').click();
-    await editorCanvas(page).getByText('Editable headline').click();
+  test('selecting an element shows its tag, source location, and text', async ({ page }) => {
+    await openDoc(page, 'edit-target');
+    await enableInspect(page);
+    await inspectBoxes(page, 'h1').click();
 
-    await page
-      .locator('aside[data-inspector-ui]')
-      .getByPlaceholder('Element text')
-      .fill('Edited via inspector');
-    await expect(editorCanvas(page).getByText('Edited via inspector')).toBeVisible();
-    await expect(page.getByText('1 unsaved change')).toBeVisible();
+    const source = await readDocSource('edit-target');
+    const line = source.split('\n').findIndex((l) => l.includes('<h1')) + 1;
+    expect(line).toBeGreaterThan(0);
 
-    const saved = page.waitForResponse(
-      (res) => res.url().includes('/__edit') && res.request().method() === 'POST',
+    await expect(page.getByText('h1', { exact: true })).toBeVisible();
+    await expect(page.getByText(new RegExp(`^line ${line}, col \\d+$`))).toBeVisible();
+    await expect(page.getByText('Editable headline')).toBeVisible();
+    await expect(page.getByPlaceholder(/Leave a note for your agent/)).toBeVisible();
+  });
+
+  test('saving a comment writes a marker into the doc source', async ({ page, request }) => {
+    await openEditable(page, request, 'insp-comment');
+    await enableInspect(page);
+    await inspectBoxes(page, 'h1').click();
+
+    const note = page.getByPlaceholder(/Leave a note for your agent/);
+    const save = page.getByRole('button', { name: 'Save comment' });
+    await expect(save).toBeDisabled();
+    await note.fill('make the headline bigger');
+    await expect(save).toBeEnabled();
+
+    const posted = page.waitForResponse(
+      (res) => res.url().includes('/__comments/add') && res.request().method() === 'POST',
     );
-    await page.getByRole('button', { name: 'Save' }).click();
-    expect((await saved).status()).toBe(200);
-    await expect.poll(() => readDocSource('insp-save')).toContain('Edited via inspector');
+    await save.click();
+    expect((await posted).status()).toBe(200);
+
+    await expect(page.getByText('Comment saved — run /apply-comments to apply it')).toBeVisible();
+    await expect(note).toHaveCount(0);
+    await expect.poll(() => readDocSource('insp-comment')).toContain('@pdf-comment');
+    const list = (await (await request.get('/__comments/?docId=insp-comment')).json()) as {
+      comments: { note: string }[];
+    };
+    expect(list.comments.map((c) => c.note)).toEqual(['make the headline bigger']);
   });
 
-  test('discard reverts the edit without touching the file', async ({ page, request }) => {
-    await openEditable(page, request, 'insp-discard');
-    await page.getByTitle('Inspect').click();
-    await editorCanvas(page).getByText('Editable headline').click();
+  test('escape and the clear button dismiss the selection', async ({ page }) => {
+    await openDoc(page, 'edit-target');
+    await enableInspect(page);
 
-    await page
-      .locator('aside[data-inspector-ui]')
-      .getByPlaceholder('Element text')
-      .fill('Discarded text');
-    await expect(editorCanvas(page).getByText('Discarded text')).toBeVisible();
+    await inspectBoxes(page, 'h1').click();
+    const note = page.getByPlaceholder(/Leave a note for your agent/);
+    await expect(note).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(note).toHaveCount(0);
 
-    await page.getByRole('button', { name: 'Discard' }).click();
-    await expect(editorCanvas(page).getByText('Editable headline')).toBeVisible();
-    expect(await readDocSource('insp-discard')).not.toContain('Discarded text');
+    await inspectBoxes(page, 'p').click();
+    await expect(note).toBeVisible();
+    await page.getByRole('button', { name: 'Clear selection' }).click();
+    await expect(note).toHaveCount(0);
   });
 
-  test('toggling the inspector off commits pending edits', async ({ page, request }) => {
-    await openEditable(page, request, 'insp-commit');
-    await page.getByTitle('Inspect').click();
-    await editorCanvas(page).getByText('Editable body copy').click();
+  test('the i shortcut toggles inspect mode', async ({ page }) => {
+    await openDoc(page, 'edit-target');
+    await expect(inspectToggle(page)).toBeEnabled({ timeout: 15_000 });
 
-    await page
-      .locator('aside[data-inspector-ui]')
-      .getByPlaceholder('Element text')
-      .fill('Committed body copy');
-
-    const saved = page.waitForResponse(
-      (res) => res.url().includes('/__edit') && res.request().method() === 'POST',
-    );
-    await page.getByTitle('Inspect').click();
-    expect((await saved).status()).toBe(200);
-    await expect.poll(() => readDocSource('insp-commit')).toContain('Committed body copy');
-  });
-
-  test('style toggles restyle the element live and save to disk', async ({ page, request }) => {
-    await openEditable(page, request, 'insp-style');
-    await page.getByTitle('Inspect').click();
-    const headline = editorCanvas(page).getByText('Editable headline');
-    await headline.click();
-
-    const panel = page.locator('aside[data-inspector-ui]');
-    const bold = panel.getByRole('button', { name: 'Bold' });
-    const italic = panel.getByRole('button', { name: 'Italic' });
-    await bold.click();
-    await italic.click();
-    await panel.getByRole('button', { name: 'center', exact: true }).click();
-    await expect(bold).toHaveAttribute('aria-pressed', 'true');
-    await expect(italic).toHaveAttribute('aria-pressed', 'true');
-    await expect(headline).toHaveCSS('font-weight', '700');
-    await expect(headline).toHaveCSS('font-style', 'italic');
-    await expect(headline).toHaveCSS('text-align', 'center');
-
-    const saved = page.waitForResponse(
-      (res) => res.url().includes('/__edit') && res.request().method() === 'POST',
-    );
-    await page.getByRole('button', { name: 'Save' }).click();
-    expect((await saved).status()).toBe(200);
-    await expect.poll(() => readDocSource('insp-style')).toContain('textAlign');
-    const src = await readDocSource('insp-style');
-    expect(src).toContain('fontWeight');
-    expect(src).toContain('fontStyle');
-  });
-
-  test('undo and redo step through an inspector edit', async ({ page, request }) => {
-    await openEditable(page, request, 'insp-undo');
-    await page.getByTitle('Inspect').click();
-    await editorCanvas(page).getByText('Editable headline').click();
-    await page.locator('aside[data-inspector-ui]').getByPlaceholder('Element text').fill('Undo me');
-    await expect(editorCanvas(page).getByText('Undo me')).toBeVisible();
-
-    await page.getByRole('button', { name: 'Undo' }).click();
-    await expect(editorCanvas(page).getByText('Editable headline')).toBeVisible();
-
-    await page.getByRole('button', { name: 'Redo' }).click();
-    await expect(editorCanvas(page).getByText('Undo me')).toBeVisible();
-  });
-
-  test('the i shortcut toggles inspect mode', async ({ page, request }) => {
-    await openEditable(page, request, 'insp-key');
     await page.keyboard.press('i');
-    await editorCanvas(page).getByText('Editable headline').click();
-    await expect(page.locator('aside[data-inspector-ui]')).toBeVisible();
+    await expect(inspectToggle(page)).toHaveAttribute('aria-pressed', 'true');
+    await expect(inspectBoxes(page).first()).toBeVisible();
+
+    await page.keyboard.press('i');
+    await expect(inspectToggle(page)).toHaveAttribute('aria-pressed', 'false');
+    await expect(inspectBoxes(page)).toHaveCount(0);
   });
 });

@@ -135,6 +135,18 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
     build: {
       outDir: path.resolve(userCwd, 'dist'),
       emptyOutDir: true,
+      // The render worker top-level-awaits WASM init; the default es2020
+      // target and iife worker format both reject that.
+      target: 'es2022',
+    },
+    worker: {
+      format: 'es',
+      // Worker bundles get their own plugin pipeline; the render worker imports
+      // the docs virtual module and needs loc tags for inspector geometry.
+      plugins: () => [
+        locTagsPlugin({ userCwd, docsDir }),
+        openPdfPlugin({ userCwd, config, coreVersion: CORE_VERSION }),
+      ],
     },
   };
 }

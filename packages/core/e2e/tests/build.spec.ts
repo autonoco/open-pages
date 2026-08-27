@@ -50,10 +50,9 @@ test.describe('static build and preview', () => {
     expect(html).toContain('<div id="root"></div>');
     expect(html).toContain('<title>open-pdf</title>');
 
-    // Each doc is lazily imported, so the deck code-splits into at least one
-    // chunk per doc plus the entry chunk. The exact chunk filenames depend on
-    // the bundler (Rollup names them after the module basename, `index-*.js`),
-    // so assert the split happened rather than pinning a naming convention.
+    // Each doc is lazily imported, so it code-splits into at least one chunk
+    // per doc plus the entry chunk. Chunk names depend on the bundler, so
+    // assert the split happened rather than pinning a naming convention.
     const docCount = 4;
     const assets = await fs.readdir(path.join(dist, 'assets'));
     const jsChunks = assets.filter((name) => name.endsWith('.js'));
@@ -62,15 +61,14 @@ test.describe('static build and preview', () => {
 
   test('serves the doc browser from the static bundle', async ({ page }) => {
     await page.goto(`${baseUrl}/`);
-    await expect(page.getByText('Alpha Deck')).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText('Steps Deck')).toBeVisible();
+    await expect(page.getByText('Alpha Doc')).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText('Tables Doc')).toBeVisible();
   });
 
-  test('deep links resolve through the spa fallback', async ({ page }) => {
-    await page.goto(`${baseUrl}/s/steps`);
-    await expect(page.locator('main[data-inspector-root]').getByText('Steps page one')).toBeVisible(
-      { timeout: 30_000 },
-    );
+  test('deep links resolve through the spa fallback and render', async ({ page }) => {
+    await page.goto(`${baseUrl}/s/alpha`);
+    await expect(page.locator('main canvas').first()).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator('main canvas')).toHaveCount(3);
   });
 
   test('dev-only endpoints fall through to the spa fallback in preview', async ({ request }) => {
@@ -107,12 +105,11 @@ test.describe('build flags', () => {
     await expect(page.getByText('Page not found')).toBeVisible();
   });
 
-  test('showDocUi false serves a bare read-only player', async ({ page }) => {
+  test('showDocUi false serves a bare read-only viewer', async ({ page }) => {
     await page.goto(`${baseUrl}/s/alpha`);
-    await expect(page.getByText('Alpha page one')).toBeVisible({ timeout: 30_000 });
-    await expect(page.locator('main[data-inspector-root]')).toHaveCount(0);
-
-    await page.keyboard.press('ArrowRight');
-    await expect(page.getByText('Alpha page two')).toBeVisible();
+    await expect(page.locator('main canvas').first()).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator('header')).toHaveCount(0);
+    await expect(page.locator('aside')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Inspect', exact: true })).toHaveCount(0);
   });
 });

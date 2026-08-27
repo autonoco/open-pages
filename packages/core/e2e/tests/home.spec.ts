@@ -1,30 +1,29 @@
 import { expect, test } from '@playwright/test';
+import { pdfPages } from './helpers.ts';
 
 test.describe('home doc browser', () => {
-  test('lists every fixture deck with its display title', async ({ page }) => {
+  test('lists every fixture doc with its display title', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('li h3')).toHaveCount(4);
-    await expect(page.getByText('Alpha Deck')).toBeVisible();
-    await expect(page.getByText('Steps Deck')).toBeVisible();
+    await expect(page.getByText('Alpha Doc')).toBeVisible();
+    await expect(page.getByText('Tables Doc')).toBeVisible();
     await expect(page.getByText('Edit Target')).toBeVisible();
-    await expect(page.getByText('Hot Deck')).toBeVisible();
+    await expect(page.getByText('Hot Doc')).toBeVisible();
   });
 
   test('doc card links to the viewer', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: 'Alpha Deck' }).click();
+    await page.getByRole('link', { name: 'Alpha Doc' }).click();
     await expect(page).toHaveURL(/\/s\/alpha$/);
-    await expect(page.locator('main[data-inspector-root]').getByText('Alpha page one')).toBeVisible(
-      { timeout: 30_000 },
-    );
+    await expect(pdfPages(page).first()).toBeVisible({ timeout: 30_000 });
   });
 
-  test('search filters decks and can be cleared', async ({ page }) => {
+  test('search filters docs and can be cleared', async ({ page }) => {
     await page.goto('/');
     const search = page.getByPlaceholder('Search docs');
-    await search.fill('steps');
+    await search.fill('tables');
     await expect(page.locator('li h3')).toHaveCount(1);
-    await expect(page.getByText('Steps Deck')).toBeVisible();
+    await expect(page.getByText('Tables Doc')).toBeVisible();
 
     await search.fill('zzz-no-match');
     await expect(page.getByText('No matches')).toBeVisible();
@@ -32,25 +31,19 @@ test.describe('home doc browser', () => {
     await expect(page.locator('li h3')).toHaveCount(4);
   });
 
-  test('sort control reorders decks by created date', async ({ page }) => {
+  test('sort control reorders docs by created date', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('li h3').first()).toHaveText('Alpha Deck');
+    await expect(page.locator('li h3').first()).toHaveText('Alpha Doc');
     await page.getByRole('button', { name: /^Sort:/ }).click();
     await page.getByRole('menuitem', { name: 'Oldest' }).click();
-    await expect(page.locator('li h3').first()).toHaveText('Hot Deck');
+    await expect(page.locator('li h3').first()).toHaveText('Hot Doc');
   });
 
-  test('deck theme badge links to the theme page', async ({ page }) => {
+  test('doc theme badge links to the theme page', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('link', { name: 'plain' }).click();
     await expect(page).toHaveURL(/\/themes\/plain$/);
     await expect(page.getByText('Plain').first()).toBeVisible();
-  });
-
-  test('themes gallery lists fixture themes', async ({ page }) => {
-    await page.goto('/themes');
-    await expect(page.getByText('Plain').first()).toBeVisible();
-    await expect(page.getByText('Minimal fixture theme for e2e tests.')).toBeVisible();
   });
 
   test('theme toggle switches to dark mode', async ({ page }) => {

@@ -1,41 +1,36 @@
-import type { DocMeta, Page } from '@autono/open-pdf';
+import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@autono/open-pdf';
 
 export const meta: DocMeta = {
-  title: 'Alpha Deck',
+  title: 'Alpha Doc',
   theme: 'plain',
   createdAt: '2026-01-03T00:00:00.000Z',
 };
 
-const fill = {
-  width: '100%',
-  height: '100%',
-  background: '#101014',
-  color: '#f2f2ef',
-  padding: 120,
-  fontFamily: 'system-ui, sans-serif',
-} as const;
+export const pageOptions: PageOptions = {
+  size: 'a4',
+  margin: { top: 56, right: 64, bottom: 72, left: 64 },
+  footer: (
+    <div tw="flex w-full justify-end text-[9px] text-slate-400">
+      <span tw="flex">
+        Page <PageNumber /> of <TotalPages />
+      </span>
+    </div>
+  ),
+};
 
-const One: Page = () => (
-  <div style={fill}>
-    <h1 style={{ fontSize: 96, margin: 0 }}>Alpha page one</h1>
-    <p style={{ fontSize: 40 }}>Opening content</p>
-  </div>
-);
-
-const Two: Page = () => (
-  <div style={fill}>
-    <h1 style={{ fontSize: 96, margin: 0 }}>Alpha page two</h1>
-    <p style={{ fontSize: 40 }}>Middle content</p>
-  </div>
-);
-
-const Three: Page = () => (
-  <div style={fill}>
-    <h1 style={{ fontSize: 96, margin: 0 }}>Alpha page three</h1>
-    <p style={{ fontSize: 40 }}>Closing content</p>
-  </div>
-);
-
-export const notes: (string | undefined)[] = ['Alpha speaker note', undefined, 'Alpha final note'];
-
-export default [One, Two, Three] satisfies Page[];
+export default function Alpha() {
+  return (
+    <main tw="flex flex-col text-[12px] text-slate-800">
+      <h1 tw="text-[32px] font-bold">Alpha page one</h1>
+      <p tw="mt-4">Opening content</p>
+      <div tw="flex flex-col" style={{ breakBefore: 'page' }}>
+        <h1 tw="text-[32px] font-bold">Alpha page two</h1>
+        <p tw="mt-4">Middle content</p>
+      </div>
+      <div tw="flex flex-col" style={{ breakBefore: 'page' }}>
+        <h1 tw="text-[32px] font-bold">Alpha page three</h1>
+        <p tw="mt-4">Closing content</p>
+      </div>
+    </main>
+  );
+}

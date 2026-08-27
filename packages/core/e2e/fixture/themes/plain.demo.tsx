@@ -1,25 +1,8 @@
-import type { Page } from '@autono/open-pdf';
-
-const base = {
-  width: '100%',
-  height: '100%',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background: '#0b0b0f',
-  color: '#f5f5f5',
-} as const;
-
-const One: Page = () => (
-  <div style={base}>
-    <h1 style={{ fontSize: 96, margin: 0 }}>Theme demo one</h1>
-  </div>
-);
-
-const Two: Page = () => (
-  <div style={base}>
-    <h1 style={{ fontSize: 96, margin: 0 }}>Theme demo two</h1>
-  </div>
-);
-
-export default [One, Two] satisfies Page[];
+export default function PlainDemo() {
+  return (
+    <main tw="flex flex-col text-[12px] text-slate-800">
+      <h1 tw="text-[32px] font-bold">Theme demo</h1>
+      <p tw="mt-4">Minimal fixture theme demo.</p>
+    </main>
+  );
+}
