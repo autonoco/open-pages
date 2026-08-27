@@ -27,4 +27,4 @@ You'll get an acknowledgement within 3 business days and a status update at leas
 
 In scope: the `@autono/open-pdf` runtime and CLI, the `@autono/create-open-pdf` scaffolder and its template, and the release pipeline in this repository.
 
-Out of scope: [openpdf.sh](https://openpdf.sh) and [docs.openpdf.sh](https://docs.openpdf.sh) content, vulnerabilities in upstream dependencies that have no open-pdf specific impact (report those upstream), and documents you author in your own workspace.
+Out of scope: [openpdf.sh](https://openpdf.sh) and [docs.openpdf.sh](https://docs.openpdf.sh) content, vulnerabilities in upstream dependencies that have no open-pdf-specific impact (report those upstream), and documents you author in your own workspace.
