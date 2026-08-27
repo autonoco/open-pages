@@ -23,19 +23,30 @@ export function readDocSource(docId: string, projectDir = devScratchDir): Promis
   return fs.readFile(docSourcePath(docId, projectDir), 'utf8');
 }
 
-export function editorCanvas(page: Page): Locator {
-  return page.locator('main[data-inspector-root]');
+/** Rendered PDF pages in the viewer (one canvas per page). */
+export function pdfPages(page: Page): Locator {
+  return page.locator('main canvas');
 }
 
-// The first visit per page load holds an asset-warm loading gate (up to 15s).
-// A doc duplicated moments earlier can also 404 until the docs virtual
-// module refreshes (watcher debounce), and the server's full-reload broadcast
-// can fire before this page's HMR socket connects — so retry with a reload.
-export async function openPdf(page: Page, docId: string, query = ''): Promise<void> {
-  await page.goto(`/s/${docId}${query}`);
+/** Hit-test buttons the inspector overlays on the rendered pages. */
+export function inspectBoxes(page: Page, tag?: string): Locator {
+  return page.getByRole('button', { name: tag ? new RegExp(`^Inspect ${tag} at `) : /^Inspect / });
+}
+
+export function inspectToggle(page: Page): Locator {
+  return page.getByRole('button', { name: 'Inspect', exact: true });
+}
+
+// The first render per page load waits on WASM init in the worker (several
+// seconds cold). A doc duplicated moments earlier can also 404 until the docs
+// virtual module refreshes (watcher debounce), and the server's full-reload
+// broadcast can fire before this page's HMR socket connects — so retry with a
+// reload.
+export async function openDoc(page: Page, docId: string): Promise<void> {
+  await page.goto(`/s/${docId}`);
   for (let attempt = 0; ; attempt++) {
     try {
-      await expect(editorCanvas(page)).toBeVisible({ timeout: 15_000 });
+      await expect(pdfPages(page).first()).toBeVisible({ timeout: 30_000 });
       return;
     } catch (err) {
       if (attempt >= 2) throw err;
@@ -44,13 +55,16 @@ export async function openPdf(page: Page, docId: string, query = ''): Promise<vo
   }
 }
 
-export async function enterPlayMode(page: Page): Promise<void> {
-  await page.keyboard.press('Enter');
-  await expect(editorCanvas(page)).toBeHidden();
+export async function enableInspect(page: Page): Promise<void> {
+  const toggle = inspectToggle(page);
+  await expect(toggle).toBeEnabled({ timeout: 15_000 });
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await expect(inspectBoxes(page).first()).toBeVisible();
 }
 
 // The dev server's file watcher does not pick up newly created doc
-// directories on Linux, so the docs virtual module stays stale after a deck
+// directories on Linux, so the docs virtual module stays stale after a doc
 // is created on disk.
 export async function refreshDocsModule(expectedDocId: string): Promise<void> {
   const watchedFile = docSourcePath('edit-target');

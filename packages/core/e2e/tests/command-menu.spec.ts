@@ -1,8 +1,7 @@
 import { expect, test } from '@playwright/test';
-import { openPdf } from './helpers.ts';
 
 test.describe('command menu', () => {
-  test('opens on the home page and jumps to a deck', async ({ page }) => {
+  test('opens on the home page and jumps to a doc', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('button', { name: 'Open command menu' })).toBeVisible();
     await page.keyboard.press('ControlOrMeta+k');
@@ -10,9 +9,9 @@ test.describe('command menu', () => {
     const input = page.getByPlaceholder('Search docs or run a command');
     await expect(input).toBeVisible();
 
-    await input.fill('steps');
-    await page.getByRole('option', { name: 'Steps Deck' }).click();
-    await expect(page).toHaveURL(/\/s\/steps$/);
+    await input.fill('tables');
+    await page.getByRole('option', { name: 'Tables Doc' }).click();
+    await expect(page).toHaveURL(/\/s\/tables$/);
   });
 
   test('trigger button opens the menu and Escape closes it', async ({ page }) => {
@@ -33,35 +32,5 @@ test.describe('command menu', () => {
     await page.getByPlaceholder('Search docs or run a command').fill('theme dark');
     await page.getByRole('option', { name: 'Theme: Dark' }).click();
     await expect(page.locator('html')).toHaveClass(/dark/);
-  });
-
-  test('jumps to a deck page from the doc viewer', async ({ page }) => {
-    await openPdf(page, 'steps');
-    await page.keyboard.press('ControlOrMeta+k');
-
-    const input = page.getByPlaceholder('Search this deck or run a command');
-    await expect(input).toBeVisible();
-
-    // Page entries stay hidden until the user types.
-    await expect(page.getByRole('option', { name: 'Page 2' })).toBeHidden();
-    await input.fill('page 2');
-    await page.getByRole('option', { name: 'Page 2' }).click();
-    await expect(page).toHaveURL(/[?&]p=2/);
-  });
-
-  test('mobile opens the menu from the doc more-actions dropdown', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 780 });
-    await openPdf(page, 'alpha');
-    await page.getByRole('button', { name: 'More actions' }).click();
-    await page.getByRole('menuitem', { name: 'Commands' }).click();
-    await expect(page.getByPlaceholder('Search this deck or run a command')).toBeFocused();
-  });
-
-  test('runs a doc command — overview opens from the menu', async ({ page }) => {
-    await openPdf(page, 'alpha');
-    await page.keyboard.press('ControlOrMeta+k');
-    await page.getByPlaceholder('Search this deck or run a command').fill('overview');
-    await page.getByRole('option', { name: 'Doc overview' }).click();
-    await expect(page.getByRole('dialog', { name: 'Doc overview' })).toBeVisible();
   });
 });

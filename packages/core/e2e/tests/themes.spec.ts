@@ -1,23 +1,22 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('theme detail', () => {
-  test('navigates demo pages and expands the prompt', async ({ page }) => {
+test.describe('themes', () => {
+  test('gallery lists fixture themes and opens the detail page', async ({ page }) => {
+    await page.goto('/themes');
+    await expect(page.getByText('Plain').first()).toBeVisible();
+    await expect(page.getByText('Minimal fixture theme for e2e tests.')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Open theme Plain' }).click();
+    await expect(page).toHaveURL(/\/themes\/plain$/);
+    await expect(page.getByRole('heading', { name: 'Plain' })).toBeVisible();
+  });
+
+  test('detail page lists the docs using the theme and links back', async ({ page }) => {
     await page.goto('/themes/plain');
-    await expect(page.getByText('Theme demo one')).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText('Docs using this theme')).toBeVisible();
+    await expect(page.getByText('Alpha Doc')).toBeVisible();
 
-    const prev = page.getByRole('button', { name: 'Previous page' });
-    const next = page.getByRole('button', { name: 'Next page' });
-    await expect(prev).toBeDisabled();
-
-    await next.click();
-    await expect(page.getByText('Theme demo two')).toBeVisible();
-    await expect(next).toBeDisabled();
-
-    await prev.click();
-    await expect(page.getByText('Theme demo one')).toBeVisible();
-
-    const expand = page.getByRole('button', { name: 'Expand prompt' });
-    await expand.click();
-    await expect(page.getByRole('button', { name: 'Collapse prompt' })).toBeVisible();
+    await page.getByRole('button', { name: 'Back to themes' }).click();
+    await expect(page).toHaveURL(/\/themes$/);
   });
 });

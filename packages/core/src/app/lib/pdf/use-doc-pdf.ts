@@ -60,6 +60,17 @@ export function useDocPdf(docId: string): DocPdfState & { rerender: () => void }
   const kick = useCallback(() => {
     const seq = ++seqCounter;
     latestSeqRef.current = seq;
+    let moduleUrl: string;
+    try {
+      moduleUrl = docImportUrl(docId);
+    } catch (e) {
+      setState((s) => ({
+        ...s,
+        rendering: false,
+        error: e instanceof Error ? e.message : String(e),
+      }));
+      return;
+    }
     setState((s) => ({ ...s, rendering: true, error: null }));
 
     void getWorker().then((worker) => {
@@ -87,7 +98,8 @@ export function useDocPdf(docId: string): DocPdfState & { rerender: () => void }
       const req: RenderRequest = {
         type: 'render',
         seq,
-        moduleUrl: docImportUrl(docId),
+        docId,
+        moduleUrl,
         inspect: true,
       };
       worker.postMessage(req);
@@ -138,6 +150,7 @@ export function renderCleanPdf(docId: string): Promise<Uint8Array> {
         const req: RenderRequest = {
           type: 'render',
           seq,
+          docId,
           moduleUrl: docImportUrl(docId),
           inspect: false,
         };

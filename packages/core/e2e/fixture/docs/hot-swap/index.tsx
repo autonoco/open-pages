@@ -1,24 +1,15 @@
-import type { DocMeta, Page } from '@autono/open-pdf';
+import type { DocMeta } from '@autono/open-pdf';
 
 export const meta: DocMeta = {
-  title: 'Hot Deck',
+  title: 'Hot Doc',
   createdAt: '2025-12-31T00:00:00.000Z',
 };
 
-const fill = {
-  width: '100%',
-  height: '100%',
-  background: '#151022',
-  color: '#efe9fb',
-  padding: 120,
-  fontFamily: 'system-ui, sans-serif',
-} as const;
-
-const Only: Page = () => (
-  <div style={fill}>
-    <h1 style={{ fontSize: 96, margin: 0 }}>Hot swap headline</h1>
-    <p style={{ fontSize: 40 }}>Hot swap body copy</p>
-  </div>
-);
-
-export default [Only] satisfies Page[];
+export default function HotSwap() {
+  return (
+    <main tw="flex flex-col text-[12px] text-slate-800">
+      <h1 tw="text-[32px] font-bold">Hot swap headline</h1>
+      <p tw="mt-4">Hot swap body copy</p>
+    </main>
+  );
+}

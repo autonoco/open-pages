@@ -14,6 +14,7 @@ if (import.meta.env.DEV && IN_WORKER) {
   g.$RefreshSig$ = () => (type: unknown) => type;
 }
 
+import { loadDoc } from 'virtual:open-pdf/docs';
 import { fromJsx } from '@takumi-rs/helpers/jsx';
 import { createElement } from 'react';
 import { render } from 'takumi-pdf';
@@ -27,7 +28,11 @@ import {
 export type RenderRequest = {
   type: 'render';
   seq: number;
-  /** BASE_URL-prefixed module URL including the HMR cache-bust token. */
+  docId: string;
+  /**
+   * BASE_URL-prefixed module URL including the HMR cache-bust token. Dev only:
+   * a static build imports the bundled doc chunk through `loadDoc` instead.
+   */
   moduleUrl: string;
   /**
    * Inject inspector geometry (loc-tagged nodes become anchors whose link
@@ -49,7 +54,9 @@ export type RenderResponse =
 
 async function handleRender(req: RenderRequest) {
   const start = performance.now();
-  const mod = await import(/* @vite-ignore */ req.moduleUrl);
+  const mod = import.meta.env.DEV
+    ? await import(/* @vite-ignore */ req.moduleUrl)
+    : await loadDoc(req.docId);
   if (typeof mod.default !== 'function') {
     throw new Error(`Doc module must default-export a component. Got: ${typeof mod.default}`);
   }
