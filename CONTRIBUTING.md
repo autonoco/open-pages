@@ -75,24 +75,7 @@ pnpm cli <script>
    pnpm test
    ```
    `pnpm check:fix` will auto-fix most formatting and lint issues.
-4. **Add a changeset if you touched `packages/core` or `packages/cli`:**
-   ```bash
-   pnpm changeset
-   ```
-   Pick the affected package(s) and the right bump:
-   - `patch` — bug fixes, internal refactors, polish.
-   - `minor` — new public API, additive features.
-   - `major` — breaking changes.
-
-   Apps (`apps/demo`, `apps/web`) and root tooling do **not** need a changeset.
-
-   Keep the description **short and direct** — one line, present-tense, what changed from a user's perspective. Match the tone of existing `.changeset/*.md` files. No paragraphs, no rationale, no "this PR…".
-
-   > Good: `Replace spinner with a hairline + sliding bar for doc and presenter loading states.`
-   >
-   > Bad: `This change introduces a new loading indicator because the previous spinner felt heavy…`
-
-   Don't bump versions or edit `CHANGELOG.md` by hand — `changeset version` owns that.
+4. **Don't touch `version` in any package.json.** The release workflow stamps it from the git tag.
 5. **Open the PR.** Describe the problem, the change, and how you tested it. Link related issues. Screenshots or short clips help for UI changes.
 6. **Address review feedback** by pushing follow-up commits. We'll squash on merge.
 
@@ -110,7 +93,7 @@ pnpm cli <script>
 
 ## Releases
 
-Releases are cut by the maintainer via `pnpm release`, which builds `@autono/open-pdf` + `@autono/create-open-pdf` and runs `changeset publish`. Contributors don't need to publish anything — just land the changeset alongside your code.
+Every merge to `main` is a release by default. CI tags the next minor version, builds both packages, publishes them to npm with provenance, and creates a GitHub Release with generated notes. Merge commits containing `[skip release]` skip it. Contributors don't need to do anything beyond landing the PR.
 
 ## Questions
 
