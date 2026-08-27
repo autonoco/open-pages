@@ -96,7 +96,7 @@ Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for the repo 
 
 ```bash
 pnpm install
-pnpm dev          # demo workspace against local core
+pnpm dev:demo     # demo workspace against local core
 pnpm check        # biome: format + lint
 pnpm typecheck
 pnpm test
