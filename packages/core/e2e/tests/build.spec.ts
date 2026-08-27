@@ -3,6 +3,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import {
+  enableInspect,
+  inspectBoxes,
   prepareScratchProject,
   runCli,
   startCliServer,
@@ -69,6 +71,14 @@ test.describe('static build and preview', () => {
     await page.goto(`${baseUrl}/s/alpha`);
     await expect(page.locator('main canvas').first()).toBeVisible({ timeout: 60_000 });
     await expect(page.locator('main canvas')).toHaveCount(3);
+  });
+
+  test('inspector hit boxes render from the static bundle', async ({ page }) => {
+    await page.goto(`${baseUrl}/s/edit-target`);
+    await expect(page.locator('main canvas').first()).toBeVisible({ timeout: 60_000 });
+    await enableInspect(page);
+    await expect(inspectBoxes(page, 'h1')).toHaveCount(1);
+    await expect(inspectBoxes(page, 'p')).toHaveCount(1);
   });
 
   test('dev-only endpoints fall through to the spa fallback in preview', async ({ request }) => {

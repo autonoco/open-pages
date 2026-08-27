@@ -60,6 +60,7 @@ export function injectLocTags(code: string): string | null {
 export type LocTagsPluginOptions = {
   userCwd: string;
   docsDir?: string;
+  apply?: 'serve' | 'build';
 };
 
 // Vite normally hands `id` to plugins with forward slashes, but other
@@ -79,7 +80,7 @@ export function locTagsPlugin(opts: LocTagsPluginOptions): Plugin {
   const docsRoot = path.resolve(opts.userCwd, opts.docsDir ?? 'docs').replace(/\\/g, '/');
   return {
     name: 'open-pdf:loc-tags',
-    apply: 'serve',
+    apply: opts.apply ?? 'serve',
     // Must run before @vitejs/plugin-react so the JSX transform
     // sees our injected attributes.
     enforce: 'pre',
