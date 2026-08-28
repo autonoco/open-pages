@@ -7,7 +7,7 @@ const CACHE_TTL_MS = 10 * 60 * 1000;
 const COMMAND_TIMEOUT_MS = 300_000;
 
 export type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun';
-export type CommandSpec = { cmd: string; args: string[] };
+export type CommandSpec = { cmd: string; args: string[]; shell?: boolean };
 
 let cache: { at: number; latest: string | null } | null = null;
 
@@ -59,25 +59,37 @@ async function fileExists(file: string): Promise<boolean> {
   }
 }
 
+// Lockfiles identify the workspace's package manager; npm_config_user_agent
+// only identifies the process driving this run (e.g. `npx` in a pnpm repo).
 export async function detectPackageManager(cwd: string): Promise<PackageManager> {
-  const ua = process.env.npm_config_user_agent ?? '';
-  if (ua.startsWith('pnpm')) return 'pnpm';
-  if (ua.startsWith('yarn')) return 'yarn';
-  if (ua.startsWith('bun')) return 'bun';
-  if (ua.startsWith('npm')) return 'npm';
-
   if (await fileExists(path.join(cwd, 'pnpm-lock.yaml'))) return 'pnpm';
   if (await fileExists(path.join(cwd, 'yarn.lock'))) return 'yarn';
   if (await fileExists(path.join(cwd, 'bun.lockb'))) return 'bun';
   if (await fileExists(path.join(cwd, 'bun.lock'))) return 'bun';
   if (await fileExists(path.join(cwd, 'package-lock.json'))) return 'npm';
+
+  const ua = process.env.npm_config_user_agent ?? '';
+  if (ua.startsWith('pnpm')) return 'pnpm';
+  if (ua.startsWith('yarn')) return 'yarn';
+  if (ua.startsWith('bun')) return 'bun';
   return 'npm';
 }
 
-export function updateCommandFor(packageManager: PackageManager): CommandSpec {
+export async function updateCommandFor(
+  packageManager: PackageManager,
+  cwd: string,
+): Promise<CommandSpec> {
   switch (packageManager) {
-    case 'pnpm':
-      return { cmd: 'pnpm', args: ['add', `${PKG}@latest`] };
+    case 'pnpm': {
+      // pnpm rejects plain `add` at a workspace root with ERR_PNPM_ADDING_TO_ROOT.
+      const workspaceRoot = await fileExists(path.join(cwd, 'pnpm-workspace.yaml'));
+      return {
+        cmd: 'pnpm',
+        args: workspaceRoot
+          ? ['add', '--workspace-root', `${PKG}@latest`]
+          : ['add', `${PKG}@latest`],
+      };
+    }
     case 'yarn':
       return { cmd: 'yarn', args: ['add', `${PKG}@latest`] };
     case 'bun':
@@ -92,8 +104,8 @@ export function updateCommandFor(packageManager: PackageManager): CommandSpec {
  * version rather than whatever process is driving the update.
  */
 export function localOpenPdfCommand(cwd: string, args: string[]): CommandSpec {
-  const bin = process.platform === 'win32' ? 'open-pdf.cmd' : 'open-pdf';
-  return { cmd: path.join(cwd, 'node_modules', '.bin', bin), args };
+  const bin = path.join(cwd, 'node_modules', ...PKG.split('/'), 'bin.js');
+  return { cmd: process.execPath, args: [bin, ...args], shell: false };
 }
 
 export function formatCommand(spec: CommandSpec): string {
@@ -109,7 +121,7 @@ export async function runCommand(
     const child = spawn(spec.cmd, spec.args, {
       cwd,
       env: process.env,
-      shell: process.platform === 'win32',
+      shell: spec.shell ?? process.platform === 'win32',
       stdio: opts.stdio ?? ['ignore', 'ignore', 'pipe'],
     });
     let stderr = '';

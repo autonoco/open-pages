@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
+import { localOpenPdfCommand } from '../../shared/update-package.ts';
 import { detectPackageManager, updateCommandFor } from './update.ts';
 
 async function tempProject(): Promise<string> {
@@ -19,12 +20,12 @@ describe('update routes helpers', () => {
     }
   });
 
-  it('detects package managers from npm user agent first', async () => {
+  it('prefers workspace lockfiles over the npm user agent', async () => {
     const cwd = await tempProject();
     await fs.writeFile(path.join(cwd, 'pnpm-lock.yaml'), '');
     process.env.npm_config_user_agent = 'yarn/1.22.22 npm/? node/? darwin x64';
 
-    await expect(detectPackageManager(cwd)).resolves.toBe('yarn');
+    await expect(detectPackageManager(cwd)).resolves.toBe('pnpm');
   });
 
   it('detects package managers from lockfiles', async () => {
@@ -43,22 +44,55 @@ describe('update routes helpers', () => {
     await expect(detectPackageManager(cwd)).resolves.toBe('npm');
   });
 
-  it('uses fixed update commands for each package manager', () => {
-    expect(updateCommandFor('pnpm')).toEqual({
+  it('falls back to the npm user agent without a lockfile', async () => {
+    const cwd = await tempProject();
+
+    process.env.npm_config_user_agent = 'yarn/1.22.22 npm/? node/? darwin x64';
+    await expect(detectPackageManager(cwd)).resolves.toBe('yarn');
+
+    delete process.env.npm_config_user_agent;
+    await expect(detectPackageManager(cwd)).resolves.toBe('npm');
+  });
+
+  it('uses fixed update commands for each package manager', async () => {
+    const cwd = await tempProject();
+    await expect(updateCommandFor('pnpm', cwd)).resolves.toEqual({
       cmd: 'pnpm',
       args: ['add', '@autono/open-pdf@latest'],
     });
-    expect(updateCommandFor('yarn')).toEqual({
+    await expect(updateCommandFor('yarn', cwd)).resolves.toEqual({
       cmd: 'yarn',
       args: ['add', '@autono/open-pdf@latest'],
     });
-    expect(updateCommandFor('bun')).toEqual({
+    await expect(updateCommandFor('bun', cwd)).resolves.toEqual({
       cmd: 'bun',
       args: ['add', '@autono/open-pdf@latest'],
     });
-    expect(updateCommandFor('npm')).toEqual({
+    await expect(updateCommandFor('npm', cwd)).resolves.toEqual({
       cmd: 'npm',
       args: ['install', '@autono/open-pdf@latest'],
     });
+  });
+
+  it('adds --workspace-root for pnpm at a workspace root', async () => {
+    const cwd = await tempProject();
+    await fs.writeFile(path.join(cwd, 'pnpm-workspace.yaml'), 'packages:\n  - "packages/*"\n');
+
+    await expect(updateCommandFor('pnpm', cwd)).resolves.toEqual({
+      cmd: 'pnpm',
+      args: ['add', '--workspace-root', '@autono/open-pdf@latest'],
+    });
+  });
+
+  it('runs the local CLI through node without a shell', async () => {
+    const cwd = await tempProject();
+    const spec = localOpenPdfCommand(cwd, ['sync:skills']);
+
+    expect(spec.cmd).toBe(process.execPath);
+    expect(spec.args).toEqual([
+      path.join(cwd, 'node_modules', '@autono', 'open-pdf', 'bin.js'),
+      'sync:skills',
+    ]);
+    expect(spec.shell).toBe(false);
   });
 });

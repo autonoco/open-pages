@@ -34,7 +34,7 @@ let updateInFlight: Promise<UpdateResult> | null = null;
 
 async function updatePackage(ctx: ApiContext): Promise<UpdateResult> {
   const packageManager = await detectPackageManager(ctx.userCwd);
-  const updateCommand = updateCommandFor(packageManager);
+  const updateCommand = await updateCommandFor(packageManager, ctx.userCwd);
   const syncCommand = localOpenPdfCommand(ctx.userCwd, ['sync:skills']);
 
   await runCommand(updateCommand, ctx.userCwd);

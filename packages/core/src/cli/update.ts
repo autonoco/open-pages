@@ -48,7 +48,7 @@ export async function update(opts: UpdateOptions): Promise<void> {
   process.stdout.write(`Updating ${PKG} ${chalk.dim(current)} → ${target}\n`);
 
   const packageManager = await detectPackageManager(cwd);
-  const install = updateCommandFor(packageManager);
+  const install = await updateCommandFor(packageManager, cwd);
   process.stdout.write(chalk.dim(`$ ${formatCommand(install)}\n`));
   await runCommand(install, cwd, { stdio: 'inherit' });
 
