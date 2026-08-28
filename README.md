@@ -116,4 +116,4 @@ open-pdf started as a fork of [open-slide](https://github.com/1weiho/open-slide)
 
 ## License
 
-[MIT](LICENSE). Contains code from open-slide © 2026 Yiwei Ho; modifications © 2026 Autono.
+[MIT](LICENSE). Contains code from open-slide © 2026 Yiwei Ho; modifications © 2026 Autono Holdings Inc.
