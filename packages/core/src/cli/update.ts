@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import chalk from 'chalk';
 import {
   detectPackageManager,
@@ -16,19 +18,34 @@ export interface UpdateOptions {
   skills?: boolean;
 }
 
+// The workspace's installed copy, not the CLI driving the update — they differ
+// when this runs from a checkout or a global install.
+async function installedVersion(cwd: string): Promise<string | null> {
+  try {
+    const raw = await readFile(
+      path.join(cwd, 'node_modules', ...PKG.split('/'), 'package.json'),
+      'utf8',
+    );
+    return (JSON.parse(raw) as { version?: string }).version ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function update(opts: UpdateOptions): Promise<void> {
   const cwd = process.cwd();
-  const latest = await fetchLatest();
+  const [latest, installed] = await Promise.all([fetchLatest(), installedVersion(cwd)]);
+  const current = installed ?? opts.current;
 
-  if (latest && !isOutdated(opts.current, latest) && !opts.force) {
+  if (latest && !isOutdated(current, latest) && !opts.force) {
     process.stdout.write(
-      `${chalk.green('✓')} ${PKG} ${chalk.bold(opts.current)} is the latest version.\n`,
+      `${chalk.green('✓')} ${PKG} ${chalk.bold(current)} is the latest version.\n`,
     );
     return;
   }
 
   const target = latest ? chalk.bold(latest) : chalk.bold('latest');
-  process.stdout.write(`Updating ${PKG} ${chalk.dim(opts.current)} → ${target}\n`);
+  process.stdout.write(`Updating ${PKG} ${chalk.dim(current)} → ${target}\n`);
 
   const packageManager = await detectPackageManager(cwd);
   const install = updateCommandFor(packageManager);
