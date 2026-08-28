@@ -153,5 +153,15 @@ export async function run(argv: string[]): Promise<void> {
       await syncSkills(resolveBuiltinSkillsDir(), flags);
     });
 
+  program
+    .command('update')
+    .description('Update @autono/open-pdf to the latest version and sync skills')
+    .option('--force', 'reinstall even if already on the latest version')
+    .option('--no-skills', 'skip the skills sync after updating')
+    .action(async (flags: { force?: boolean; skills?: boolean }) => {
+      const { update } = await import('./update.ts');
+      await update({ current: version, ...flags });
+    });
+
   await program.parseAsync(argv, { from: 'user' });
 }

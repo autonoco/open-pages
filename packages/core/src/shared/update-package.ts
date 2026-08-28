@@ -1,0 +1,139 @@
+import { type StdioOptions, spawn } from 'node:child_process';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+export const PKG = '@autono/open-pdf';
+const CACHE_TTL_MS = 10 * 60 * 1000;
+const COMMAND_TIMEOUT_MS = 300_000;
+
+export type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun';
+export type CommandSpec = { cmd: string; args: string[] };
+
+let cache: { at: number; latest: string | null } | null = null;
+
+function parseSemver(v: string): [number, number, number] | null {
+  const m = /^v?(\d+)\.(\d+)\.(\d+)/.exec(v.trim());
+  if (!m) return null;
+  return [Number(m[1]), Number(m[2]), Number(m[3])];
+}
+
+export function isOutdated(current: string, latest: string): boolean {
+  const a = parseSemver(current);
+  const b = parseSemver(latest);
+  if (!a || !b) return false;
+  for (let i = 0; i < 3; i++) {
+    if (b[i] > a[i]) return true;
+    if (b[i] < a[i]) return false;
+  }
+  return false;
+}
+
+/** npm `latest` dist-tag, cached for 10 minutes. Network failures yield null. */
+export async function fetchLatest(now = Date.now()): Promise<string | null> {
+  if (cache && now - cache.at < CACHE_TTL_MS) return cache.latest;
+  try {
+    const res = await fetch(`https://registry.npmjs.org/${PKG}/latest`, {
+      signal: AbortSignal.timeout(3000),
+      headers: { accept: 'application/json' },
+    });
+    if (!res.ok) throw new Error(`registry ${res.status}`);
+    const body = (await res.json()) as { version?: unknown };
+    const latest = typeof body.version === 'string' ? body.version : null;
+    cache = { at: now, latest };
+    return latest;
+  } catch {
+    return cache?.latest ?? null;
+  }
+}
+
+export function invalidateLatestCache(): void {
+  cache = null;
+}
+
+async function fileExists(file: string): Promise<boolean> {
+  try {
+    await fs.access(file);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function detectPackageManager(cwd: string): Promise<PackageManager> {
+  const ua = process.env.npm_config_user_agent ?? '';
+  if (ua.startsWith('pnpm')) return 'pnpm';
+  if (ua.startsWith('yarn')) return 'yarn';
+  if (ua.startsWith('bun')) return 'bun';
+  if (ua.startsWith('npm')) return 'npm';
+
+  if (await fileExists(path.join(cwd, 'pnpm-lock.yaml'))) return 'pnpm';
+  if (await fileExists(path.join(cwd, 'yarn.lock'))) return 'yarn';
+  if (await fileExists(path.join(cwd, 'bun.lockb'))) return 'bun';
+  if (await fileExists(path.join(cwd, 'bun.lock'))) return 'bun';
+  if (await fileExists(path.join(cwd, 'package-lock.json'))) return 'npm';
+  return 'npm';
+}
+
+export function updateCommandFor(packageManager: PackageManager): CommandSpec {
+  switch (packageManager) {
+    case 'pnpm':
+      return { cmd: 'pnpm', args: ['add', `${PKG}@latest`] };
+    case 'yarn':
+      return { cmd: 'yarn', args: ['add', `${PKG}@latest`] };
+    case 'bun':
+      return { cmd: 'bun', args: ['add', `${PKG}@latest`] };
+    case 'npm':
+      return { cmd: 'npm', args: ['install', `${PKG}@latest`] };
+  }
+}
+
+/**
+ * The freshly installed package's own CLI, so skills come from the new
+ * version rather than whatever process is driving the update.
+ */
+export function localOpenPdfCommand(cwd: string, args: string[]): CommandSpec {
+  const bin = process.platform === 'win32' ? 'open-pdf.cmd' : 'open-pdf';
+  return { cmd: path.join(cwd, 'node_modules', '.bin', bin), args };
+}
+
+export function formatCommand(spec: CommandSpec): string {
+  return [spec.cmd, ...spec.args].join(' ');
+}
+
+export async function runCommand(
+  spec: CommandSpec,
+  cwd: string,
+  opts: { stdio?: StdioOptions } = {},
+): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(spec.cmd, spec.args, {
+      cwd,
+      env: process.env,
+      shell: process.platform === 'win32',
+      stdio: opts.stdio ?? ['ignore', 'ignore', 'pipe'],
+    });
+    let stderr = '';
+    const timer = setTimeout(() => {
+      child.kill();
+      reject(new Error(`${formatCommand(spec)} timed out`));
+    }, COMMAND_TIMEOUT_MS);
+
+    child.stderr?.on('data', (chunk: Buffer) => {
+      stderr += chunk.toString('utf8');
+      if (stderr.length > 2000) stderr = stderr.slice(-2000);
+    });
+    child.on('error', (err) => {
+      clearTimeout(timer);
+      reject(err);
+    });
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      if (code === 0) {
+        resolve();
+        return;
+      }
+      const detail = stderr.trim();
+      reject(new Error(detail || `${formatCommand(spec)} exited with code ${code ?? 'unknown'}`));
+    });
+  });
+}

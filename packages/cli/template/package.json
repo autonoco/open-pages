@@ -8,7 +8,8 @@
     "build": "open-pdf build",
     "export": "open-pdf export",
     "preview": "open-pdf preview",
-    "sync:skills": "open-pdf sync:skills"
+    "sync:skills": "open-pdf sync:skills",
+    "update": "open-pdf update"
   },
   "dependencies": {
     "@autono/open-pdf": "^0.0.6",

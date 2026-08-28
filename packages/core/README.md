@@ -35,6 +35,7 @@ Once installed, the `open-pdf` bin is available in the workspace:
 | `open-pdf preview` | Preview the production build. Flags: `-p, --port <port>`, `--host [host]`, `--open`. |
 | `open-pdf export [docs...]` | Render docs to files — PDF (same bytes as the preview) or editable DOCX. Flags: `--out-dir <dir>` (defaults to `export`), `--format <pdf\|docx>`. |
 | `open-pdf sync:skills` | Sync built-in agent skills into this workspace. Flags: `--dry-run`. |
+| `open-pdf update` | Update `@autono/open-pdf` to the latest version and sync skills. Flags: `--force`, `--no-skills`. |
 
 ## Authoring
 
