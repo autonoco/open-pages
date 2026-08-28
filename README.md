@@ -77,6 +77,7 @@ Style with Tailwind classes via the `tw` prop. Content flows and the engine pagi
 | `open-pdf preview` | Serve the production build. |
 | `open-pdf export [docs...]` | Render docs to `export/`. `--format pdf` (default) or `docx`. |
 | `open-pdf sync:skills` | Sync the built-in agent skills into the workspace. |
+| `open-pdf update` | Update `@autono/open-pdf` to the latest version and sync skills. |
 
 Full flags: [CLI reference](https://docs.openpdf.sh/reference/cli) · [Config reference](https://docs.openpdf.sh/reference/config)
 
