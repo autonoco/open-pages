@@ -1,86 +1,79 @@
 ---
-title: "What is open-pdf"
-description: "The PDF framework built for agents: documents are React components, the preview is the actual PDF, and comments flow back to your agent as source markers."
-icon: "file-text"
+title: "What is open-pages"
+description: "The web page framework built for agents: pages are React components or plain HTML, the preview is the real page, and comments flow back to your agent as source markers."
+icon: "layout-template"
 ---
 
-open-pdf is a document framework where an AI coding agent does the authoring. Every document is a React component: HTML-shaped JSX styled with Tailwind through the `tw` prop. Content flows, and the engine paginates, repeats table headers, and resolves page counters in running header and footer bands.
+open-pages is a web page framework where an AI coding agent does the authoring. Every page is a React component: HTML JSX styled with Tailwind through `className`, with hooks, state, event handlers, and browser APIs available. A page folder can hold a plain `index.html` instead when that fits better.
 
-The preview is not an HTML approximation. The dev server renders actual PDF bytes with the Takumi engine in a web worker, so the page you see in the browser is the page you export. Preview and export share one renderer.
+The preview is the page. The dev server runs each page as a real document in a browser frame, so what you see at `localhost:5173` is what `open-pages export` writes to disk. Same Vite pipeline, same React, same CSS.
 
 ## The loop
 
-1. **The agent writes.** You prompt your coding agent (Claude Code, Cursor, Codex) and it authors `docs/<id>/index.tsx` using the bundled `create-doc` skill.
-2. **You watch a live PDF.** `npm run dev` serves the preview at `localhost:5173`. Every save re-renders the real PDF in well under half a second.
-3. **You inspect and comment.** Press `i` to enter Inspect mode. Clicking any element maps to its exact source lines. Comments are saved into the source as `@pdf-comment` markers.
-4. **The agent applies.** Ask the agent to run `apply-comments`. It reads the markers, makes the edits, and deletes the markers. The dev server also writes `node_modules/.open-pdf/current.json`, a cursor the agent reads so "this page" and "this element" resolve without you naming them.
-5. **You export.** `open-pdf export` renders headlessly to PDF. `--format docx` produces an editable Word file, and dropping that into Google Drive converts it to a Google Doc.
+1. **The agent writes.** You prompt your coding agent (Claude Code, Cursor, Codex) and it authors `pages/<id>/index.tsx` using the bundled `create-page` skill.
+2. **You watch the live page.** `npm run dev` serves the workspace at `localhost:5173`. Every save hot-reloads the page; the toolbar switches between desktop, tablet, and mobile widths.
+3. **You inspect and comment.** Press `i` to enter Inspect mode. Clicking any element maps to its exact source line. Comments are saved into the source as `@page-comment` markers.
+4. **The agent applies.** Ask the agent to run `apply-comments`. It reads the markers, makes the edits, and deletes the markers. The dev server also writes `node_modules/.open-pages/current.json`, a cursor the agent reads so "this page" and "this element" resolve without you naming them.
+5. **You export.** `open-pages export` builds each page into a static folder with hashed assets and relative URLs. Deploy it to Netlify, Vercel, Cloudflare Pages, GitHub Pages, S3, or any static host.
 
-## What a document looks like
+## What a page looks like
 
-A document is one folder under `docs/` with a kebab-case id. Its `index.tsx` default-exports one component and optionally exports `meta` and `pageOptions`:
+A page is one folder under `pages/` with a kebab-case id. Its `index.tsx` default-exports one component and exports `meta`:
 
-```tsx docs/getting-started/index.tsx
-import { type DocMeta, PageNumber, type PageOptions, TotalPages } from '@autono/open-pdf';
+```tsx pages/getting-started/index.tsx
+import type { PageMeta } from '@autono/open-pages';
+import { useState } from 'react';
 
-export const meta: DocMeta = {
-  title: 'Welcome to open-pdf',
-  createdAt: '2026-08-18T00:00:01.000Z',
-};
-
-export const pageOptions: PageOptions = {
-  size: 'a4',
-  margin: { top: 56, right: 64, bottom: 72, left: 64 },
-  footer: (
-    <div tw="flex w-full justify-center text-[9px] text-slate-400">
-      <span tw="flex">
-        Page <PageNumber /> of <TotalPages />
-      </span>
-    </div>
-  ),
+export const meta: PageMeta = {
+  title: 'Welcome to open-pages',
+  description: 'The web page framework built for agents.',
+  createdAt: '2026-08-28T00:00:00.000Z',
 };
 
 export default function GettingStarted() {
+  const [count, setCount] = useState(0);
   return (
-    <main tw="flex flex-col text-[12px] leading-relaxed text-slate-800">
-      <h1 tw="text-[34px] font-bold leading-tight tracking-tight text-slate-900">
-        The PDF framework built for agents
-      </h1>
-      <p tw="mt-4 text-[13px] text-slate-600">
-        This document is a React component. Your coding agent writes it, the preview renders it as
-        a real PDF, and the Download button hands you the same bytes you are looking at.
+    <main className="mx-auto max-w-3xl px-6 py-24">
+      <h1 className="text-5xl font-bold tracking-tight">The web page framework built for agents</h1>
+      <p className="mt-6 text-lg text-slate-600">
+        This page is a React component. Your coding agent writes it, the workspace previews it
+        live, and the export is plain HTML, CSS, and JS.
       </p>
-      <div tw="flex flex-col" style={{ breakBefore: 'page' }}>
-        <h2 tw="text-[18px] font-bold text-slate-900">Page two starts here</h2>
-      </div>
+      <button
+        type="button"
+        onClick={() => setCount((c) => c + 1)}
+        className="mt-8 rounded-full bg-black px-5 py-2 text-white"
+      >
+        Clicked {count} times
+      </button>
     </main>
   );
 }
 ```
 
-You write flowing JSX; the engine handles pagination with widow and orphan control, column tracks and repeating header rows for real HTML tables, running bands from `pageOptions.header` and `pageOptions.footer`, and hard page starts via `breakBefore: 'page'`.
+Tailwind v4 is configured for you and scans `pages/` and `themes/`. Import `./styles.css` for custom CSS, `./assets/hero.png` for images, and `@assets/...` for files shared across pages.
 
 ## Built for agents
 
 A scaffolded workspace ships five agent skills alongside an `AGENTS.md` guide, so the agent knows the file contract before it writes a line:
 
-- `create-doc` walks the agent through scoping, structure, and hand-off for a new document.
-- `doc-authoring` is the technical reference: the `tw` dialect, page geometry, tables, pagination, running bands.
+- `create-page` walks the agent through scoping, structure, and hand-off for a new page.
+- `page-authoring` is the technical reference: file contract, styling, layout and responsiveness, interactivity, assets and fonts.
 - `apply-comments` turns inspector comments into edits.
-- `current-doc` resolves "this page" and "this element" from the dev server's cursor file.
+- `current-page` resolves "this page" and "this element" from the dev server's cursor file.
 - `create-theme` extracts reusable themes as markdown under `themes/`.
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Scaffold a workspace, create your first document, and export it in a few minutes.
+    Scaffold a workspace, create your first page, and export it in a few minutes.
   </Card>
-  <Card title="Documents" icon="file-code" href="/authoring/documents">
-    The file contract: `docs/<id>/index.tsx`, `meta`, `pageOptions`, and the `tw` dialect.
+  <Card title="Pages" icon="file-code" href="/authoring/pages">
+    The file contract: `pages/<id>/index.tsx`, `meta`, and what a page may contain.
   </Card>
   <Card title="Inspector" icon="mouse-pointer-click" href="/inspector">
     Click-to-inspect, comments as source markers, and the apply-comments loop.
   </Card>
   <Card title="Export" icon="download" href="/export">
-    Headless PDF export and editable DOCX for Word and Google Docs.
+    Static folders per page, and where to deploy them.
   </Card>
 </CardGroup>

@@ -7,9 +7,9 @@ const pluginTransformSource = 'export default [() => <div />];';
 type LocTagsTransformResult = null | { code: string; map: null };
 
 function transformWithLocTags(id: string) {
-  // Force `path.resolve` to return a POSIX docsRoot so this suite
+  // Force `path.resolve` to return a POSIX pagesRoot so this suite
   // exercises the same code path regardless of host OS.
-  const resolveSpy = vi.spyOn(path, 'resolve').mockReturnValue('/repo/docs');
+  const resolveSpy = vi.spyOn(path, 'resolve').mockReturnValue('/repo/pages');
   try {
     const plugin = locTagsPlugin({ userCwd: '/repo' });
     const transform = plugin.transform;
@@ -23,15 +23,15 @@ function transformWithLocTags(id: string) {
 function expectTaggedTransform(id: string) {
   const out = transformWithLocTags(id);
   if (out === null) throw new Error('expected tagged transform result');
-  expect(out.code).toContain('data-pdf-loc');
+  expect(out.code).toContain('data-op-loc');
 }
 
 describe('injectLocTags', () => {
-  it('adds data-pdf-loc to host elements with the JSX start position', () => {
+  it('adds data-op-loc to host elements with the JSX start position', () => {
     const src = ['export default [() => (', '  <div>hello</div>', ')];', ''].join('\n');
     const out = injectLocTags(src);
     if (out === null) throw new Error('expected transform');
-    expect(out).toContain('<div data-pdf-loc="2:2">hello</div>');
+    expect(out).toContain('<div data-op-loc="2:2">hello</div>');
   });
 
   it('skips capitalized component invocations', () => {
@@ -52,15 +52,15 @@ describe('injectLocTags', () => {
     ].join('\n');
     const out = injectLocTags(src);
     if (out === null) throw new Error('expected transform');
-    expect(out).toContain('<div data-pdf-loc="2:2">');
-    expect(out).toContain('<h1 data-pdf-loc="3:4">Hi</h1>');
-    expect(out).toContain('<p data-pdf-loc="4:4">World</p>');
+    expect(out).toContain('<div data-op-loc="2:2">');
+    expect(out).toContain('<h1 data-op-loc="3:4">Hi</h1>');
+    expect(out).toContain('<p data-op-loc="4:4">World</p>');
   });
 
-  it('skips elements that already have data-pdf-loc', () => {
+  it('skips elements that already have data-op-loc', () => {
     const src = [
       'export default [() => (',
-      '  <div data-pdf-loc="2:2">already</div>',
+      '  <div data-op-loc="2:2">already</div>',
       ')];',
       '',
     ].join('\n');
@@ -72,14 +72,14 @@ describe('injectLocTags', () => {
     const src = ['export default [() => (', '  <div className="foo">x</div>', ')];', ''].join('\n');
     const out = injectLocTags(src);
     if (out === null) throw new Error('expected transform');
-    expect(out).toContain('<div data-pdf-loc="2:2" className="foo">x</div>');
+    expect(out).toContain('<div data-op-loc="2:2" className="foo">x</div>');
   });
 
   it('handles self-closing host elements', () => {
     const src = ['export default [() => (', '  <img src="x" />', ')];', ''].join('\n');
     const out = injectLocTags(src);
     if (out === null) throw new Error('expected transform');
-    expect(out).toContain('<img data-pdf-loc="2:2" src="x" />');
+    expect(out).toContain('<img data-op-loc="2:2" src="x" />');
   });
 
   it('returns null when source has no host elements', () => {
@@ -99,10 +99,10 @@ describe('injectLocTags', () => {
     ].join('\n');
     const out = injectLocTags(src);
     if (out === null) throw new Error('expected transform');
-    expect(out).toContain('<h1 data-pdf-loc="3:4">Title</h1>');
-    expect(out).toContain('<span data-pdf-loc="4:12">nested</span>');
-    expect(out).not.toContain('<Layout data-pdf-loc');
-    expect(out).not.toContain('<SubBox data-pdf-loc');
+    expect(out).toContain('<h1 data-op-loc="3:4">Title</h1>');
+    expect(out).toContain('<span data-op-loc="4:12">nested</span>');
+    expect(out).not.toContain('<Layout data-op-loc');
+    expect(out).not.toContain('<SubBox data-op-loc');
   });
 
   it('tags <ImagePlaceholder> as a forwarding component', () => {
@@ -111,7 +111,7 @@ describe('injectLocTags', () => {
     );
     const out = injectLocTags(src);
     if (out === null) throw new Error('expected transform');
-    expect(out).toContain('<ImagePlaceholder data-pdf-loc="2:2" hint="hero" />');
+    expect(out).toContain('<ImagePlaceholder data-op-loc="2:2" hint="hero" />');
   });
 
   it('does not tag other PascalCase components alongside ImagePlaceholder', () => {
@@ -126,39 +126,39 @@ describe('injectLocTags', () => {
     ].join('\n');
     const out = injectLocTags(src);
     if (out === null) throw new Error('expected transform');
-    expect(out).toContain('<ImagePlaceholder data-pdf-loc="3:4"');
-    expect(out).not.toContain('<Layout data-pdf-loc');
-    expect(out).not.toContain('<CustomThing data-pdf-loc');
+    expect(out).toContain('<ImagePlaceholder data-op-loc="3:4"');
+    expect(out).not.toContain('<Layout data-op-loc');
+    expect(out).not.toContain('<CustomThing data-op-loc');
   });
 });
 
 describe('locTagsPlugin', () => {
-  it('tags doc index files', () => {
-    expectTaggedTransform('/repo/docs/cover/index.tsx');
+  it('tags page index files', () => {
+    expectTaggedTransform('/repo/pages/cover/index.tsx');
   });
 
-  it('tags shared doc source files', () => {
-    expectTaggedTransform('/repo/docs/cover/shared.tsx');
+  it('tags shared page source files', () => {
+    expectTaggedTransform('/repo/pages/cover/shared.tsx');
   });
 
-  it('tags numbered doc source files', () => {
-    expectTaggedTransform('/repo/docs/cover/01-Cover.tsx');
+  it('tags numbered page source files', () => {
+    expectTaggedTransform('/repo/pages/cover/01-Cover.tsx');
   });
 
-  it('tags doc source files in nested folders', () => {
-    expectTaggedTransform('/repo/docs/cover/components/Card.tsx');
+  it('tags page source files in nested folders', () => {
+    expectTaggedTransform('/repo/pages/cover/components/Card.tsx');
   });
 
-  it('skips tsx files directly under the docs directory', () => {
-    expect(transformWithLocTags('/repo/docs/index.tsx')).toBeNull();
+  it('skips tsx files directly under the pages directory', () => {
+    expect(transformWithLocTags('/repo/pages/index.tsx')).toBeNull();
   });
 
-  it('skips tsx files outside the docs directory', () => {
+  it('skips tsx files outside the pages directory', () => {
     expect(transformWithLocTags('/repo/apps/demo/foo.tsx')).toBeNull();
   });
 
   it('skips colocated test files', () => {
-    expect(transformWithLocTags('/repo/docs/cover/index.test.tsx')).toBeNull();
+    expect(transformWithLocTags('/repo/pages/cover/index.test.tsx')).toBeNull();
   });
 });
 
@@ -178,36 +178,36 @@ describe('locTagsPlugin on Windows-style paths', () => {
   function expectTagged(resolvedDocsRoot: string, id: string) {
     const out = transformWithMockedResolve(resolvedDocsRoot, id);
     if (out === null) throw new Error(`expected tagged transform result for ${id}`);
-    expect(out.code).toContain('data-pdf-loc');
+    expect(out.code).toContain('data-op-loc');
   }
 
-  it('tags doc index files with forward-slash ids under a Windows docsRoot', () => {
-    expectTagged('C:\\repo\\docs', 'C:/repo/docs/cover/index.tsx');
+  it('tags page index files with forward-slash ids under a Windows pagesRoot', () => {
+    expectTagged('C:\\repo\\pages', 'C:/repo/pages/cover/index.tsx');
   });
 
   it('strips HMR ?t= query before matching', () => {
-    expectTagged('C:\\repo\\docs', 'C:/repo/docs/cover/index.tsx?t=1700000000000');
+    expectTagged('C:\\repo\\pages', 'C:/repo/pages/cover/index.tsx?t=1700000000000');
   });
 
-  it('tags nested doc source files under a Windows docsRoot', () => {
-    expectTagged('C:\\repo\\docs', 'C:/repo/docs/cover/components/Card.tsx');
+  it('tags nested page source files under a Windows pagesRoot', () => {
+    expectTagged('C:\\repo\\pages', 'C:/repo/pages/cover/components/Card.tsx');
   });
 
-  it('skips tsx files directly under the Windows docs directory', () => {
-    expect(transformWithMockedResolve('C:\\repo\\docs', 'C:/repo/docs/index.tsx')).toBeNull();
+  it('skips tsx files directly under the Windows pages directory', () => {
+    expect(transformWithMockedResolve('C:\\repo\\pages', 'C:/repo/pages/index.tsx')).toBeNull();
   });
 
-  it('skips tsx files outside the Windows docs directory', () => {
-    expect(transformWithMockedResolve('C:\\repo\\docs', 'C:/repo/apps/demo/foo.tsx')).toBeNull();
+  it('skips tsx files outside the Windows pages directory', () => {
+    expect(transformWithMockedResolve('C:\\repo\\pages', 'C:/repo/apps/demo/foo.tsx')).toBeNull();
   });
 
-  it('skips colocated test files under a Windows docsRoot', () => {
+  it('skips colocated test files under a Windows pagesRoot', () => {
     expect(
-      transformWithMockedResolve('C:\\repo\\docs', 'C:/repo/docs/cover/index.test.tsx'),
+      transformWithMockedResolve('C:\\repo\\pages', 'C:/repo/pages/cover/index.test.tsx'),
     ).toBeNull();
   });
 
-  it('still tags POSIX ids when path.resolve returns a POSIX docsRoot (regression guard)', () => {
-    expectTagged('/repo/docs', '/repo/docs/cover/index.tsx');
+  it('still tags POSIX ids when path.resolve returns a POSIX pagesRoot (regression guard)', () => {
+    expectTagged('/repo/pages', '/repo/pages/cover/index.tsx');
   });
 });

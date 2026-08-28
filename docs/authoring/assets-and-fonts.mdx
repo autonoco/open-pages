@@ -1,0 +1,72 @@
+---
+title: "Assets and fonts"
+description: "Images, self-hosted fonts, Google Fonts, and shared assets."
+icon: "image"
+---
+
+Assets follow the same rule in the preview and the export: put the file next to the page, import it, and reference the imported value. Vite hashes it into the output.
+
+## Images
+
+```tsx
+import hero from './assets/hero.png';
+
+<img src={hero} alt="Meridian dashboard" width={1200} height={720} className="rounded-xl" />
+```
+
+- Page-local images live in `pages/<id>/assets/`. Assets shared across pages live in the project root `assets/` folder and import via `@assets/...`.
+- Always give `width` and `height` so the layout does not jump while the image loads.
+- PNG, JPEG, WebP, GIF, AVIF, and SVG all work. Small SVGs can also be written inline as JSX for crisp icons and marks.
+- Keep files reasonably sized. A hero image does not need to be 6000px wide; the export ships it as-is.
+
+The workspace's **Assets** view lists every page's assets and lets you upload, rename, and replace them from the browser.
+
+## Fonts
+
+### Google Fonts
+
+Link the stylesheet from the page. React 18 renders the `<link>` where you put it, and the browser loads it regardless of position:
+
+```tsx
+export default function Page() {
+  return (
+    <main style={{ fontFamily: '"Inter", ui-sans-serif, system-ui' }}>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      />
+      {/* ... */}
+    </main>
+  );
+}
+```
+
+Or `@import url(...)` at the top of the page's `styles.css`.
+
+### Self-hosted fonts
+
+Put the `.woff2` under the page's assets and declare it in the page's stylesheet:
+
+```css pages/launch/styles.css
+@font-face {
+  font-family: 'Satoshi';
+  src: url('./assets/Satoshi-Variable.woff2') format('woff2');
+  font-weight: 300 900;
+  font-display: swap;
+}
+```
+
+Then use it via `className="font-[Satoshi]"` or `style={{ fontFamily: 'Satoshi' }}`. The export copies and hashes the font file.
+
+Ask the user for their font files rather than guessing at a brand face. If they name a Google font, the link tag is the fastest path.
+
+## Favicons and meta
+
+The exported `index.html` carries `meta.title` and `meta.description`. Favicons and Open Graph images are not generated yet; add them by hand to the exported folder if the page needs them.
+
+## Anti-patterns
+
+- `<img>` without `width` and `height`.
+- `fontFamily` naming a font that was never linked or declared. It silently falls back.
+- Hotlinking images from other sites in a page you intend to ship.
+- Multi-megabyte hero images.

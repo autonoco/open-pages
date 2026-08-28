@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { ViteDevServer } from 'vite';
-import { DOC_ID_RE, resolveDocEntry } from '../../editing/doc-ops.ts';
+import { PAGE_ID_RE, resolvePageEntry } from '../../editing/page-ops.ts';
 import { findAssetUsages, findReferencedAssets } from '../../editing/revert-asset.ts';
 import {
   ASSET_MAX_BYTES,
@@ -15,7 +15,7 @@ import {
 import { validateMutationRequest } from '../../http/request-guard.ts';
 import { type ApiContext, json, readBody } from './context.ts';
 
-// GET    /__assets/:scope                     list assets in doc or @global
+// GET    /__assets/:scope                     list assets in page or @global
 // GET    /__assets/:scope/:file               serve raw asset bytes
 // POST   /__assets/:scope/:file               upload (multipart raw body)
 // PATCH  /__assets/:scope/:file               rename { name }
@@ -40,25 +40,25 @@ export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): voi
         const isGlobal = scope === GLOBAL_SCOPE;
         const assetPath = isGlobal ? `@assets/${filename}` : `./assets/${filename}`;
 
-        let docIds: string[];
+        let pageIds: string[];
         if (isGlobal) {
           try {
-            const entries = await fs.readdir(ctx.docsRoot, { withFileTypes: true });
-            docIds = entries
-              .filter((e) => e.isDirectory() && DOC_ID_RE.test(e.name))
+            const entries = await fs.readdir(ctx.pagesRoot, { withFileTypes: true });
+            pageIds = entries
+              .filter((e) => e.isDirectory() && PAGE_ID_RE.test(e.name))
               .map((e) => e.name);
           } catch {
-            docIds = [];
+            pageIds = [];
           }
         } else {
-          if (!DOC_ID_RE.test(scope)) return json(res, 400, { error: 'invalid docId' });
-          docIds = [scope];
+          if (!PAGE_ID_RE.test(scope)) return json(res, 400, { error: 'invalid pageId' });
+          pageIds = [scope];
         }
 
-        const usages: Array<{ docId: string; count: number }> = [];
+        const usages: Array<{ pageId: string; count: number }> = [];
         let totalCount = 0;
-        for (const sid of docIds) {
-          const entry = resolveDocEntry(ctx.docsRoot, sid);
+        for (const sid of pageIds) {
+          const entry = resolvePageEntry(ctx.pagesRoot, sid);
           if (!entry) continue;
           let source: string;
           try {
@@ -68,7 +68,7 @@ export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): voi
           }
           const count = findAssetUsages(source, assetPath);
           if (count > 0) {
-            usages.push({ docId: sid, count });
+            usages.push({ pageId: sid, count });
             totalCount += count;
           }
         }
@@ -76,9 +76,9 @@ export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): voi
       }
 
       if (listMatch && method === 'GET') {
-        const docId = listMatch[1];
-        const scopedDir = resolveScopedAssetsDir(ctx.docsRoot, ctx.globalAssetsRoot, docId);
-        if (!scopedDir) return json(res, 400, { error: 'invalid docId' });
+        const pageId = listMatch[1];
+        const scopedDir = resolveScopedAssetsDir(ctx.pagesRoot, ctx.globalAssetsRoot, pageId);
+        if (!scopedDir) return json(res, 400, { error: 'invalid pageId' });
 
         let entries: string[];
         try {
@@ -109,31 +109,31 @@ export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): voi
             createdAt: assetCreatedAt(stat.birthtimeMs, stat.mtimeMs),
             mtime: stat.mtimeMs,
             mime: mimeForFilename(name),
-            url: `/__assets/${docId}/${encodeURIComponent(name)}`,
+            url: `/__assets/${pageId}/${encodeURIComponent(name)}`,
             unused: true,
           });
         }
         assets.sort((a, b) => a.name.localeCompare(b.name));
 
         if (assets.length > 0) {
-          const isGlobal = docId === GLOBAL_SCOPE;
+          const isGlobal = pageId === GLOBAL_SCOPE;
           let scanIds: string[];
           if (isGlobal) {
             try {
-              const dirs = await fs.readdir(ctx.docsRoot, { withFileTypes: true });
+              const dirs = await fs.readdir(ctx.pagesRoot, { withFileTypes: true });
               scanIds = dirs
-                .filter((e) => e.isDirectory() && DOC_ID_RE.test(e.name))
+                .filter((e) => e.isDirectory() && PAGE_ID_RE.test(e.name))
                 .map((e) => e.name);
             } catch {
               scanIds = [];
             }
           } else {
-            scanIds = DOC_ID_RE.test(docId) ? [docId] : [];
+            scanIds = PAGE_ID_RE.test(pageId) ? [pageId] : [];
           }
           const paths = assets.map((a) => (isGlobal ? `@assets/${a.name}` : `./assets/${a.name}`));
           const pathToAsset = new Map(paths.map((p, i) => [p, assets[i]]));
           for (const sid of scanIds) {
-            const entry = resolveDocEntry(ctx.docsRoot, sid);
+            const entry = resolvePageEntry(ctx.pagesRoot, sid);
             if (!entry) continue;
             let source: string;
             try {
@@ -152,9 +152,9 @@ export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): voi
       }
 
       if (fileMatch) {
-        const docId = fileMatch[1];
+        const pageId = fileMatch[1];
         const filename = decodeURIComponent(fileMatch[2]);
-        const file = resolveScopedAssetFile(ctx.docsRoot, ctx.globalAssetsRoot, docId, filename);
+        const file = resolveScopedAssetFile(ctx.pagesRoot, ctx.globalAssetsRoot, pageId, filename);
         if (!file) return json(res, 400, { error: 'invalid path' });
 
         if (method === 'GET') {
@@ -194,8 +194,8 @@ export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): voi
             }
           }
 
-          const scopedDir = resolveScopedAssetsDir(ctx.docsRoot, ctx.globalAssetsRoot, docId);
-          if (!scopedDir) return json(res, 400, { error: 'invalid docId' });
+          const scopedDir = resolveScopedAssetsDir(ctx.pagesRoot, ctx.globalAssetsRoot, pageId);
+          if (!scopedDir) return json(res, 400, { error: 'invalid pageId' });
           await fs.mkdir(scopedDir, { recursive: true });
 
           const chunks: Buffer[] = [];
@@ -225,7 +225,7 @@ export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): voi
             createdAt: assetCreatedAt(stat.birthtimeMs, stat.mtimeMs),
             mtime: stat.mtimeMs,
             mime: mimeForFilename(filename),
-            url: `/__assets/${docId}/${encodeURIComponent(filename)}`,
+            url: `/__assets/${pageId}/${encodeURIComponent(filename)}`,
           });
         }
 
@@ -239,7 +239,7 @@ export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): voi
           if (!target) return json(res, 400, { error: 'invalid name' });
           if (target === filename) return json(res, 200, { ok: true, name: filename });
 
-          const dest = resolveScopedAssetFile(ctx.docsRoot, ctx.globalAssetsRoot, docId, target);
+          const dest = resolveScopedAssetFile(ctx.pagesRoot, ctx.globalAssetsRoot, pageId, target);
           if (!dest) return json(res, 400, { error: 'invalid name' });
 
           try {

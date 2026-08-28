@@ -1,8 +1,8 @@
-# open-pdf — Framework Repo Guide
+# open-pages — Framework Repo Guide
 
-You are working on the **open-pdf framework** — the runtime, CLI, and tooling that ship to npm.
+You are working on the **open-pages framework** — the runtime, CLI, and tooling that ship to npm.
 
-(Doc-authoring guidance lives in the `doc-authoring` / `create-doc` skills under `apps/demo/.claude/skills/`. Use those only when editing files inside `apps/demo/docs/`.)
+(Page-authoring guidance lives in the `page-authoring` / `create-page` skills under `apps/demo/.claude/skills/`, synced from `packages/core/skills/`. Use those only when editing files inside `apps/demo/pages/`.)
 
 ## Layout
 
@@ -10,10 +10,11 @@ pnpm + Turbo monorepo.
 
 | Path | Package | Role |
 | --- | --- | --- |
-| `packages/core` | `@autono/open-pdf` | Runtime (viewer, present mode, inspector), Vite plugin, `open-pdf` dev/build CLI. |
-| `packages/cli` | `@autono/create-open-pdf` | `npm create @autono/open-pdf@latest` scaffolder + project template. |
-| `apps/demo` | private | Local consumer of `@autono/open-pdf` via `workspace:*`. Dogfood target — run `pnpm dev` here to exercise the framework. |
+| `packages/core` | `@autono/open-pages` | Runtime (workspace viewer, live iframe preview, inspector), Vite plugin, `open-pages` dev/build/export CLI, bundled agent skills. |
+| `packages/cli` | `@autono/create-open-pages` | `npm create @autono/open-pages@latest` scaffolder + project template. |
+| `apps/demo` | private | Local consumer of `@autono/open-pages` via `workspace:*`. Dogfood target — run `pnpm dev` here to exercise the framework. |
 | `apps/web` | private | Marketing site (Next.js). |
+| `docs/` | | Mintlify docs site. |
 
 Shared config: `biome.json`, `turbo.json`, `pnpm-workspace.yaml`, `tsconfig` per package.
 
@@ -26,6 +27,7 @@ pnpm typecheck    # tsc across the graph
 pnpm check        # biome (format + lint + organize imports)
 pnpm check:fix    # auto-fix what biome can
 pnpm test         # vitest
+pnpm test:e2e     # playwright, against packages/core/e2e/fixture
 ```
 
 Filter to one package: `pnpm core <script>` / `pnpm cli <script>`.

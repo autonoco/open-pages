@@ -1,40 +1,41 @@
-declare module 'virtual:open-pdf/docs' {
-  import type { DocModule } from './lib/sdk';
-  export const docIds: string[];
-  export const docThemes: Record<string, string>;
-  export const docCreatedAt: Record<string, number>;
-  export function loadDoc(id: string): Promise<DocModule>;
-  export function docImportUrl(id: string): string;
+declare module 'virtual:open-pages/pages' {
+  import type { PageKind, PageModule } from './lib/sdk';
+  export const pageIds: string[];
+  export const pageKinds: Record<string, PageKind>;
+  export const pageThemes: Record<string, string>;
+  export const pageCreatedAt: Record<string, number>;
+  export function loadPage(id: string): Promise<PageModule>;
 }
 
-declare module 'virtual:open-pdf/config' {
+declare module 'virtual:open-pages/pages.css' {}
+
+declare module 'virtual:open-pages/config' {
   import type { Locale } from '../locale/types';
 
   const config: {
     base?: string;
-    docsDir?: string;
+    pagesDir?: string;
     port?: number;
     locale?: Locale;
     version: string;
     build: {
-      showDocBrowser: boolean;
-      showDocUi: boolean;
-      allowHtmlDownload: boolean;
+      showPageBrowser: boolean;
+      showPageUi: boolean;
     };
   };
   export default config;
 }
 
-declare module 'virtual:open-pdf/folders' {
+declare module 'virtual:open-pages/folders' {
   import type { FoldersManifest } from './lib/sdk';
 
   const manifest: FoldersManifest;
   export default manifest;
 }
 
-declare module 'virtual:open-pdf/themes' {
+declare module 'virtual:open-pages/themes' {
   import type { DesignSystem } from './lib/design';
-  import type { DocComponent } from './lib/sdk';
+  import type { PageComponent } from './lib/sdk';
 
   export type ThemeMeta = {
     id: string;
@@ -46,7 +47,7 @@ declare module 'virtual:open-pdf/themes' {
 
   export const themes: ThemeMeta[];
   export function loadThemeDemo(id: string): Promise<{
-    default: DocComponent;
+    default: PageComponent;
     design?: DesignSystem;
   }>;
 }

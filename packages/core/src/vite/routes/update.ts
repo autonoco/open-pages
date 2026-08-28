@@ -6,7 +6,7 @@ import {
   formatCommand,
   invalidateLatestCache,
   isOutdated,
-  localOpenPdfCommand,
+  localOpenPagesCommand,
   type PackageManager,
   runCommand,
   updateCommandFor,
@@ -16,11 +16,11 @@ import { type ApiContext, json } from './context.ts';
 export { detectPackageManager, updateCommandFor };
 
 // GET /__update-check  → { current, latest, outdated }
-//   Compares the running @autono/open-pdf version against the npm `latest`
+//   Compares the running @autono/open-pages version against the npm `latest`
 //   dist-tag. Network/parse failures degrade to { latest: null, outdated: false }.
 // POST /__update-package → { packageManager, command, latest, message }
-//   Installs @autono/open-pdf@latest with the detected package manager, then
-//   runs `open-pdf sync:skills`.
+//   Installs @autono/open-pages@latest with the detected package manager, then
+//   runs `open-pages sync:skills`.
 
 type CheckResult = { current: string; latest: string | null; outdated: boolean };
 type UpdateResult = {
@@ -35,7 +35,7 @@ let updateInFlight: Promise<UpdateResult> | null = null;
 async function updatePackage(ctx: ApiContext): Promise<UpdateResult> {
   const packageManager = await detectPackageManager(ctx.userCwd);
   const updateCommand = await updateCommandFor(packageManager, ctx.userCwd);
-  const syncCommand = localOpenPdfCommand(ctx.userCwd, ['sync:skills']);
+  const syncCommand = localOpenPagesCommand(ctx.userCwd, ['sync:skills']);
 
   await runCommand(updateCommand, ctx.userCwd);
   await runCommand(syncCommand, ctx.userCwd);
@@ -44,9 +44,9 @@ async function updatePackage(ctx: ApiContext): Promise<UpdateResult> {
   const latest = await fetchLatest();
   return {
     packageManager,
-    command: `${formatCommand(updateCommand)} && open-pdf sync:skills`,
+    command: `${formatCommand(updateCommand)} && open-pages sync:skills`,
     latest,
-    message: 'Updated @autono/open-pdf and synced skills.',
+    message: 'Updated @autono/open-pages and synced skills.',
   };
 }
 

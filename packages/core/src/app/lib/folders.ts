@@ -1,4 +1,4 @@
-import buildManifest from 'virtual:open-pdf/folders';
+import buildManifest from 'virtual:open-pages/folders';
 import { useCallback, useEffect, useState } from 'react';
 import type { Folder, FolderIcon, FoldersManifest } from './sdk';
 
@@ -8,7 +8,7 @@ async function getManifest(): Promise<FoldersManifest> {
   // In dev the manifest is mutable: read live from the plugin endpoint so
   // edits made in the sidebar reflect immediately. In a static build there
   // is no server, so fall back to the bundled snapshot from the virtual
-  // module (populated at build time from docs/.folders.json).
+  // module (populated at build time from pages/.folders.json).
   if (import.meta.env.DEV) {
     const res = await fetch('/__folders');
     if (!res.ok) throw new Error(`GET /__folders ${res.status}`);
@@ -24,31 +24,31 @@ async function getManifest(): Promise<FoldersManifest> {
   };
 }
 
-async function patchDocName(docId: string, name: string): Promise<void> {
-  const res = await fetch(`/__docs/${docId}`, {
+async function patchDocName(pageId: string, name: string): Promise<void> {
+  const res = await fetch(`/__pages/${pageId}`, {
     method: 'PATCH',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ name }),
   });
-  if (!res.ok) throw new Error(`PATCH /__docs/${docId} ${res.status}`);
+  if (!res.ok) throw new Error(`PATCH /__pages/${pageId} ${res.status}`);
 }
 
-async function duplicateDocReq(docId: string, newId?: string): Promise<string> {
+async function duplicateDocReq(pageId: string, newId?: string): Promise<string> {
   const init: RequestInit = { method: 'POST' };
   if (newId !== undefined) {
     init.headers = { 'content-type': 'application/json' };
     init.body = JSON.stringify({ newId });
   }
-  const res = await fetch(`/__docs/${docId}/duplicate`, init);
-  if (!res.ok) throw new Error(`POST /__docs/${docId}/duplicate ${res.status}`);
-  const body = (await res.json()) as { docId?: unknown };
-  if (typeof body.docId !== 'string') throw new Error('duplicate response missing docId');
-  return body.docId;
+  const res = await fetch(`/__pages/${pageId}/duplicate`, init);
+  if (!res.ok) throw new Error(`POST /__pages/${pageId}/duplicate ${res.status}`);
+  const body = (await res.json()) as { pageId?: unknown };
+  if (typeof body.pageId !== 'string') throw new Error('duplicate response missing pageId');
+  return body.pageId;
 }
 
-async function deleteDocReq(docId: string): Promise<void> {
-  const res = await fetch(`/__docs/${docId}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error(`DELETE /__docs/${docId} ${res.status}`);
+async function deleteDocReq(pageId: string): Promise<void> {
+  const res = await fetch(`/__pages/${pageId}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(`DELETE /__pages/${pageId} ${res.status}`);
 }
 
 async function postFolder(name: string, icon: FolderIcon): Promise<Folder> {
@@ -79,11 +79,11 @@ async function deleteFolder(id: string): Promise<void> {
   if (!res.ok) throw new Error(`DELETE /__folders/${id} ${res.status}`);
 }
 
-async function putAssign(docId: string, folderId: string | null): Promise<void> {
+async function putAssign(pageId: string, folderId: string | null): Promise<void> {
   const res = await fetch('/__folders/assign', {
     method: 'PUT',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ docId, folderId }),
+    body: JSON.stringify({ pageId, folderId }),
   });
   if (!res.ok) throw new Error(`PUT /__folders/assign ${res.status}`);
 }
@@ -104,10 +104,10 @@ export type UseFoldersResult = {
   update: (id: string, patch: { name?: string; icon?: FolderIcon }) => Promise<void>;
   remove: (id: string) => Promise<void>;
   reorder: (ids: string[]) => Promise<void>;
-  assign: (docId: string, folderId: string | null) => Promise<void>;
-  renameDoc: (docId: string, name: string) => Promise<void>;
-  duplicateDoc: (docId: string, newId?: string) => Promise<string>;
-  deleteDoc: (docId: string) => Promise<void>;
+  assign: (pageId: string, folderId: string | null) => Promise<void>;
+  renameDoc: (pageId: string, name: string) => Promise<void>;
+  duplicatePage: (pageId: string, newId?: string) => Promise<string>;
+  deletePage: (pageId: string) => Promise<void>;
   refresh: () => Promise<void>;
 };
 
@@ -142,9 +142,9 @@ export function useFolders(): UseFoldersResult {
     const handler = () => {
       refresh().catch(() => {});
     };
-    import.meta.hot.on('open-pdf:files-changed', handler);
+    import.meta.hot.on('open-pages:files-changed', handler);
     return () => {
-      import.meta.hot?.off('open-pdf:files-changed', handler);
+      import.meta.hot?.off('open-pages:files-changed', handler);
     };
   }, [refresh]);
 
@@ -191,33 +191,33 @@ export function useFolders(): UseFoldersResult {
   );
 
   const assign = useCallback(
-    async (docId: string, folderId: string | null) => {
-      await putAssign(docId, folderId);
+    async (pageId: string, folderId: string | null) => {
+      await putAssign(pageId, folderId);
       await refresh();
     },
     [refresh],
   );
 
   const renameDoc = useCallback(
-    async (docId: string, name: string) => {
-      await patchDocName(docId, name);
+    async (pageId: string, name: string) => {
+      await patchDocName(pageId, name);
       await refresh();
     },
     [refresh],
   );
 
-  const duplicateDoc = useCallback(
-    async (docId: string, newId?: string) => {
-      const duplicatedId = await duplicateDocReq(docId, newId);
+  const duplicatePage = useCallback(
+    async (pageId: string, newId?: string) => {
+      const duplicatedId = await duplicateDocReq(pageId, newId);
       await refresh();
       return duplicatedId;
     },
     [refresh],
   );
 
-  const deleteDoc = useCallback(
-    async (docId: string) => {
-      await deleteDocReq(docId);
+  const deletePage = useCallback(
+    async (pageId: string) => {
+      await deleteDocReq(pageId);
       await refresh();
     },
     [refresh],
@@ -232,8 +232,8 @@ export function useFolders(): UseFoldersResult {
     reorder,
     assign,
     renameDoc,
-    duplicateDoc,
-    deleteDoc,
+    duplicatePage,
+    deletePage,
     refresh,
   };
 }

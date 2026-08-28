@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { type DesignSystem, defaultDesign } from '../app/lib/design.ts';
 import { applyDesignWrite, mergeDesign, parseDocDesign, serializeDesign } from './design-plugin.ts';
 
-const DOC_WITH_DESIGN = `import type { DesignSystem, Page } from '@autono/open-pdf';
+const DOC_WITH_DESIGN = `import type { DesignSystem, Page } from '@autono/open-pages';
 
 const design: DesignSystem = {
   palette: {
@@ -27,7 +27,7 @@ const Cover: Page = () => (
 export default [Cover];
 `;
 
-const DOC_WITHOUT_DESIGN = `import type { Page } from '@autono/open-pdf';
+const DOC_WITHOUT_DESIGN = `import type { Page } from '@autono/open-pages';
 
 const Cover: Page = () => (
   <div style={{ background: '#fff', color: '#000' }}>Hi</div>
@@ -37,7 +37,7 @@ export default [Cover];
 `;
 
 describe('parseDocDesign', () => {
-  it('extracts design from a doc that declares one', () => {
+  it('extracts design from a page that declares one', () => {
     const r = parseDocDesign(DOC_WITH_DESIGN);
     if (!r.ok) throw new Error('expected ok');
     expect(r.design.palette.accent).toBe('#6d4cff');
@@ -45,7 +45,7 @@ describe('parseDocDesign', () => {
     expect(r.design.radius).toBe(12);
   });
 
-  it('reports exists:false for a doc with no design const', () => {
+  it('reports exists:false for a page with no design const', () => {
     const r = parseDocDesign(DOC_WITHOUT_DESIGN);
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.exists).toBe(false);
@@ -86,7 +86,7 @@ describe('mergeDesign', () => {
   });
 });
 
-describe('applyDesignWrite — doc with existing design', () => {
+describe('applyDesignWrite — page with existing design', () => {
   it('rewrites the design object body, preserving JSX and other code', () => {
     const next = mergeDesign(defaultDesign, {
       palette: { accent: '#ff0000' } as DesignSystem['palette'],
@@ -94,7 +94,7 @@ describe('applyDesignWrite — doc with existing design', () => {
     const r = applyDesignWrite(DOC_WITH_DESIGN, next);
     if (!r.ok) throw new Error(r.error);
     expect(r.created).toBe(false);
-    expect(r.source).toContain("import type { DesignSystem, Page } from '@autono/open-pdf'");
+    expect(r.source).toContain("import type { DesignSystem, Page } from '@autono/open-pages'");
     expect(r.source).toContain('const design: DesignSystem =');
     expect(r.source).toContain("accent: '#ff0000'");
     expect(r.source).not.toContain("'#6d4cff'");
@@ -113,7 +113,7 @@ describe('applyDesignWrite — doc with existing design', () => {
   });
 });
 
-describe('applyDesignWrite — doc without design', () => {
+describe('applyDesignWrite — page without design', () => {
   it('inserts a new design const after imports and adds DesignSystem to existing core import', () => {
     const r = applyDesignWrite(DOC_WITHOUT_DESIGN, defaultDesign);
     if (!r.ok) throw new Error(r.error);
@@ -127,11 +127,11 @@ describe('applyDesignWrite — doc without design', () => {
     expect(parsed.design).toEqual(defaultDesign);
   });
 
-  it('adds a fresh @autono/open-pdf type import when none exists', () => {
-    const doc = `const Cover = () => <div>Hi</div>;\nexport default [Cover];\n`;
-    const r = applyDesignWrite(doc, defaultDesign);
+  it('adds a fresh @autono/open-pages type import when none exists', () => {
+    const page = `const Cover = () => <div>Hi</div>;\nexport default [Cover];\n`;
+    const r = applyDesignWrite(page, defaultDesign);
     if (!r.ok) throw new Error(r.error);
-    expect(r.source).toContain("import type { DesignSystem } from '@autono/open-pdf'");
+    expect(r.source).toContain("import type { DesignSystem } from '@autono/open-pages'");
     expect(r.source).toContain('const design: DesignSystem =');
     const parsed = parseDocDesign(r.source);
     if (!parsed.ok) throw new Error('inserted design is not parseable');

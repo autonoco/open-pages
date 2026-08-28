@@ -1,18 +1,18 @@
-import config from 'virtual:open-pdf/config';
+import config from 'virtual:open-pages/config';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Toaster } from './components/ui/sonner';
 import { useLocale } from './lib/use-locale';
 import { AssetsPage } from './routes/assets';
-import { Doc } from './routes/doc';
 import { Home } from './routes/home';
 import { HomeShell } from './routes/home-shell';
+import { PageView } from './routes/page';
 import { ThemeDetailPage, ThemesGalleryPage } from './routes/themes';
 
 export function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
-        {config.build.showDocBrowser ? (
+        {config.build.showPageBrowser ? (
           <Route element={<HomeShell />}>
             <Route path="/" element={<Home />} />
             <Route path="/themes" element={<ThemesGalleryPage />} />
@@ -22,7 +22,7 @@ export function App() {
         ) : (
           <Route path="/" element={<NotFound />} />
         )}
-        <Route path="/s/:docId" element={<Doc />} />
+        <Route path="/p/:pageId" element={<PageView />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />

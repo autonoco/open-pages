@@ -2,18 +2,18 @@
 
 ## Supported versions
 
-open-pdf is pre-1.0. Only the latest published version of each package receives security fixes.
+open-pages is pre-1.0. Only the latest published version of each package receives security fixes.
 
 | Package | Supported |
 | --- | --- |
-| `@autono/open-pdf` | latest release |
-| `@autono/create-open-pdf` | latest release |
+| `@autono/open-pages` | latest release |
+| `@autono/create-open-pages` | latest release |
 
 ## Reporting a vulnerability
 
 Please do not open a public issue for security reports.
 
-Use GitHub's private reporting: [Report a vulnerability](https://github.com/autonoco/open-pdf/security/advisories/new). If that isn't available to you, email [bobak@autono.co](mailto:bobak@autono.co).
+Use GitHub's private reporting: [Report a vulnerability](https://github.com/autonoco/open-pages/security/advisories/new). If that isn't available to you, email [bobak@autono.co](mailto:bobak@autono.co).
 
 Include what you can of:
 
@@ -25,6 +25,6 @@ You'll get an acknowledgement within 3 business days and a status update at leas
 
 ## Scope
 
-In scope: the `@autono/open-pdf` runtime and CLI, the `@autono/create-open-pdf` scaffolder and its template, and the release pipeline in this repository.
+In scope: the `@autono/open-pages` runtime and CLI (including the dev server's local API routes and the inspector), the `@autono/create-open-pages` scaffolder and its template, and the release pipeline in this repository.
 
-Out of scope: [openpdf.sh](https://openpdf.sh) and [docs.openpdf.sh](https://docs.openpdf.sh) content, vulnerabilities in upstream dependencies that have no open-pdf-specific impact (report those upstream), and documents you author in your own workspace.
+Out of scope: [openpages.sh](https://openpages.sh) and [docs.openpages.sh](https://docs.openpages.sh) content, vulnerabilities in upstream dependencies that have no open-pages-specific impact (report those upstream), and pages you author in your own workspace.

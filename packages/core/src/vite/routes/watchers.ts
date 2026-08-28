@@ -1,6 +1,6 @@
 import path from 'node:path';
 import type { ViteDevServer } from 'vite';
-import { DOC_ID_RE } from '../../editing/doc-ops.ts';
+import { PAGE_ID_RE } from '../../editing/page-ops.ts';
 import { GLOBAL_SCOPE } from '../../files/assets.ts';
 import type { ApiContext } from './context.ts';
 
@@ -10,7 +10,7 @@ export function registerWatchers(server: ViteDevServer, ctx: ApiContext): void {
   server.watcher.add(ctx.manifestPath);
   server.watcher.on('change', (p) => {
     if (p === ctx.manifestPath) {
-      server.ws.send({ type: 'custom', event: 'open-pdf:files-changed' });
+      server.ws.send({ type: 'custom', event: 'open-pages:files-changed' });
     }
   });
 
@@ -19,21 +19,21 @@ export function registerWatchers(server: ViteDevServer, ctx: ApiContext): void {
     if (p.startsWith(ctx.globalAssetsRoot + path.sep) || p === ctx.globalAssetsRoot) {
       server.ws.send({
         type: 'custom',
-        event: 'open-pdf:assets-changed',
-        data: { docId: GLOBAL_SCOPE },
+        event: 'open-pages:assets-changed',
+        data: { pageId: GLOBAL_SCOPE },
       });
       return;
     }
-    if (!p.startsWith(ctx.docsRoot + path.sep)) return;
-    const rel = p.slice(ctx.docsRoot.length + 1);
+    if (!p.startsWith(ctx.pagesRoot + path.sep)) return;
+    const rel = p.slice(ctx.pagesRoot.length + 1);
     const parts = rel.split(path.sep);
     if (parts.length < 3 || parts[1] !== 'assets') return;
-    const docId = parts[0];
-    if (!DOC_ID_RE.test(docId)) return;
+    const pageId = parts[0];
+    if (!PAGE_ID_RE.test(pageId)) return;
     server.ws.send({
       type: 'custom',
-      event: 'open-pdf:assets-changed',
-      data: { docId },
+      event: 'open-pages:assets-changed',
+      data: { pageId },
     });
   };
   server.watcher.on('add', onAssetChange);

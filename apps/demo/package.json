@@ -4,13 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "open-pdf dev",
-    "build": "open-pdf build",
-    "export": "open-pdf export",
-    "preview": "open-pdf preview"
+    "dev": "open-pages dev",
+    "build": "open-pages build",
+    "export": "open-pages export",
+    "preview": "open-pages preview"
   },
   "dependencies": {
-    "@autono/open-pdf": "workspace:*",
+    "@autono/open-pages": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

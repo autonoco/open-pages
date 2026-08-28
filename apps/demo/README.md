@@ -1,64 +1,29 @@
-# open-pdf workspace
+# open-pages demo workspace
 
-Docs as React components. Each doc lives under `docs/<id>/index.tsx` and default-exports an array of page components. The `@autono/open-pdf` runtime handles layout, scaling, navigation, thumbnails, and fullscreen play mode — you just write the pages.
+The dogfood workspace for the framework. It consumes `@autono/open-pages` via `workspace:*`, so edits to `packages/core` show up here on the next reload.
 
-## Getting started
+## Pages
+
+| Page | Kind | Shows |
+| --- | --- | --- |
+| `launch` | React | A marketing landing page with a pricing toggle. |
+| `status-board` | React | An interactive status page with filters and derived state. |
+| `plain-html` | HTML | An `index.html` page with sibling CSS and JS. |
+
+## Run it
 
 ```bash
 pnpm install
-pnpm dev
+pnpm dev          # from the repo root: builds core, starts this workspace
 ```
 
-Then open the dev server and create a new doc at `docs/<your-doc>/index.tsx`.
+Or from this directory, `pnpm dev` after `pnpm core build` at the root. The workspace opens at `http://localhost:5173`; each page previews at `/p/<id>`.
 
-## Scripts
+## Authoring
 
-| Command | Description |
-| --- | --- |
-| `pnpm dev` | Start the dev server with hot reload. |
-| `pnpm build` | Build a static bundle you can deploy. |
-| `pnpm preview` | Preview the built bundle locally. |
+Same contract as any scaffolded workspace: `pages/<id>/index.tsx` default-exports one React component and exports `meta`. See the skills under `.claude/skills/` (synced from `packages/core/skills/`) for the full guide, or the [template README](../../packages/cli/template/README.md).
 
-## Authoring a doc
-
-```tsx
-// docs/my-doc/index.tsx
-import type { Page, DocMeta } from '@autono/open-pdf';
-
-const Cover: Page = () => (
-  <div style={{ width: '100%', height: '100%' }}>Hello</div>
-);
-
-export const meta: DocMeta = { title: 'My doc' };
-export default [Cover] satisfies Page[];
+```bash
+pnpm export       # every page → export/<id>/
+pnpm build        # the whole viewer → dist/
 ```
-
-Every page renders into a fixed **1920 × 1080** canvas — design with absolute pixel values. Put images, videos, and fonts under `docs/<id>/assets/` and import them directly.
-
-See [`CLAUDE.md`](./CLAUDE.md) for the full authoring guide.
-
-## Navigation
-
-- Arrow keys / PageUp / PageDown move between pages.
-- `F` enters fullscreen play mode; Esc exits.
-- In play mode: Space / → next, ← prev.
-
-## Claude Code integration
-
-This workspace ships with Claude Code skills preconfigured under `.claude/skills/` and `.agents/skills/`. Ask Claude Code to "make docs about X" and the `create-doc` skill takes over. Use `apply-comments` to iterate via inspector-style markers inside your source.
-
-## Config
-
-Optional `open-pdf.config.ts` at the workspace root:
-
-```ts
-import type { OpenPdfConfig } from '@autono/open-pdf';
-
-const openPdfConfig: OpenPdfConfig = {
-  port: 5173,
-};
-
-export default openPdfConfig;
-```
-
-Supported fields: `docsDir`, `port`.

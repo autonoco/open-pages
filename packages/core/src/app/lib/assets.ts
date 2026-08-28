@@ -12,20 +12,20 @@ export type AssetEntry = {
 
 export type UploadOptions = { overwrite?: boolean };
 
-export async function listAssets(docId: string): Promise<AssetEntry[]> {
-  const res = await fetch(`/__assets/${docId}`);
-  if (!res.ok) throw new Error(`GET /__assets/${docId} ${res.status}`);
+export async function listAssets(pageId: string): Promise<AssetEntry[]> {
+  const res = await fetch(`/__assets/${pageId}`);
+  if (!res.ok) throw new Error(`GET /__assets/${pageId} ${res.status}`);
   const data = (await res.json()) as { assets?: AssetEntry[] };
   return data.assets ?? [];
 }
 
 export async function uploadAsset(
-  docId: string,
+  pageId: string,
   file: File,
   opts: UploadOptions = {},
 ): Promise<Response> {
   const qs = opts.overwrite ? '?overwrite=1' : '';
-  return fetch(`/__assets/${docId}/${encodeURIComponent(file.name)}${qs}`, {
+  return fetch(`/__assets/${pageId}/${encodeURIComponent(file.name)}${qs}`, {
     method: 'POST',
     headers: {
       'content-type': file.type || 'application/octet-stream',
@@ -35,41 +35,41 @@ export async function uploadAsset(
   });
 }
 
-async function renameAsset(docId: string, from: string, to: string): Promise<Response> {
-  return fetch(`/__assets/${docId}/${encodeURIComponent(from)}`, {
+async function renameAsset(pageId: string, from: string, to: string): Promise<Response> {
+  return fetch(`/__assets/${pageId}/${encodeURIComponent(from)}`, {
     method: 'PATCH',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ name: to }),
   });
 }
 
-async function deleteAsset(docId: string, name: string): Promise<Response> {
-  return fetch(`/__assets/${docId}/${encodeURIComponent(name)}`, { method: 'DELETE' });
+async function deleteAsset(pageId: string, name: string): Promise<Response> {
+  return fetch(`/__assets/${pageId}/${encodeURIComponent(name)}`, { method: 'DELETE' });
 }
 
-export type AssetUsage = { docId: string; count: number };
+export type AssetUsage = { pageId: string; count: number };
 
-export async function listAssetUsages(docId: string, name: string): Promise<AssetUsage[]> {
-  const res = await fetch(`/__assets/${docId}/${encodeURIComponent(name)}/usages`);
+export async function listAssetUsages(pageId: string, name: string): Promise<AssetUsage[]> {
+  const res = await fetch(`/__assets/${pageId}/${encodeURIComponent(name)}/usages`);
   if (!res.ok) return [];
   const data = (await res.json().catch(() => null)) as { usages?: AssetUsage[] } | null;
   return data?.usages ?? [];
 }
 
 export async function revertAssetUsage(
-  docId: string,
+  pageId: string,
   assetPath: string,
 ): Promise<{ ok: boolean; status: number }> {
   const res = await fetch('/__edit/revert-asset', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ docId, assetPath }),
+    body: JSON.stringify({ pageId, assetPath }),
   });
   return { ok: res.ok, status: res.status };
 }
 
 export async function uploadWithAutoRename(
-  docId: string,
+  pageId: string,
   file: File,
 ): Promise<{ ok: boolean; status: number; entry: AssetEntry | null }> {
   // Vite's default `assetsInclude` matches asset extensions case-sensitively,
@@ -77,12 +77,12 @@ export async function uploadWithAutoRename(
   // into a real `import`) fails to parse. Lowercase the extension so the
   // import path is always one Vite recognizes.
   let uploaded = lowercaseExtension(file);
-  let res = await uploadAsset(docId, uploaded);
+  let res = await uploadAsset(pageId, uploaded);
   if (res.status === 409) {
-    const list = await listAssets(docId);
+    const list = await listAssets(pageId);
     const taken = new Set(list.map((a) => a.name));
     uploaded = renamedCopy(uploaded, taken);
-    res = await uploadAsset(docId, uploaded);
+    res = await uploadAsset(pageId, uploaded);
   }
   if (!res.ok) return { ok: false, status: res.status, entry: null };
   const body = (await res.json().catch(() => null)) as Partial<AssetEntry> | null;
@@ -93,7 +93,7 @@ export async function uploadWithAutoRename(
     createdAt: body?.createdAt ?? now,
     mtime: body?.mtime ?? now,
     mime: body?.mime ?? uploaded.type ?? 'application/octet-stream',
-    url: body?.url ?? `/__assets/${docId}/${encodeURIComponent(uploaded.name)}`,
+    url: body?.url ?? `/__assets/${pageId}/${encodeURIComponent(uploaded.name)}`,
     unused: body?.unused ?? false,
   };
   return { ok: true, status: res.status, entry };
@@ -168,22 +168,22 @@ export type UseAssetsResult = {
 
 const NOOP_RESULT = { ok: false, status: 0 } as const;
 
-export function useAssets(docId: string): UseAssetsResult {
+export function useAssets(pageId: string): UseAssetsResult {
   const available = import.meta.env.DEV;
   const [assets, setAssets] = useState<AssetEntry[]>([]);
   const [loading, setLoading] = useState(available);
 
   const refresh = useCallback(async () => {
     if (!available) return;
-    const next = await listAssets(docId);
+    const next = await listAssets(pageId);
     setAssets(next);
-  }, [docId]);
+  }, [pageId]);
 
   useEffect(() => {
     if (!available) return;
     let cancelled = false;
     setLoading(true);
-    listAssets(docId)
+    listAssets(pageId)
       .then((next) => {
         if (!cancelled) {
           setAssets(next);
@@ -196,61 +196,61 @@ export function useAssets(docId: string): UseAssetsResult {
     return () => {
       cancelled = true;
     };
-  }, [docId]);
+  }, [pageId]);
 
   useEffect(() => {
     if (!available || !import.meta.hot) return;
-    const assetHandler = (data: { docId?: string } | undefined) => {
-      if (!data || data.docId === docId) {
+    const assetHandler = (data: { pageId?: string } | undefined) => {
+      if (!data || data.pageId === pageId) {
         refresh().catch(() => {});
       }
     };
-    const docHandler = (data: { docId?: unknown; docIds?: unknown } | undefined) => {
-      const changedIds = Array.isArray(data?.docIds)
-        ? data.docIds
-        : typeof data?.docId === 'string'
-          ? [data.docId]
+    const docHandler = (data: { pageId?: unknown; pageIds?: unknown } | undefined) => {
+      const changedIds = Array.isArray(data?.pageIds)
+        ? data.pageIds
+        : typeof data?.pageId === 'string'
+          ? [data.pageId]
           : [];
-      if (docId === '@global' ? changedIds.length > 0 : changedIds.includes(docId)) {
+      if (pageId === '@global' ? changedIds.length > 0 : changedIds.includes(pageId)) {
         refresh().catch(() => {});
       }
     };
-    import.meta.hot.on('open-pdf:assets-changed', assetHandler);
-    import.meta.hot.on('open-pdf:doc-changed', docHandler);
+    import.meta.hot.on('open-pages:assets-changed', assetHandler);
+    import.meta.hot.on('open-pages:page-changed', docHandler);
     return () => {
-      import.meta.hot?.off('open-pdf:assets-changed', assetHandler);
-      import.meta.hot?.off('open-pdf:doc-changed', docHandler);
+      import.meta.hot?.off('open-pages:assets-changed', assetHandler);
+      import.meta.hot?.off('open-pages:page-changed', docHandler);
     };
-  }, [docId, refresh]);
+  }, [pageId, refresh]);
 
   const upload = useCallback(
     async (file: File, opts?: UploadOptions) => {
       if (!available) return NOOP_RESULT;
-      const res = await uploadAsset(docId, file, opts);
+      const res = await uploadAsset(pageId, file, opts);
       if (res.ok) await refresh();
       return { ok: res.ok, status: res.status };
     },
-    [docId, refresh],
+    [pageId, refresh],
   );
 
   const rename = useCallback(
     async (from: string, to: string) => {
       if (!available) return NOOP_RESULT;
-      const res = await renameAsset(docId, from, to);
+      const res = await renameAsset(pageId, from, to);
       if (res.ok) await refresh();
       return { ok: res.ok, status: res.status };
     },
-    [docId, refresh],
+    [pageId, refresh],
   );
 
   const remove = useCallback(
     async (name: string) => {
       if (!available) return NOOP_RESULT;
-      const res = await deleteAsset(docId, name);
+      const res = await deleteAsset(pageId, name);
       if (res.ok) await refresh();
       return { ok: res.ok, status: res.status };
     },
-    [docId, refresh],
+    [pageId, refresh],
   );
 
   return { assets, loading, available, upload, rename, remove, refresh };

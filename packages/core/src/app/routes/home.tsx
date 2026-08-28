@@ -34,9 +34,9 @@ import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import { DOC_DND_MIME, FolderIconChip } from '../components/sidebar/folder-item';
 import { ALL_DOCS_ID, DRAFT_ID } from '../components/sidebar/sidebar';
-import { docCreatedAt, docIds, loadDoc } from '../lib/docs';
-import { DocPdfThumb } from '../lib/pdf/doc-pdf-thumb';
-import type { DocModule, Folder, FolderIcon } from '../lib/sdk';
+import { PageThumb } from '../lib/page-thumb';
+import { loadPage, pageCreatedAt, pageIds, pageKinds } from '../lib/pages';
+import type { Folder, FolderIcon, PageModule } from '../lib/sdk';
 import type { HomeOutletContext } from './home-shell';
 
 type SortKey = 'created-desc' | 'created-asc' | 'title-asc' | 'title-desc';
@@ -44,7 +44,7 @@ type SortKey = 'created-desc' | 'created-asc' | 'title-asc' | 'title-desc';
 const SORT_KEYS: readonly SortKey[] = ['created-desc', 'created-asc', 'title-asc', 'title-desc'];
 
 const DEFAULT_SORT: SortKey = 'created-desc';
-const SORT_STORAGE_KEY = 'open-pdf:home-sort';
+const SORT_STORAGE_KEY = 'open-pages:home-sort';
 
 function readSortPref(): SortKey {
   if (typeof window === 'undefined') return DEFAULT_SORT;
@@ -80,8 +80,8 @@ export function Home() {
     titleMap,
     assign,
     renameDoc,
-    duplicateDoc,
-    deleteDoc,
+    duplicatePage,
+    deletePage,
   } = useOutletContext<HomeOutletContext>();
   const t = useLocale();
 
@@ -89,9 +89,9 @@ export function Home() {
   const isDraft = selectedId === DRAFT_ID;
   const selectedFolder =
     isAll || isDraft ? null : (manifest.folders.find((f) => f.id === selectedId) ?? null);
-  const visibleDocs = isAll ? docIds : isDraft ? draftDocs : (docsByFolder[selectedId] ?? []);
+  const visibleDocs = isAll ? pageIds : isDraft ? draftDocs : (docsByFolder[selectedId] ?? []);
 
-  const title = selectedFolder?.name ?? (isAll ? t.home.docs : t.home.draft);
+  const title = selectedFolder?.name ?? (isAll ? t.home.pages : t.home.draft);
   const headerIcon = selectedFolder?.icon ?? {
     type: 'emoji' as const,
     value: isAll ? '🎞️' : '📝',
@@ -120,10 +120,10 @@ export function Home() {
         list.sort((a, b) => TITLE_COLLATOR.compare(titleOf(b), titleOf(a)));
         break;
       case 'created-asc':
-        list.sort((a, b) => (docCreatedAt[a] ?? 0) - (docCreatedAt[b] ?? 0));
+        list.sort((a, b) => (pageCreatedAt[a] ?? 0) - (pageCreatedAt[b] ?? 0));
         break;
       default:
-        list.sort((a, b) => (docCreatedAt[b] ?? 0) - (docCreatedAt[a] ?? 0));
+        list.sort((a, b) => (pageCreatedAt[b] ?? 0) - (pageCreatedAt[a] ?? 0));
     }
     return list;
   }, [filteredDocs, sortKey, titleMap]);
@@ -155,8 +155,8 @@ export function Home() {
                 className={cn(isAll && 'bg-muted text-foreground')}
               >
                 <FolderIconChip icon={{ type: 'emoji', value: '🎞️' }} />
-                <span className="flex-1 truncate">{t.home.docs}</span>
-                <span className="folio">{docIds.length.toString().padStart(2, '0')}</span>
+                <span className="flex-1 truncate">{t.home.pages}</span>
+                <span className="folio">{pageIds.length.toString().padStart(2, '0')}</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => selectFolder(DRAFT_ID)}
@@ -216,10 +216,10 @@ export function Home() {
                 onDuplicate={async () => {
                   const docName = titleMap[id] ?? id;
                   try {
-                    const newDocId = await duplicateDoc(id);
+                    const newDocId = await duplicatePage(id);
                     toast.success(
                       format(t.home.toastDocDuplicated, {
-                        doc: docName,
+                        page: docName,
                         newDoc: newDocId,
                       }),
                     );
@@ -228,7 +228,7 @@ export function Home() {
                   }
                 }}
                 onMove={(folderId) => assign(id, folderId)}
-                onDelete={() => deleteDoc(id)}
+                onDelete={() => deletePage(id)}
                 onTitleResolved={reportTitle}
               />
             </li>
@@ -327,7 +327,7 @@ function HomeLoading() {
             className="line-loader-bar absolute inset-y-[-0.5px] left-0 w-1/4 bg-foreground"
           />
         </div>
-        <span className="eyebrow text-[11.5px]">{t.doc.loadingEyebrow}</span>
+        <span className="eyebrow text-[11.5px]">{t.page.loadingEyebrow}</span>
       </div>
     </div>
   );
@@ -377,7 +377,7 @@ function EmptyState({ isDraft, folderName }: { isDraft: boolean; folderName?: st
             <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
               {t.home.createDocHintPrefix}
               <code className="rounded-[4px] bg-muted px-1.5 py-0.5 font-mono text-[11.5px] text-foreground">
-                /create-doc
+                /create-page
               </code>
               {t.home.createDocHintSuffix}
             </p>
@@ -461,16 +461,16 @@ function DocCard({
   onDelete: () => Promise<void> | void;
   onTitleResolved?: (id: string, title: string) => void;
 }) {
-  const [doc, setDoc] = useState<DocModule | null>(null);
+  const [page, setPage] = useState<PageModule | null>(null);
   const [dragging, setDragging] = useState(false);
   const [dialog, setDialog] = useState<DialogKind>(null);
   const tCard = useLocale();
 
   useEffect(() => {
     let cancelled = false;
-    loadDoc(id)
+    loadPage(id)
       .then((mod) => {
-        if (!cancelled) setDoc(mod);
+        if (!cancelled) setPage(mod);
       })
       .catch(() => {});
     return () => {
@@ -478,11 +478,11 @@ function DocCard({
     };
   }, [id]);
 
-  const displayTitle = doc?.meta?.title ?? id;
+  const displayTitle = page?.meta?.title ?? id;
 
   useEffect(() => {
-    if (doc && onTitleResolved) onTitleResolved(id, displayTitle);
-  }, [id, doc, displayTitle, onTitleResolved]);
+    if (page && onTitleResolved) onTitleResolved(id, displayTitle);
+  }, [id, page, displayTitle, onTitleResolved]);
 
   return (
     <>
@@ -502,27 +502,27 @@ function DocCard({
         onDragEnd={() => setDragging(false)}
         className={cn('group relative motion-safe:transition-opacity', dragging && 'opacity-40')}
       >
-        <Link to={`/s/${id}`} className="block focus-visible:outline-none">
-          {/* Doc thumb — tight border, grey baseboard, no shadcn rounded-xl */}
+        <Link to={`/p/${id}`} className="block focus-visible:outline-none">
+          {/* Page thumb — tight border, grey baseboard, no shadcn rounded-xl */}
           <div className="relative aspect-video overflow-hidden rounded-[6px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04] group-hover:shadow-floating group-hover:ring-foreground/20 motion-safe:transition-[box-shadow,--tw-ring-color] motion-safe:duration-200">
             <div className="h-full w-full motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]">
-              <DocPdfThumb docId={id} />
+              <PageThumb source={{ pageId: id, kind: pageKinds[id] }} title={displayTitle} />
             </div>
           </div>
         </Link>
         <div className="mt-3 flex items-center gap-2">
-          <Link to={`/s/${id}`} className="min-w-0 flex-1 focus-visible:outline-none">
+          <Link to={`/p/${id}`} className="min-w-0 flex-1 focus-visible:outline-none">
             <h3 className="min-w-0 truncate font-heading text-[14px] font-medium tracking-tight">
               {displayTitle}
             </h3>
           </Link>
-          {doc?.meta?.theme && (
+          {page?.meta?.theme && (
             <Link
-              to={`/themes/${encodeURIComponent(doc.meta.theme)}`}
+              to={`/themes/${encodeURIComponent(page.meta.theme)}`}
               className="inline-flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
             >
               <Palette className="size-3" aria-hidden />
-              <span className="max-w-[120px] truncate">{doc.meta.theme}</span>
+              <span className="max-w-[120px] truncate">{page.meta.theme}</span>
             </Link>
           )}
         </div>

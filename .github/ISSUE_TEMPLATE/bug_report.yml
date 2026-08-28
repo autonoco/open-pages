@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a problem with the open-pdf runtime, CLI, or scaffolder.
+description: Report a problem with the open-pages runtime, CLI, or scaffolder.
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -21,7 +21,7 @@ body:
       label: Steps to reproduce
       description: Minimal, numbered steps. A link to a repo or sandbox is ideal.
       placeholder: |
-        1. `npm create @autono/open-pdf@latest repro`
+        1. `npm create @autono/open-pages@latest repro`
         2. `cd repro && pnpm dev`
         3. Open http://localhost:5173 and click …
     validations:
@@ -43,15 +43,15 @@ body:
     id: package
     attributes:
       label: Affected package
-      description: e.g. `@autono/open-pdf`, `@autono/create-open-pdf`, or "scaffolded project".
+      description: e.g. `@autono/open-pages`, `@autono/create-open-pages`, or "scaffolded project".
     validations:
       required: true
   - type: input
     id: version
     attributes:
       label: Version
-      description: Output of `npm ls @autono/open-pdf` (or the CLI version you ran).
-      placeholder: "@autono/open-pdf@1.2.3"
+      description: Output of `npm ls @autono/open-pages` (or the CLI version you ran).
+      placeholder: "@autono/open-pages@1.2.3"
     validations:
       required: true
   - type: input

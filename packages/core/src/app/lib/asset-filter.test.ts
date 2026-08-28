@@ -138,15 +138,15 @@ describe('sortAssets', () => {
 
   it('sorts names naturally and case-insensitively', () => {
     const naturalNames = [
-      { ...sortableAssets[0], name: 'Doc 11.png' },
-      { ...sortableAssets[0], name: 'doc 2.png' },
-      { ...sortableAssets[0], name: 'DOC 1.png' },
+      { ...sortableAssets[0], name: 'Page 11.png' },
+      { ...sortableAssets[0], name: 'page 2.png' },
+      { ...sortableAssets[0], name: 'PAGE 1.png' },
     ];
 
     expect(names(sortAssets(naturalNames, { key: 'name', direction: 'asc' }))).toEqual([
-      'DOC 1.png',
-      'doc 2.png',
-      'Doc 11.png',
+      'PAGE 1.png',
+      'page 2.png',
+      'Page 11.png',
     ]);
   });
 

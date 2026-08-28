@@ -21,7 +21,7 @@ body {
 
 /* The sheet is a typeset document: serif is diegetic, not decorative. */
 .sheet {
-  font-family: var(--font-doc), Georgia, serif;
+  font-family: var(--font-page), Georgia, serif;
   color: var(--ink);
   background: var(--paper);
   box-shadow:

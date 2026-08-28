@@ -70,15 +70,15 @@ import {
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 
-type Props = { docId: string | null };
+type Props = { pageId: string | null };
 
-type Scope = 'doc' | 'global';
+type Scope = 'page' | 'global';
 type ViewMode = 'grid' | 'list';
 
 const GLOBAL_DOC_ID = '@global';
-const VIEW_MODE_STORAGE_KEY = 'open-pdf:asset-view-mode';
-const SORT_STORAGE_KEY = 'open-pdf:asset-sort-v1';
-const GRID_COLUMNS_STORAGE_KEY = 'open-pdf:asset-grid-columns-v1';
+const VIEW_MODE_STORAGE_KEY = 'open-pages:asset-view-mode';
+const SORT_STORAGE_KEY = 'open-pages:asset-sort-v1';
+const GRID_COLUMNS_STORAGE_KEY = 'open-pages:asset-grid-columns-v1';
 const MIN_GRID_COLUMNS = 2;
 const MAX_GRID_COLUMNS = 10;
 const DEFAULT_GRID_COLUMNS = 4;
@@ -161,10 +161,10 @@ type ConflictState = {
   resolve: (decision: 'replace' | 'rename' | 'cancel') => void;
 };
 
-export function AssetView({ docId }: Props) {
-  const lockedToGlobal = docId === null;
-  const [scope, setScope] = useState<Scope>(lockedToGlobal ? 'global' : 'doc');
-  const effectiveDocId = scope === 'global' || docId === null ? GLOBAL_DOC_ID : docId;
+export function AssetView({ pageId }: Props) {
+  const lockedToGlobal = pageId === null;
+  const [scope, setScope] = useState<Scope>(lockedToGlobal ? 'global' : 'page');
+  const effectiveDocId = scope === 'global' || pageId === null ? GLOBAL_DOC_ID : pageId;
   const { assets, loading, available, upload, rename, remove } = useAssets(effectiveDocId);
   const [dragActive, setDragActive] = useState(false);
   const [conflict, setConflict] = useState<ConflictState | null>(null);
@@ -327,14 +327,14 @@ export function AssetView({ docId }: Props) {
           ) : (
             <Tabs value={scope} onValueChange={(next) => setScope(next as Scope)}>
               <TabsList>
-                <TabsTrigger value="doc">{t.asset.scopeDoc}</TabsTrigger>
+                <TabsTrigger value="page">{t.asset.scopeDoc}</TabsTrigger>
                 <TabsTrigger value="global">{t.asset.scopeGlobal}</TabsTrigger>
               </TabsList>
             </Tabs>
           )}
           <p className="min-w-0 truncate text-[12px] text-muted-foreground">
             <span className="font-mono text-[11.5px]">
-              {scope === 'global' ? 'assets/' : `docs/${docId}/assets/`}
+              {scope === 'global' ? 'assets/' : `pages/${pageId}/assets/`}
             </span>
             {!loading && (
               <>
@@ -555,7 +555,7 @@ export function AssetView({ docId }: Props) {
           <div className="absolute inset-0 bg-brand/5" />
           <div className="absolute inset-2 rounded-[10px] border border-dashed border-brand/40" />
           <div className="absolute inset-x-0 bottom-8 flex justify-center">
-            <div className="flex animate-in items-center gap-2 rounded-[6px] border border-border bg-card px-3 py-1.5 text-[12px] font-medium shadow-floating fade-in-0 doc-in-from-bottom-1 duration-300">
+            <div className="flex animate-in items-center gap-2 rounded-[6px] border border-border bg-card px-3 py-1.5 text-[12px] font-medium shadow-floating fade-in-0 page-in-from-bottom-1 duration-300">
               <ArrowDownToLine className="size-3.5 text-brand" />
               <span>{t.asset.dropToUpload}</span>
             </div>
@@ -589,9 +589,9 @@ export function AssetView({ docId }: Props) {
             const assetPath =
               scope === 'global' ? `@assets/${target.name}` : `./assets/${target.name}`;
             for (const u of usages) {
-              const rev = await revertAssetUsage(u.docId, assetPath);
+              const rev = await revertAssetUsage(u.pageId, assetPath);
               if (!rev.ok) {
-                toast.error(format(t.asset.toastRevertFailed, { docId: u.docId }));
+                toast.error(format(t.asset.toastRevertFailed, { pageId: u.pageId }));
                 return;
               }
             }
@@ -1261,7 +1261,7 @@ function DeleteDialog({
                 {format(t.asset.deleteAssetInUseDescription, {
                   name: asset.name,
                   count: totalUses,
-                  docs: docCount,
+                  pages: docCount,
                 })}{' '}
                 {t.asset.deleteAssetInUseHint}
               </>
@@ -1277,8 +1277,8 @@ function DeleteDialog({
         {inUse && usages && (
           <ul className="max-h-40 overflow-y-auto rounded-[5px] border border-hairline bg-muted/40 px-3 py-2 font-mono text-[11.5px] leading-relaxed">
             {usages.map((u) => (
-              <li key={u.docId} className="flex items-center justify-between gap-3">
-                <span className="truncate">{u.docId}</span>
+              <li key={u.pageId} className="flex items-center justify-between gap-3">
+                <span className="truncate">{u.pageId}</span>
                 <span className="text-muted-foreground">×{u.count}</span>
               </li>
             ))}

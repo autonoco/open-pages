@@ -1,5 +1,5 @@
 {
-  "name": "open-pdf-monorepo",
+  "name": "open-pages-monorepo",
   "private": true,
   "version": "0.0.0",
   "packageManager": "pnpm@10.17.0",
@@ -17,9 +17,9 @@
     "check:fix": "biome check --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "pnpm --filter @autono/open-pdf test:e2e",
-    "core": "pnpm --filter @autono/open-pdf",
-    "cli": "pnpm --filter @autono/create-open-pdf"
+    "test:e2e": "pnpm --filter @autono/open-pages test:e2e",
+    "core": "pnpm --filter @autono/open-pages",
+    "cli": "pnpm --filter @autono/create-open-pages"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.7",

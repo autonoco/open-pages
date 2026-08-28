@@ -1,12 +1,12 @@
-const DATE = 'August 18, 2026';
+const DATE = 'August 28, 2026';
 
 const LINE_ITEMS = [
   {
     loc: 'index.tsx:41',
-    name: 'Live preview that is the PDF',
-    detail: 'The browser renders real PDF bytes in a worker. What you see is the file.',
+    name: 'Live preview that is the page',
+    detail: 'The page runs in a real browser frame. What you see is what you ship.',
     qty: 'every save',
-    amount: '~24ms',
+    amount: 'hot reload',
   },
   {
     loc: 'index.tsx:48',
@@ -24,43 +24,43 @@ const LINE_ITEMS = [
   },
   {
     loc: 'index.tsx:62',
-    name: 'Real tables, breaks, page numbers',
-    detail: 'HTML tables with repeating headers, break control, running footer bands.',
-    qty: 'engine',
+    name: 'React or plain HTML',
+    detail: 'Tailwind via className, hooks, state, routing. Or drop in an index.html.',
+    qty: 'pages/<id>/',
     amount: 'included',
   },
   {
     loc: 'index.tsx:69',
-    name: 'Export: PDF, Word, Google Docs',
-    detail: 'Headless CLI export. DOCX is editable text, not page images.',
-    qty: '--format docx',
+    name: 'Export: a static folder',
+    detail: 'index.html plus hashed assets. Netlify, Vercel, Cloudflare, GitHub Pages, S3.',
+    qty: 'open-pages export',
     amount: 'included',
   },
 ];
 
 const SOURCE = [
-  'import { PageNumber, TotalPages }',
-  "  from '@autono/open-pdf';",
+  'import type { PageMeta }',
+  "  from '@autono/open-pages';",
+  "import { useState } from 'react';",
   '',
-  'export const pageOptions = {',
-  "  size: 'a4',",
-  '  margin: { top: 56, bottom: 72 },',
-  '  footer: (',
-  '    <span tw="flex">',
-  '      Page <PageNumber /> of',
-  '      <TotalPages />',
-  '    </span>',
-  '  ),',
+  'export const meta: PageMeta = {',
+  "  title: 'The pitch',",
   '};',
   '',
-  'export default function Doc() {',
+  'export default function Page() {',
+  '  const [open, setOpen] =',
+  '    useState(false);',
   '  return (',
-  '    <main tw="flex flex-col">',
-  '      <h1 tw="text-[30px] font-bold">',
-  '        The PDF framework',
+  '    <main className="px-6 py-24">',
+  '      <h1 className="text-6xl',
+  '        font-bold tracking-tight">',
+  '        The web page framework',
   '        built for agents',
   '      </h1>',
-  '      <table tw="mt-8 w-full">…</table>',
+  '      <button onClick={() =>',
+  '        setOpen((v) => !v)}>',
+  '        Start free',
+  '      </button>',
   '    </main>',
   '  );',
   '}',
@@ -71,18 +71,20 @@ function Toolbar() {
     <div className="mx-auto flex w-full max-w-[1180px] items-center gap-3 px-5 py-3 text-[13px]">
       {/* biome-ignore lint: static marketing img */}
       <img src="/mark.svg" alt="" width={22} height={22} />
-      <span className="font-medium text-[#e8e5dd]">open-pdf</span>
+      <span className="font-medium text-[#e8e5dd]">open-pages</span>
       <span className="hidden text-[#66625a] sm:inline">/</span>
-      <span className="hidden text-[#8a867d] sm:inline">the-pitch.pdf</span>
-      <span className="ml-auto hidden tabular-nums text-[#66625a] md:inline">1 page · 24ms</span>
+      <span className="hidden text-[#8a867d] sm:inline">the-pitch</span>
+      <span className="ml-auto hidden tabular-nums text-[#66625a] md:inline">
+        hot reload · 24ms
+      </span>
       <a
-        href="https://docs.openpdf.sh"
+        href="https://docs.openpages.sh"
         className="rounded-md border border-[#33322e] px-3 py-1.5 text-[#c9c5bc] transition-colors hover:border-[#4a4842] hover:text-white"
       >
         Docs
       </a>
       <a
-        href="https://github.com/autonoco/open-pdf"
+        href="https://github.com/autonoco/open-pages"
         className="rounded-md border border-[#33322e] px-3 py-1.5 text-[#c9c5bc] transition-colors hover:border-[#4a4842] hover:text-white"
       >
         GitHub
@@ -97,17 +99,17 @@ function Sheet() {
       {/* Letterhead */}
       <div className="flex items-start justify-between border-b border-[var(--rule)] pb-5">
         <div>
-          <div className="text-[15px] font-semibold tracking-tight">open-pdf</div>
+          <div className="text-[15px] font-semibold tracking-tight">open-pages</div>
           <div className="mt-0.5 text-[11px] text-[var(--ink-muted)]">
-            github.com/autonoco/open-pdf
+            github.com/autonoco/open-pages
           </div>
         </div>
         <div className="text-right text-[11px] leading-relaxed text-[var(--ink-muted)]">
           <div>
-            Doc № <span className="text-[var(--ink)]">OP-0001</span>
+            Page <span className="text-[var(--ink)]">the-pitch</span>
           </div>
           <div>{DATE}</div>
-          <div>Format: PDF 1.7</div>
+          <div>localhost:5173/p/the-pitch</div>
         </div>
       </div>
 
@@ -123,7 +125,7 @@ function Sheet() {
             “make the headline bigger”
           </div>
           <div className="mt-2 border-t border-[#eae6dc] pt-1.5 text-[10px] text-[#8a8578]">
-            applied by your agent · re-rendered in 24ms
+            applied by your agent · hot-reloaded in 24ms
           </div>
           <span className="absolute -right-[37px] top-5 hidden h-px w-9 bg-[var(--inspect)] opacity-60 xl:block" />
         </div>
@@ -131,13 +133,13 @@ function Sheet() {
           A framework
         </div>
         <h1 className="mt-2 text-[34px] font-semibold leading-[1.08] tracking-tight sm:text-[42px]">
-          The PDF framework
+          The web page framework
           <br />
           built for agents.
         </h1>
         <p className="mt-4 max-w-[46ch] text-[14.5px] leading-relaxed text-[#3d3a34]">
-          Your coding agent writes this document as a React component. The preview you are reading
-          is the rendered PDF. Hover anything on this sheet to see what your agent sees.
+          Your coding agent writes this page as a React component. The preview you are reading is
+          the real page in a browser frame. Hover anything here to see what your agent sees.
         </p>
       </div>
 
@@ -183,14 +185,14 @@ function Sheet() {
         </div>
         <div className="code-font mt-3 flex items-baseline gap-3 text-[15px] sm:text-[17px]">
           <span className="select-none text-[var(--seal)]">$</span>
-          <span>npm create @autono/open-pdf my-docs</span>
+          <span>npm create @autono/open-pages my-pages</span>
         </div>
       </div>
 
       {/* Folio */}
       <div className="mt-12 flex justify-between text-[9.5px] text-[var(--ink-muted)]">
-        <span>open-pdf · rendered by Takumi</span>
-        <span>Page 1 of 1</span>
+        <span>open-pages · a real web page</span>
+        <span>desktop · tablet · mobile</span>
       </div>
     </div>
   );
@@ -201,7 +203,7 @@ function SourceStrip() {
     <div className="anim-strip hidden w-[320px] shrink-0 xl:block">
       <div className="code-font sticky top-8 overflow-hidden rounded-lg border border-[#25241f] bg-[#171714] p-4 text-[10.5px] leading-[1.7] text-[#8a867a]">
         <div className="mb-3 flex items-center justify-between text-[10px]">
-          <span className="text-[#605d54]">docs/the-pitch/index.tsx</span>
+          <span className="text-[#605d54]">pages/the-pitch/index.tsx</span>
           <span className="text-[#4d4a42]">agent-written</span>
         </div>
         {SOURCE.map((line, i) => (
@@ -210,7 +212,11 @@ function SourceStrip() {
             <span className="mr-3 inline-block w-4 select-none text-right text-[#45423b]">
               {i + 1}
             </span>
-            <span className={i === 17 || i === 18 || i === 19 ? 'text-[#d9d5ca]' : undefined}>
+            <span
+              className={
+                i === 13 || i === 14 || i === 15 || i === 16 ? 'text-[#d9d5ca]' : undefined
+              }
+            >
               {line || ' '}
             </span>
           </div>
@@ -222,13 +228,13 @@ function SourceStrip() {
 
 function Loop() {
   const steps: [string, string][] = [
-    ['Describe', 'Tell your agent what the document is. It runs /create-doc and writes the React.'],
+    ['Describe', 'Tell your agent what the page is. It runs /create-page and writes the React.'],
     [
       'Preview',
-      'The dev server renders actual PDF bytes on every save, in well under half a second.',
+      'The dev server runs the real page in a browser frame and hot-reloads on every save.',
     ],
     ['Annotate', 'Press i, click anything, leave a note. It lands in the source as a marker.'],
-    ['Ship', 'Download the PDF, or export editable Word and convert to Google Docs.'],
+    ['Ship', 'open-pages export writes a static folder. Deploy it anywhere.'],
   ];
   return (
     <section className="mx-auto mt-24 w-full max-w-[880px] px-6">
@@ -267,14 +273,14 @@ function Footer() {
   return (
     <footer className="mx-auto mt-24 w-full max-w-[880px] px-6 pb-16">
       <div className="flex flex-col items-center gap-3 border-t border-[#26251f] pt-8 text-[12.5px] text-[#7d7970] sm:flex-row sm:justify-between">
-        <span>MIT · built on the open-slide architecture · rendered by Takumi</span>
+        <span>MIT · built on the open-pdf and open-slide architecture</span>
         <div className="flex gap-5">
-          <a className="transition-colors hover:text-white" href="https://docs.openpdf.sh">
+          <a className="transition-colors hover:text-white" href="https://docs.openpages.sh">
             Docs
           </a>
           <a
             className="transition-colors hover:text-white"
-            href="https://github.com/autonoco/open-pdf"
+            href="https://github.com/autonoco/open-pages"
           >
             GitHub
           </a>
@@ -292,7 +298,7 @@ export default function Home() {
         <div className="w-full max-w-[680px]">
           <Sheet />
           <p className="mt-4 text-center text-[11.5px] text-[#66625a]">
-            Hover the sheet. In the product this is Inspect mode: every element knows its source
+            Hover the page. In the product this is Inspect mode: every element knows its source
             line.
           </p>
         </div>

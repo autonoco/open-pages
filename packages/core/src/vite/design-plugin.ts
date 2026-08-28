@@ -4,7 +4,7 @@ import type { Plugin, ViteDevServer } from 'vite';
 import { type DesignSystem, defaultDesign } from '../app/lib/design.ts';
 import type { AstNode } from '../editing/babel-walk.ts';
 import { validateMutationRequest } from '../http/request-guard.ts';
-import { json, readBody, resolveDocPath } from './routes/context.ts';
+import { json, readBody, resolvePagePath } from './routes/context.ts';
 
 function parseSource(source: string): AstNode | null {
   try {
@@ -186,7 +186,7 @@ export type ParsedDocDesign =
 
 export function parseDocDesign(source: string): ParsedDocDesign {
   const ast = parseSource(source);
-  if (!ast) return { ok: false, exists: true, error: 'could not parse doc source' };
+  if (!ast) return { ok: false, exists: true, error: 'could not parse page source' };
   const loc = findDesignDecl(ast);
   if (!loc) return { ok: false, exists: false };
   const objectNode = findDesignObjectNode(ast);
@@ -249,7 +249,7 @@ function ensureDesignSystemImport(
   ast: AstNode,
 ): { source: string; offsetShift: number } {
   const imports = findImports(ast);
-  const coreImport = imports.find((imp) => imp.source === '@autono/open-pdf');
+  const coreImport = imports.find((imp) => imp.source === '@autono/open-pages');
   if (coreImport) {
     const hasDesignSystem = coreImport.specifiers.some((spec) => {
       if (spec.type !== 'ImportSpecifier') return false;
@@ -271,8 +271,8 @@ function ensureDesignSystemImport(
     return { source: next, offsetShift: insertText.length };
   }
 
-  // No @autono/open-pdf import — add one after the last import (or at top).
-  const stmt = `import type { DesignSystem } from '@autono/open-pdf';\n`;
+  // No @autono/open-pages import — add one after the last import (or at top).
+  const stmt = `import type { DesignSystem } from '@autono/open-pages';\n`;
   if (imports.length > 0) {
     const last = imports[imports.length - 1];
     const insertAt = last.node.end;
@@ -308,7 +308,7 @@ export function applyDesignWrite(source: string, next: DesignSystem): WriteResul
   }
 
   const ast = parseSource(source);
-  if (!ast) return { ok: false, status: 422, error: 'could not parse doc source' };
+  if (!ast) return { ok: false, status: 422, error: 'could not parse page source' };
 
   const loc = findDesignDecl(ast);
   if (loc) {
@@ -329,23 +329,23 @@ export function applyDesignWrite(source: string, next: DesignSystem): WriteResul
 
 export type DesignPluginOptions = {
   userCwd: string;
-  docsDir?: string;
+  pagesDir?: string;
 };
 
 export function designPlugin(opts: DesignPluginOptions): Plugin {
   const userCwd = opts.userCwd;
-  const docsDir = opts.docsDir ?? 'docs';
+  const pagesDir = opts.pagesDir ?? 'pages';
 
   return {
-    name: 'open-pdf:design',
+    name: 'open-pages:design',
     apply: 'serve',
     configureServer(server: ViteDevServer) {
       server.middlewares.use('/__design', async (req, res, next) => {
         const url = new URL(req.url ?? '/', 'http://local');
         const method = req.method ?? 'GET';
-        const docId = url.searchParams.get('docId') ?? '';
-        const file = resolveDocPath(userCwd, docsDir, docId);
-        if (!file) return json(res, 400, { error: 'invalid docId' });
+        const pageId = url.searchParams.get('pageId') ?? '';
+        const file = resolvePagePath(userCwd, pagesDir, pageId);
+        if (!file) return json(res, 400, { error: 'invalid pageId' });
 
         try {
           if (method === 'GET' && url.pathname === '/') {
@@ -353,7 +353,7 @@ export function designPlugin(opts: DesignPluginOptions): Plugin {
             try {
               source = await fs.readFile(file, 'utf8');
             } catch {
-              return json(res, 404, { error: 'doc not found' });
+              return json(res, 404, { error: 'page not found' });
             }
             const parsed = parseDocDesign(source);
             if (parsed.ok) {
@@ -379,7 +379,7 @@ export function designPlugin(opts: DesignPluginOptions): Plugin {
             try {
               source = await fs.readFile(file, 'utf8');
             } catch {
-              return json(res, 404, { error: 'doc not found' });
+              return json(res, 404, { error: 'page not found' });
             }
             const parsed = parseDocDesign(source);
             const baseDesign = parsed.ok ? parsed.design : defaultDesign;
@@ -402,7 +402,7 @@ export function designPlugin(opts: DesignPluginOptions): Plugin {
             try {
               source = await fs.readFile(file, 'utf8');
             } catch {
-              return json(res, 404, { error: 'doc not found' });
+              return json(res, 404, { error: 'page not found' });
             }
             const written = applyDesignWrite(source, defaultDesign);
             if (!written.ok) return json(res, written.status, { error: written.error });

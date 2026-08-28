@@ -4,15 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "open-pdf dev",
-    "build": "open-pdf build",
-    "export": "open-pdf export",
-    "preview": "open-pdf preview",
-    "sync:skills": "open-pdf sync:skills",
-    "update": "open-pdf update"
+    "dev": "open-pages dev",
+    "build": "open-pages build",
+    "export": "open-pages export",
+    "preview": "open-pages preview",
+    "sync:skills": "open-pages sync:skills",
+    "update": "open-pages update"
   },
   "dependencies": {
-    "@autono/open-pdf": "^0.0.6",
+    "@autono/open-pages": "^0.0.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

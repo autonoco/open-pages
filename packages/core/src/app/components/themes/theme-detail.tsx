@@ -1,37 +1,19 @@
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronLeft } from 'lucide-react';
 import { Fragment, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { format, useLocale } from '@/lib/use-locale';
+import { useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
-import { docsByTheme, loadDoc } from '../../lib/docs';
-import { DocPdfThumb } from '../../lib/pdf/doc-pdf-thumb';
-import type { DocModule } from '../../lib/sdk';
-import { loadThemeDemo, type ThemeDemoModule, themes } from '../../lib/themes';
+import { frameUrl } from '../../lib/frame';
+import { PageThumb } from '../../lib/page-thumb';
+import { loadPage, pageKinds, pagesByTheme } from '../../lib/pages';
+import type { PageModule } from '../../lib/sdk';
+import { themes } from '../../lib/themes';
 
 export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () => void }) {
   const t = useLocale();
   const theme = useMemo(() => themes.find((th) => th.id === themeId), [themeId]);
-  const [demo, setDemo] = useState<ThemeDemoModule | null>(null);
-  const [pageIndex, setPageIndex] = useState(0);
-
-  useEffect(() => {
-    setPageIndex(0);
-    setDemo(null);
-    if (!theme?.hasDemo) return;
-    let cancelled = false;
-    loadThemeDemo(theme.id)
-      .then((mod) => {
-        if (!cancelled) setDemo(mod);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [theme]);
-
-  const totalPages = 0; // TODO(pdf): page count from worker-rendered demo PDF (theme rewrite pass)
-  const usedByDocIds = useMemo(() => (theme ? docsByTheme(theme.id) : []), [theme]);
+  const usedByDocIds = useMemo(() => (theme ? pagesByTheme(theme.id) : []), [theme]);
 
   const promptRef = useRef<HTMLPreElement>(null);
   const [promptExpanded, setPromptExpanded] = useState(false);
@@ -44,21 +26,6 @@ export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () =
     if (!el || !themeBody) return;
     setPromptOverflows(el.scrollHeight > PROMPT_COLLAPSED_PX + 8);
   }, [themeBody]);
-
-  useEffect(() => {
-    if (totalPages <= 1) return;
-    const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement | null)?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        setPageIndex((i) => Math.min(totalPages - 1, i + 1));
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        setPageIndex((i) => Math.max(0, i - 1));
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
 
   if (!theme) {
     return (
@@ -97,42 +64,14 @@ export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () =
             <div className="relative aspect-video overflow-hidden rounded-[8px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04]">
               {!theme.hasDemo ? (
                 <NoDemoLargeState />
-              ) : !demo ? (
-                <div className="grid h-full w-full place-items-center text-[11px] tracking-[0.08em] uppercase text-muted-foreground/60">
-                  {t.common.loading}
-                </div>
               ) : (
-                // TODO(pdf): render demo via the PDF worker once theme demos move
-                // to the Takumi dialect (theme rewrite pass).
-                <NoDemoLargeState />
+                <iframe
+                  title={theme.name}
+                  src={frameUrl({ themeId: theme.id })}
+                  className="h-full w-full border-0 bg-white"
+                />
               )}
             </div>
-
-            {totalPages > 1 ? (
-              <div className="flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  aria-label={t.themes.prevPageAria}
-                  disabled={pageIndex === 0}
-                  onClick={() => setPageIndex((i) => Math.max(0, i - 1))}
-                  className="flex size-8 items-center justify-center rounded-[6px] border border-border bg-card text-foreground transition-colors hover:bg-muted disabled:opacity-40"
-                >
-                  <ChevronLeft className="size-4" />
-                </button>
-                <span className="folio">
-                  {format(t.themes.pageOf, { n: pageIndex + 1, total: totalPages })}
-                </span>
-                <button
-                  type="button"
-                  aria-label={t.themes.nextPageAria}
-                  disabled={pageIndex === totalPages - 1}
-                  onClick={() => setPageIndex((i) => Math.min(totalPages - 1, i + 1))}
-                  className="flex size-8 items-center justify-center rounded-[6px] border border-border bg-card text-foreground transition-colors hover:bg-muted disabled:opacity-40"
-                >
-                  <ChevronRight className="size-4" />
-                </button>
-              </div>
-            ) : null}
           </div>
 
           <div className="relative">
@@ -200,13 +139,13 @@ export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () =
 }
 
 function ThemeDocCard({ id }: { id: string }) {
-  const [doc, setDoc] = useState<DocModule | null>(null);
+  const [page, setPage] = useState<PageModule | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    loadDoc(id)
+    loadPage(id)
       .then((mod) => {
-        if (!cancelled) setDoc(mod);
+        if (!cancelled) setPage(mod);
       })
       .catch(() => {});
     return () => {
@@ -214,13 +153,13 @@ function ThemeDocCard({ id }: { id: string }) {
     };
   }, [id]);
 
-  const displayTitle = doc?.meta?.title ?? id;
+  const displayTitle = page?.meta?.title ?? id;
 
   return (
-    <Link to={`/s/${id}`} className="group block focus-visible:outline-none">
+    <Link to={`/p/${id}`} className="group block focus-visible:outline-none">
       <div className="relative aspect-video overflow-hidden rounded-[6px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04] group-hover:shadow-floating group-hover:ring-foreground/20 motion-safe:transition-[box-shadow,--tw-ring-color] motion-safe:duration-200">
         <div className="h-full w-full motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]">
-          <DocPdfThumb docId={id} />
+          <PageThumb source={{ pageId: id, kind: pageKinds[id] }} title={displayTitle} />
         </div>
       </div>
       <div className="mt-2.5">

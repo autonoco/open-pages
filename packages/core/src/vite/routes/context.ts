@@ -1,12 +1,12 @@
 import type { ServerResponse } from 'node:http';
 import path from 'node:path';
 import type { Connect } from 'vite';
-import { DOC_ID_RE } from '../../editing/doc-ops.ts';
+import { PAGE_ID_RE } from '../../editing/page-ops.ts';
 
 export type ApiContext = {
   userCwd: string;
-  docsDir: string;
-  docsRoot: string;
+  pagesDir: string;
+  pagesRoot: string;
   globalAssetsRoot: string;
   manifestPath: string;
   coreVersion: string;
@@ -14,22 +14,22 @@ export type ApiContext = {
 
 export type ApiPluginOptions = {
   userCwd: string;
-  docsDir?: string;
+  pagesDir?: string;
   assetsDir?: string;
   coreVersion: string;
 };
 
 export function makeContext(opts: ApiPluginOptions): ApiContext {
   const userCwd = opts.userCwd;
-  const docsDir = opts.docsDir ?? 'docs';
+  const pagesDir = opts.pagesDir ?? 'pages';
   const assetsDir = opts.assetsDir ?? 'assets';
-  const docsRoot = path.resolve(userCwd, docsDir);
+  const pagesRoot = path.resolve(userCwd, pagesDir);
   const globalAssetsRoot = path.resolve(userCwd, assetsDir);
-  const manifestPath = path.join(docsRoot, '.folders.json');
+  const manifestPath = path.join(pagesRoot, '.folders.json');
   return {
     userCwd,
-    docsDir,
-    docsRoot,
+    pagesDir,
+    pagesRoot,
     globalAssetsRoot,
     manifestPath,
     coreVersion: opts.coreVersion,
@@ -59,14 +59,14 @@ export function json(res: ServerResponse, status: number, body: unknown) {
   res.end(JSON.stringify(body));
 }
 
-export function resolveDocPath(userCwd: string, docsDir: string, docId: string): string | null {
-  if (!DOC_ID_RE.test(docId)) return null;
-  const docsRoot = path.resolve(userCwd, docsDir);
-  const full = path.resolve(docsRoot, docId, 'index.tsx');
-  if (!full.startsWith(docsRoot + path.sep)) return null;
+export function resolvePagePath(userCwd: string, pagesDir: string, pageId: string): string | null {
+  if (!PAGE_ID_RE.test(pageId)) return null;
+  const pagesRoot = path.resolve(userCwd, pagesDir);
+  const full = path.resolve(pagesRoot, pageId, 'index.tsx');
+  if (!full.startsWith(pagesRoot + path.sep)) return null;
   return full;
 }
 
-export function resolveDocEntryPath(ctx: ApiContext, docId: string): string | null {
-  return resolveDocPath(ctx.userCwd, ctx.docsDir, docId);
+export function resolvePageEntryPath(ctx: ApiContext, pageId: string): string | null {
+  return resolvePagePath(ctx.userCwd, ctx.pagesDir, pageId);
 }

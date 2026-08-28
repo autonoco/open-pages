@@ -33,7 +33,7 @@ interface DevFlags extends ServerFlags {
 }
 
 async function runSkillsDriftCheck(skillsDir: string): Promise<void> {
-  if (process.env.OPEN_PDF_SKIP_SKILLS_CHECK === '1') return;
+  if (process.env.OPEN_PAGES_SKIP_SKILLS_CHECK === '1') return;
 
   let drift: Awaited<ReturnType<typeof detectSkillsDrift>>;
   try {
@@ -49,7 +49,7 @@ async function runSkillsDriftCheck(skillsDir: string): Promise<void> {
 
   if (!interactive) {
     process.stderr.write(
-      `${chalk.yellow('!')} Skills out of date (${names}). Run \`open-pdf sync:skills\` to update.\n`,
+      `${chalk.yellow('!')} Skills out of date (${names}). Run \`open-pages sync:skills\` to update.\n`,
     );
     return;
   }
@@ -66,7 +66,7 @@ async function runSkillsDriftCheck(skillsDir: string): Promise<void> {
     if (answer === '' || answer === 'y' || answer === 'yes') {
       await syncSkills(skillsDir);
     } else {
-      process.stdout.write(chalk.dim('Skipped. Run `open-pdf sync:skills` later to update.\n'));
+      process.stdout.write(chalk.dim('Skipped. Run `open-pages sync:skills` later to update.\n'));
     }
   } finally {
     rl.close();
@@ -92,11 +92,11 @@ export async function run(argv: string[]): Promise<void> {
 
   const program = new Command();
   program
-    .name('open-pdf')
-    .description('Author docs — we handle the Vite/React stack.')
+    .name('open-pages')
+    .description('Author web pages — we handle the Vite/React stack.')
     .version(version, '-v, --version', 'print version')
     .helpOption('-h, --help', 'show help')
-    .showHelpAfterError(chalk.dim('(run `open-pdf --help` for usage)'));
+    .showHelpAfterError(chalk.dim('(run `open-pages --help` for usage)'));
 
   program
     .command('dev')
@@ -115,7 +115,7 @@ export async function run(argv: string[]): Promise<void> {
 
   program
     .command('build')
-    .description('Build a static site')
+    .description('Build the workspace as a static site')
     .option('--out-dir <dir>', 'output directory (defaults to `dist`)')
     .action(async (flags: BuildFlags) => {
       const { build } = await import('./build.ts');
@@ -135,18 +135,17 @@ export async function run(argv: string[]): Promise<void> {
 
   program
     .command('export')
-    .description('Render docs to files — PDF (same bytes as the preview) or editable DOCX')
-    .argument('[docs...]', 'doc ids to export (default: all)')
+    .description('Build pages into self-contained static folders (one per page)')
+    .argument('[pages...]', 'page ids to export (default: all)')
     .option('--out-dir <dir>', 'output directory (defaults to `export`)')
-    .option('--format <format>', 'pdf or docx (defaults to pdf)')
-    .action(async (docs: string[], flags: { outDir?: string; format?: string }) => {
-      const { exportPdfs } = await import('./export.ts');
-      await exportPdfs({ docs, outDir: flags.outDir, format: flags.format as 'pdf' | 'docx' });
+    .action(async (pages: string[], flags: { outDir?: string }) => {
+      const { exportPages } = await import('./export.ts');
+      await exportPages({ pages, outDir: flags.outDir });
     });
 
   program
     .command('sync:skills')
-    .description('Sync built-in skills from @autono/open-pdf into this workspace')
+    .description('Sync built-in skills from @autono/open-pages into this workspace')
     .option('--dry-run', 'show what would change without writing')
     .action(async (flags: SyncFlags) => {
       const { syncSkills } = await import('./sync.ts');
@@ -155,7 +154,7 @@ export async function run(argv: string[]): Promise<void> {
 
   program
     .command('update')
-    .description('Update @autono/open-pdf to the latest version and sync skills')
+    .description('Update @autono/open-pages to the latest version and sync skills')
     .option('--force', 'reinstall even if already on the latest version')
     .option('--no-skills', 'skip the skills sync after updating')
     .action(async (flags: { force?: boolean; skills?: boolean }) => {

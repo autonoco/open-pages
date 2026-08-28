@@ -4,11 +4,11 @@ import * as t from '@babel/types';
 import type { Plugin } from 'vite';
 import { walkJsx } from '../editing/babel-walk.ts';
 
-// Inject `data-pdf-loc="<line>:<col>"` onto every host JSX element in
-// doc source files so the inspector can map a click straight to a
+// Inject `data-op-loc="<line>:<col>"` onto every host JSX element in
+// page source files so the inspector can map a click straight to a
 // source location, sidestepping HMR-stale `_debugSource` on fibers.
 
-// Capitalized components that explicitly forward `data-pdf-loc` to a
+// Capitalized components that explicitly forward `data-op-loc` to a
 // host root, so the inspector can target them like a host element.
 const FORWARDING_COMPONENTS = new Set(['ImagePlaceholder']);
 
@@ -20,7 +20,7 @@ function isTaggableJsxName(name: t.JSXOpeningElement['name']): name is t.JSXIden
 function alreadyTagged(opening: t.JSXOpeningElement): boolean {
   return opening.attributes.some(
     (attr) =>
-      t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name) && attr.name.name === 'data-pdf-loc',
+      t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name) && attr.name.name === 'data-op-loc',
   );
 }
 
@@ -44,7 +44,7 @@ export function injectLocTags(code: string): string | null {
     if (!isTaggableJsxName(name) || alreadyTagged(opening)) return;
     insertions.push({
       offset: name.end ?? 0,
-      text: ` data-pdf-loc="${node.loc.start.line}:${node.loc.start.column}"`,
+      text: ` data-op-loc="${node.loc.start.line}:${node.loc.start.column}"`,
     });
   });
 
@@ -59,7 +59,7 @@ export function injectLocTags(code: string): string | null {
 
 export type LocTagsPluginOptions = {
   userCwd: string;
-  docsDir?: string;
+  pagesDir?: string;
   apply?: 'serve' | 'build';
 };
 
@@ -67,7 +67,7 @@ export type LocTagsPluginOptions = {
 // plugins or virtual modules can pass through Windows-style paths.
 // Compare both sides in POSIX shape so the match doesn't depend on
 // which separator the caller happened to use.
-function isDocSourceFile(id: string, docsRootPosix: string): boolean {
+function isPageSourceFile(id: string, docsRootPosix: string): boolean {
   const filePath = id.split(/[?#]/)[0].replace(/\\/g, '/');
   if (!filePath.startsWith(`${docsRootPosix}/`)) return false;
   if (!filePath.endsWith('.tsx')) return false;
@@ -77,15 +77,15 @@ function isDocSourceFile(id: string, docsRootPosix: string): boolean {
 }
 
 export function locTagsPlugin(opts: LocTagsPluginOptions): Plugin {
-  const docsRoot = path.resolve(opts.userCwd, opts.docsDir ?? 'docs').replace(/\\/g, '/');
+  const pagesRoot = path.resolve(opts.userCwd, opts.pagesDir ?? 'pages').replace(/\\/g, '/');
   return {
-    name: 'open-pdf:loc-tags',
+    name: 'open-pages:loc-tags',
     apply: opts.apply ?? 'serve',
     // Must run before @vitejs/plugin-react so the JSX transform
     // sees our injected attributes.
     enforce: 'pre',
     transform(code, id) {
-      if (!isDocSourceFile(id, docsRoot)) return null;
+      if (!isPageSourceFile(id, pagesRoot)) return null;
       const next = injectLocTags(code);
       if (next === null) return null;
       return { code: next, map: null };

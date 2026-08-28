@@ -1,62 +1,32 @@
-import type { ComponentType, ReactNode } from 'react';
+import type { ComponentType } from 'react';
 import type { DesignSystem } from './design.ts';
 
 /**
- * A document is one React component returning HTML-shaped JSX in the Takumi
- * dialect (div/span/table/p with `tw` Tailwind props and/or `style`). Content
- * flows; the engine paginates. Hard page starts use `breakBefore: 'page'`.
+ * A page is one React component rendered into a real browser document. It
+ * owns the whole viewport: layout, styling (Tailwind via `className` or a
+ * sibling stylesheet), interactivity, and any client-side routing it wants.
  */
-export type DocComponent = ComponentType;
+export type PageComponent = ComponentType;
 
-export type DocMeta = {
+export type PageMeta = {
+  /** Document title (browser tab, workspace card). Default: the folder name. */
   title?: string;
+  /** `<meta name="description">` in the exported HTML. */
+  description?: string;
+  /** Id of a theme under `themes/` this page was built from. */
   theme?: string;
-  /** ISO 8601 timestamp. Set once at scaffold time; used to sort the doc list. */
+  /** ISO 8601 timestamp. Set once at scaffold time; used to sort the page list. */
   createdAt?: string;
 };
 
-/** CSS px, or 'auto' to size the side to fit its running band. */
-export type PageMarginSide = number | 'auto';
+/** How a page entry is authored: a React module or a plain HTML file. */
+export type PageKind = 'react' | 'html';
 
-/**
- * A font for the PDF engine: a URL string (dev-server asset URL from an
- * `import` of a .woff2/.ttf under the doc's assets, or an absolute https URL),
- * or raw bytes with an optional family name/weight/style.
- */
-export type PageFont =
-  | string
-  | {
-      name?: string;
-      data: ArrayBuffer | Uint8Array;
-      weight?: number;
-      style?: 'normal' | 'italic' | 'oblique';
-    };
-
-/** Per-document page geometry and running bands, passed to the PDF engine. */
-export type PageOptions = {
-  /** Page size preset ('a4', 'letter', ...) or {width, height} in CSS px. */
-  size?: string | { width: number; height: number };
-  margin?:
-    | PageMarginSide
-    | {
-        top?: PageMarginSide;
-        right?: PageMarginSide;
-        bottom?: PageMarginSide;
-        left?: PageMarginSide;
-      };
-  /** Running header band, rendered on every page. */
-  header?: ReactNode;
-  /** Running footer band, rendered on every page. May use <PageNumber/> / <TotalPages/>. */
-  footer?: ReactNode;
-  /** Custom fonts to register for this document. Default: the engine's bundled font. */
-  fonts?: PageFont[];
-};
-
-export type DocModule = {
-  default: DocComponent;
-  meta?: DocMeta;
+export type PageModule = {
+  /** Absent for `index.html` pages, which the workspace serves as-is. */
+  default?: PageComponent;
+  meta?: PageMeta;
   design?: DesignSystem;
-  pageOptions?: PageOptions;
 };
 
 export type FolderIcon = { type: 'emoji'; value: string } | { type: 'color'; value: string };

@@ -12,7 +12,7 @@ import { useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import { IconPicker } from './icon-picker';
 
-export const DOC_DND_MIME = 'application/x-doc-id';
+export const DOC_DND_MIME = 'application/x-page-id';
 
 function useDocDragActive() {
   const [active, setActive] = useState(false);
@@ -89,7 +89,7 @@ export function FolderItem({
   count: number;
   selected: boolean;
   onSelect: () => void;
-  onDropDoc: (docId: string) => void;
+  onDropDoc: (pageId: string) => void;
 }) {
   const [renaming, setRenaming] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -118,12 +118,12 @@ export function FolderItem({
   };
   const handleDrop = (e: React.DragEvent) => {
     if (!acceptsDocDrop) return;
-    const docId = e.dataTransfer.getData(DOC_DND_MIME);
+    const pageId = e.dataTransfer.getData(DOC_DND_MIME);
     dragDepth.current = 0;
     setDragOver(false);
-    if (!docId) return;
+    if (!pageId) return;
     e.preventDefault();
-    onDropDoc(docId);
+    onDropDoc(pageId);
   };
 
   const icon: FolderIcon =
@@ -138,7 +138,7 @@ export function FolderItem({
             : row.folder.icon;
   const label =
     row.kind === 'all'
-      ? t.home.docs
+      ? t.home.pages
       : row.kind === 'draft'
         ? t.home.draft
         : row.kind === 'themes'

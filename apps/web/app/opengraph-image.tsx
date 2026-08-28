@@ -4,7 +4,7 @@ export const dynamic = 'force-static';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 export const alt =
-  'open-pdf — a typeset PDF sheet with an inspector comment pin: “make the headline bigger”, applied by your agent.';
+  'open-pages — a landing page in the workspace viewer with an inspector comment pin: “make the headline bigger”, applied by your agent.';
 
 // Fetched at build time only (static export); text= keeps each subset tiny.
 async function loadGoogleFont(family: string, weight: number, text: string) {
@@ -18,12 +18,12 @@ async function loadGoogleFont(family: string, weight: number, text: string) {
   return (await fetch(url)).arrayBuffer();
 }
 
-const HEADLINE_1 = 'The PDF framework';
+const HEADLINE_1 = 'The web page framework';
 const HEADLINE_2 = 'built for agents.';
-const SERIF_600 = `open-pdfA FRAMEWORK${HEADLINE_1}${HEADLINE_2}SIGN HERE TO BEGIN`;
+const SERIF_600 = `open-pagesA FRAMEWORK${HEADLINE_1}${HEADLINE_2}SIGN HERE TO BEGIN`;
 const SERIF_400 =
-  '“make the headline bigger”applied by your agent · re-rendered in 24msOP-0001 · PDF 1.7';
-const MONO_400 = 'h1 · index.tsx:17$ npm create @autono/open-pdf openpdf.sh';
+  '“make the headline bigger”applied by your agent · hot-reloaded in 24mslocalhost:5173/p/launch';
+const MONO_400 = 'h1 · index.tsx:17$ npm create @autono/open-pages openpages.sh';
 
 export default async function OgImage() {
   const [serif600, serif400, mono400] = await Promise.all([
@@ -60,7 +60,7 @@ export default async function OgImage() {
           viewBox="0 0 32 32"
           fill="none"
           role="img"
-          aria-label="open-pdf mark"
+          aria-label="open-pages mark"
         >
           <path
             d="M7 5.5A2.5 2.5 0 0 1 9.5 3H19l6.5 6.5V26.5A2.5 2.5 0 0 1 23 29H9.5A2.5 2.5 0 0 1 7 26.5V5.5Z"
@@ -83,11 +83,11 @@ export default async function OgImage() {
           />
         </svg>
         <div style={{ fontFamily: 'JetBrains Mono', fontSize: 24, color: '#a8a49b' }}>
-          openpdf.sh
+          openpages.sh
         </div>
       </div>
 
-      {/* The sheet — bleeds off the bottom edge like a real page */}
+      {/* The page — bleeds off the bottom edge like a browser frame */}
       <div
         style={{
           position: 'absolute',
@@ -111,8 +111,8 @@ export default async function OgImage() {
             paddingBottom: 20,
           }}
         >
-          <div style={{ fontSize: 24, fontWeight: 600, color: '#1a1917' }}>open-pdf</div>
-          <div style={{ fontSize: 16, color: '#6b675f' }}>OP-0001 · PDF 1.7</div>
+          <div style={{ fontSize: 24, fontWeight: 600, color: '#1a1917' }}>open-pages</div>
+          <div style={{ fontSize: 16, color: '#6b675f' }}>localhost:5173/p/launch</div>
         </div>
 
         <div
@@ -170,7 +170,7 @@ export default async function OgImage() {
           }}
         >
           <div style={{ color: '#c63a21' }}>$</div>
-          <div>npm create @autono/open-pdf</div>
+          <div>npm create @autono/open-pages</div>
         </div>
       </div>
 
@@ -221,7 +221,7 @@ export default async function OgImage() {
             color: '#8a8578',
           }}
         >
-          applied by your agent · re-rendered in 24ms
+          applied by your agent · hot-reloaded in 24ms
         </div>
       </div>
     </div>,

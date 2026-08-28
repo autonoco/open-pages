@@ -1,0 +1,75 @@
+---
+title: "Interactivity"
+description: "State, event handlers, forms, and the few things to avoid in a page."
+icon: "mouse-pointer-click"
+---
+
+A page is a real React component in a real browser. Everything you would do in a Vite React app works here: `useState`, `useEffect`, event handlers, refs, timers, `fetch`, `localStorage`, the lot.
+
+## State and handlers
+
+```tsx
+import { useState } from 'react';
+
+export default function Pricing() {
+  const [yearly, setYearly] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => setYearly((v) => !v)}
+      aria-pressed={yearly}
+      className="rounded-full border px-4 py-1.5 text-sm"
+    >
+      {yearly ? 'Billed yearly' : 'Billed monthly'}
+    </button>
+  );
+}
+```
+
+Derive what you can with `useMemo` or plain expressions instead of mirroring state. Keep state at the lowest component that needs it.
+
+## Forms
+
+Forms work as normal React forms. Without a backend, handle `onSubmit`, `preventDefault`, and show the result in the page. If the page will post somewhere real (a form service, an API), put the URL in the page and use `fetch` in the handler; the export is a plain static site and will call it from the visitor's browser.
+
+```tsx
+const [sent, setSent] = useState(false);
+
+<form
+  onSubmit={(e) => {
+    e.preventDefault();
+    setSent(true);
+  }}
+  className="flex gap-2"
+>
+  <label className="sr-only" htmlFor="email">Email</label>
+  <input id="email" type="email" required className="rounded-md border px-3 py-2" />
+  <button type="submit" className="rounded-md bg-black px-4 py-2 text-white">
+    {sent ? 'Thanks!' : 'Join waitlist'}
+  </button>
+</form>
+```
+
+## Client-side routing
+
+A page may implement its own routing with `history.pushState` and `popstate`, or hash routing. There is no router dependency in the workspace, and the export is a single `index.html`, so hash routes are the safest choice for multi-view pages hosted without rewrite rules.
+
+## Effects and browser APIs
+
+- Read `window`, `document`, `localStorage`, and `matchMedia` inside `useEffect` or handlers, never at module top level. The workspace imports page modules to read `meta`, and the inspector frame mounts the component in `StrictMode`, so effects run twice in dev.
+- Clean up timers and listeners in the effect's return.
+- `fetch` works in the preview and the export. Remember the exported page runs on the visitor's origin: CORS applies.
+
+## Things to avoid
+
+- **No new dependencies.** Only `react` and `react-dom` are installed. Chart libraries, icon packs, and animation libraries are out; inline SVG, CSS transitions, and hand-rolled components are in.
+- **No server code.** There is no server component, API route, or SSR. The page is static HTML plus client JS.
+- **No `Date.now()` or `Math.random()` in render.** Compute them in state or effects so re-renders stay stable.
+- **No blocking work in render.** Heavy computations go in `useMemo`.
+
+## Accessibility
+
+- Semantic elements: `main`, `nav`, `section`, `header`, `footer`, `button` for actions, `a` for navigation.
+- Every image gets `alt`. Decorative ones get `alt=""` or `aria-hidden`.
+- Every input gets a label. Toggle buttons get `aria-pressed`.
+- Keep focus visible: `focus-visible:ring-2` or similar on interactive elements.

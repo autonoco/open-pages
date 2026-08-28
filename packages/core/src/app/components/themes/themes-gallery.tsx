@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
 import { format, useLocale } from '@/lib/use-locale';
-import { loadThemeDemo, type Theme, type ThemeDemoModule, themes } from '../../lib/themes';
+import { PageThumb } from '../../lib/page-thumb';
+import { type Theme, themes } from '../../lib/themes';
 
 export function ThemesGallery({ onOpen }: { onOpen: (id: string) => void }) {
   const t = useLocale();
@@ -58,24 +58,8 @@ function ThemeCard({
 }
 
 function ThemePreview({ theme }: { theme: Theme }) {
-  const t = useLocale();
-  const demo = useThemeDemo(theme);
-
-  if (!theme.hasDemo) {
-    return <NoDemoState />;
-  }
-  if (!demo) {
-    return (
-      <div className="grid h-full w-full place-items-center text-[10px] tracking-[0.08em] uppercase text-muted-foreground/60">
-        {t.common.loading}
-      </div>
-    );
-  }
-  if (!demo.default) return <NoDemoState />;
-
-  // TODO(pdf): render the demo through the PDF worker once theme demos move to
-  // the Takumi dialect (theme rewrite pass).
-  return <NoDemoState />;
+  if (!theme.hasDemo) return <NoDemoState />;
+  return <PageThumb source={{ themeId: theme.id }} title={theme.name} />;
 }
 
 function NoDemoState() {
@@ -117,24 +101,4 @@ function ThemesEmptyState() {
       </div>
     </div>
   );
-}
-
-function useThemeDemo(theme: Theme): ThemeDemoModule | null {
-  const [demo, setDemo] = useState<ThemeDemoModule | null>(null);
-  useEffect(() => {
-    if (!theme.hasDemo) {
-      setDemo(null);
-      return;
-    }
-    let cancelled = false;
-    loadThemeDemo(theme.id)
-      .then((mod) => {
-        if (!cancelled) setDemo(mod);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [theme.id, theme.hasDemo]);
-  return demo;
 }

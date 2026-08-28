@@ -1,6 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { type InlineConfig, searchForWorkspaceRoot } from 'vite';
@@ -8,46 +6,26 @@ import { apiPlugin } from './api-plugin.ts';
 import { currentPlugin } from './current-plugin.ts';
 import { designPlugin } from './design-plugin.ts';
 import { locTagsPlugin } from './loc-tags-plugin.ts';
-import { notesPlugin } from './notes-plugin.ts';
-import { loadUserConfig, type OpenPdfConfig, openPdfPlugin } from './open-pdf-plugin.ts';
+import { loadUserConfig, type OpenPagesConfig, openPagesPlugin } from './open-pages-plugin.ts';
 import { themesPlugin } from './themes-plugin.ts';
 
-function findPackageRoot(fromFile: string): string {
-  let dir = path.dirname(fromFile);
-  while (dir !== path.dirname(dir)) {
-    if (existsSync(path.join(dir, 'package.json'))) return dir;
-    dir = path.dirname(dir);
-  }
-  throw new Error(`Could not find package.json walking up from ${fromFile}`);
-}
-
-const PKG_ROOT = findPackageRoot(fileURLToPath(import.meta.url));
-const APP_ROOT = path.join(PKG_ROOT, 'src', 'app');
-
-function readCoreVersion(): string {
-  try {
-    const raw = readFileSync(path.join(PKG_ROOT, 'package.json'), 'utf8');
-    return (JSON.parse(raw) as { version?: string }).version ?? '0.0.0';
-  } catch {
-    return '0.0.0';
-  }
-}
+import { APP_ROOT, PKG_ROOT, readCoreVersion } from './version.ts';
 
 const CORE_VERSION = readCoreVersion();
 
 export type CreateViteConfigOptions = {
   userCwd: string;
-  config?: OpenPdfConfig;
+  config?: OpenPagesConfig;
   mode?: 'serve' | 'build';
 };
 
 export async function createViteConfig(opts: CreateViteConfigOptions): Promise<InlineConfig> {
   const userCwd = path.resolve(opts.userCwd);
   const config = opts.config ?? (await loadUserConfig(userCwd));
-  const docsDir = config.docsDir ?? 'docs';
+  const pagesDir = config.pagesDir ?? 'pages';
   const themesDir = config.themesDir ?? 'themes';
   const assetsDir = config.assetsDir ?? 'assets';
-  const docsAbs = path.resolve(userCwd, docsDir);
+  const pagesAbs = path.resolve(userCwd, pagesDir);
   const themesAbs = path.resolve(userCwd, themesDir);
   const assetsAbs = path.resolve(userCwd, assetsDir);
 
@@ -57,15 +35,14 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
     configFile: false,
     envDir: userCwd,
     plugins: [
-      locTagsPlugin({ userCwd, docsDir }),
+      locTagsPlugin({ userCwd, pagesDir }),
       react(),
       tailwindcss(),
-      openPdfPlugin({ userCwd, config, coreVersion: CORE_VERSION }),
+      openPagesPlugin({ userCwd, config, coreVersion: CORE_VERSION }),
       themesPlugin({ userCwd, config }),
       designPlugin({ userCwd }),
-      apiPlugin({ userCwd, docsDir, assetsDir, coreVersion: CORE_VERSION }),
-      notesPlugin({ userCwd, docsDir }),
-      currentPlugin({ userCwd, docsDir }),
+      apiPlugin({ userCwd, pagesDir, assetsDir, coreVersion: CORE_VERSION }),
+      currentPlugin({ userCwd, pagesDir }),
     ],
     resolve: {
       alias: {
@@ -74,10 +51,7 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
       },
     },
     optimizeDeps: {
-      entries: [path.join(APP_ROOT, 'main.tsx')],
-      // takumi-pdf's Vite entry top-level-awaits WASM init; esbuild pre-bundling
-      // targets es2020 and rejects TLA. Serve it as native ESM instead.
-      exclude: ['takumi-pdf', '@takumi-rs/helpers'],
+      entries: [path.join(APP_ROOT, 'main.tsx'), path.join(APP_ROOT, 'frame', 'main.tsx')],
       include: [
         'react',
         'react-dom',
@@ -97,16 +71,16 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
         'class-variance-authority',
         'emoji-picker-react',
       ],
-      // The app source ships inside node_modules/@autono/open-pdf/src/app, so
+      // The app source ships inside node_modules/@autono/open-pages/src/app, so
       // Vite's dep scanner traverses it as if it were a third-party dep and
       // tries to bundle our virtual imports with esbuild. Mark them external.
       esbuildOptions: {
         target: 'es2022',
         plugins: [
           {
-            name: 'open-pdf:virtual-externals',
+            name: 'open-pages:virtual-externals',
             setup(build) {
-              build.onResolve({ filter: /^virtual:open-pdf\// }, (args) => ({
+              build.onResolve({ filter: /^virtual:open-pages\// }, (args) => ({
                 path: args.path,
                 external: true,
               }));
@@ -120,13 +94,13 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
       ...(config.allowedHosts !== undefined ? { allowedHosts: config.allowedHosts } : {}),
       fs: {
         // The workspace root covers node_modules however the package manager
-        // lays it out (incl. pnpm's virtual store realpaths for fonts + WASM).
+        // lays it out (incl. pnpm's virtual store realpaths for fonts).
         allow: [
           APP_ROOT,
           PKG_ROOT,
           searchForWorkspaceRoot(userCwd),
           userCwd,
-          docsAbs,
+          pagesAbs,
           themesAbs,
           assetsAbs,
         ],
@@ -135,22 +109,13 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
     build: {
       outDir: path.resolve(userCwd, 'dist'),
       emptyOutDir: true,
-      // The render worker top-level-awaits WASM init; the default es2020
-      // target and iife worker format both reject that.
       target: 'es2022',
-    },
-    worker: {
-      format: 'es',
-      // Worker bundles get their own plugin pipeline; the render worker imports
-      // the docs virtual module and needs loc tags for inspector geometry.
-      // This pipeline only runs at build time (dev workers go through the
-      // root pipeline), so the plugin's serve-only default would skip it.
-      plugins: () => [
-        locTagsPlugin({ userCwd, docsDir, apply: 'build' }),
-        openPdfPlugin({ userCwd, config, coreVersion: CORE_VERSION }),
-      ],
+      rollupOptions: {
+        input: {
+          index: path.join(APP_ROOT, 'index.html'),
+          frame: path.join(APP_ROOT, 'frame.html'),
+        },
+      },
     },
   };
 }
-
-export { APP_ROOT };

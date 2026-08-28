@@ -1,24 +1,25 @@
 import type { ChildProcess } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import {
-  enableInspect,
-  inspectBoxes,
+  pageFrame,
   prepareScratchProject,
   runCli,
+  serveStatic,
   startCliServer,
   stopServer,
   waitForHttpOk,
 } from './helpers.ts';
 
-const FLAGS_CONFIG = `import type { OpenPdfConfig } from '@autono/open-pdf';
+const FLAGS_CONFIG = `import type { OpenPagesConfig } from '@autono/open-pages';
 
-const openPdfConfig: OpenPdfConfig = {
-  build: { showDocBrowser: false, showDocUi: false },
+const openPagesConfig: OpenPagesConfig = {
+  build: { showPageBrowser: false, showPageUi: false },
 };
 
-export default openPdfConfig;
+export default openPagesConfig;
 `;
 
 test.describe('static build and preview', () => {
@@ -43,42 +44,53 @@ test.describe('static build and preview', () => {
     if (preview) await stopServer(preview);
   });
 
-  test('emits a single-page bundle with per-doc chunks', async () => {
+  test('emits the workspace, the page frame, and per-page chunks', async () => {
     const dist = path.join(projectDir, 'dist');
     const entries = await fs.readdir(dist);
-    expect(entries.filter((name) => name.endsWith('.html'))).toEqual(['index.html']);
+    expect(entries.filter((name) => name.endsWith('.html')).sort()).toEqual([
+      'frame.html',
+      'index.html',
+    ]);
 
     const html = await fs.readFile(path.join(dist, 'index.html'), 'utf8');
     expect(html).toContain('<div id="root"></div>');
-    expect(html).toContain('<title>open-pdf</title>');
+    expect(html).toContain('<title>open-pages</title>');
 
-    // Each doc is lazily imported, so it code-splits into at least one chunk
-    // per doc plus the entry chunk. Chunk names depend on the bundler, so
-    // assert the split happened rather than pinning a naming convention.
-    const docCount = 4;
+    // Each react page is lazily imported, so it code-splits into at least one
+    // chunk per page plus the two entries. Chunk names depend on the bundler,
+    // so assert the split happened rather than pinning a naming convention.
+    const reactPageCount = 4;
     const assets = await fs.readdir(path.join(dist, 'assets'));
     const jsChunks = assets.filter((name) => name.endsWith('.js'));
-    expect(jsChunks.length).toBeGreaterThanOrEqual(docCount + 1);
+    expect(jsChunks.length).toBeGreaterThanOrEqual(reactPageCount + 2);
+
+    // HTML pages are built into the spot the viewer's frame url points at.
+    const plain = await fs.readFile(path.join(dist, '__page', 'plain', 'index.html'), 'utf8');
+    expect(plain).toContain('Plain html headline');
+    expect(plain).not.toContain('/@fs/');
   });
 
-  test('serves the doc browser from the static bundle', async ({ page }) => {
+  test('serves the page browser from the static bundle', async ({ page }) => {
     await page.goto(`${baseUrl}/`);
-    await expect(page.getByText('Alpha Doc')).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText('Tables Doc')).toBeVisible();
+    await expect(page.getByText('Alpha Page')).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText('Pricing Page')).toBeVisible();
   });
 
-  test('deep links resolve through the spa fallback and render', async ({ page }) => {
-    await page.goto(`${baseUrl}/s/alpha`);
-    await expect(page.locator('main canvas').first()).toBeVisible({ timeout: 60_000 });
-    await expect(page.locator('main canvas')).toHaveCount(3);
+  test('deep links resolve through the spa fallback and render the frame', async ({ page }) => {
+    await page.goto(`${baseUrl}/p/alpha`);
+    await expect(pageFrame(page).getByRole('heading', { name: 'Alpha headline' })).toBeVisible({
+      timeout: 60_000,
+    });
+    await expect(page.getByRole('button', { name: 'Inspect', exact: true })).toHaveCount(0);
   });
 
-  test('inspector hit boxes render from the static bundle', async ({ page }) => {
-    await page.goto(`${baseUrl}/s/edit-target`);
-    await expect(page.locator('main canvas').first()).toBeVisible({ timeout: 60_000 });
-    await enableInspect(page);
-    await expect(inspectBoxes(page, 'h1')).toHaveCount(1);
-    await expect(inspectBoxes(page, 'p')).toHaveCount(1);
+  test('html pages render from the static bundle', async ({ page }) => {
+    await page.goto(`${baseUrl}/p/plain`);
+    const frame = pageFrame(page);
+    await expect(frame.getByRole('heading', { name: 'Plain html headline' })).toBeVisible({
+      timeout: 60_000,
+    });
+    await expect(frame.locator('body')).toHaveCSS('background-color', 'rgb(255, 250, 240)');
   });
 
   test('dev-only endpoints fall through to the spa fallback in preview', async ({ request }) => {
@@ -96,7 +108,7 @@ test.describe('build flags', () => {
   test.beforeAll(async () => {
     test.setTimeout(300_000);
     const projectDir = prepareScratchProject('build-flags');
-    await fs.writeFile(path.join(projectDir, 'open-pdf.config.ts'), FLAGS_CONFIG);
+    await fs.writeFile(path.join(projectDir, 'open-pages.config.ts'), FLAGS_CONFIG);
     const res = await runCli(['build'], projectDir);
     expect(res.code, res.stderr).toBe(0);
     preview = startCliServer(
@@ -110,16 +122,74 @@ test.describe('build flags', () => {
     if (preview) await stopServer(preview);
   });
 
-  test('showDocBrowser false hides the home browser', async ({ page }) => {
+  test('showPageBrowser false hides the home browser', async ({ page }) => {
     await page.goto(`${baseUrl}/`);
     await expect(page.getByText('Page not found')).toBeVisible();
   });
 
-  test('showDocUi false serves a bare read-only viewer', async ({ page }) => {
-    await page.goto(`${baseUrl}/s/alpha`);
-    await expect(page.locator('main canvas').first()).toBeVisible({ timeout: 60_000 });
+  test('showPageUi false serves a bare read-only viewer', async ({ page }) => {
+    await page.goto(`${baseUrl}/p/alpha`);
+    await expect(pageFrame(page).getByRole('heading', { name: 'Alpha headline' })).toBeVisible({
+      timeout: 60_000,
+    });
     await expect(page.locator('header')).toHaveCount(0);
-    await expect(page.locator('aside')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Inspect', exact: true })).toHaveCount(0);
+  });
+});
+
+test.describe('export', () => {
+  let projectDir: string;
+
+  test.beforeAll(async () => {
+    test.setTimeout(300_000);
+    projectDir = prepareScratchProject('export');
+    const res = await runCli(['export', 'alpha', 'plain'], projectDir);
+    expect(res.code, res.stderr).toBe(0);
+    expect(res.stdout).toContain('export/alpha/');
+    expect(res.stdout).toContain('export/plain/');
+    expect(res.stdout).toContain('2 pages');
+  });
+
+  test('react pages become a self-contained folder with relative asset urls', async ({ page }) => {
+    const dir = path.join(projectDir, 'export', 'alpha');
+    const html = await fs.readFile(path.join(dir, 'index.html'), 'utf8');
+    expect(html).toContain('<title>Alpha Page</title>');
+    expect(html).toContain('<meta name="description" content="Alpha fixture landing page." />');
+    expect(html).toMatch(/src="\.\/assets\/[^"]+\.js"/);
+    expect(html).toMatch(/href="\.\/assets\/[^"]+\.css"/);
+    expect(html).not.toContain('entry.tsx');
+    expect(existsSync(path.join(projectDir, 'export', 'pricing'))).toBe(false);
+
+    const served = await serveStatic(dir);
+    try {
+      await page.goto(`${served.url}/`);
+      await expect(page.getByRole('heading', { name: 'Alpha headline' })).toBeVisible();
+      await expect(page.locator('h1')).toHaveCSS('font-weight', '700');
+    } finally {
+      await served.close();
+    }
+  });
+
+  test('html pages become a self-contained folder too', async ({ page }) => {
+    const dir = path.join(projectDir, 'export', 'plain');
+    const html = await fs.readFile(path.join(dir, 'index.html'), 'utf8');
+    expect(html).toContain('<title>Plain HTML</title>');
+    expect(html).not.toContain('/@fs/');
+
+    const served = await serveStatic(dir);
+    try {
+      await page.goto(`${served.url}/`);
+      await expect(page.getByRole('heading', { name: 'Plain html headline' })).toBeVisible();
+      await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(255, 250, 240)');
+    } finally {
+      await served.close();
+    }
+  });
+
+  test('unknown page ids fail with the available ids', async () => {
+    const res = await runCli(['export', 'nope'], projectDir, 60_000);
+    expect(res.code).toBe(1);
+    expect(res.stderr).toContain('Page not found: nope');
+    expect(res.stderr).toContain('alpha');
   });
 });

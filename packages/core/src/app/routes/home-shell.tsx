@@ -18,7 +18,7 @@ import { CommandMenuTrigger } from '../components/command/command-menu';
 import { HomeCommandMenu } from '../components/command/home-command-menu';
 import { FolderIconChip } from '../components/sidebar/folder-item';
 import { ALL_DOCS_ID, ASSETS_ID, Sidebar, THEMES_ID } from '../components/sidebar/sidebar';
-import { docIds } from '../lib/docs';
+import { pageIds } from '../lib/pages';
 import type { FoldersManifest } from '../lib/sdk';
 import { themes as themeRegistry } from '../lib/themes';
 
@@ -30,12 +30,12 @@ export type HomeOutletContext = {
   /** Selected view id: ALL_DOCS_ID, DRAFT_ID, a folder id, THEMES_ID, or ASSETS_ID. */
   selectedId: string;
   selectFolder: (id: string) => void;
-  reportTitle: (docId: string, title: string) => void;
+  reportTitle: (pageId: string, title: string) => void;
   titleMap: Record<string, string>;
-  assign: (docId: string, folderId: string | null) => Promise<void>;
-  renameDoc: (docId: string, name: string) => Promise<void>;
-  duplicateDoc: (docId: string, newId?: string) => Promise<string>;
-  deleteDoc: (docId: string) => Promise<void>;
+  assign: (pageId: string, folderId: string | null) => Promise<void>;
+  renameDoc: (pageId: string, name: string) => Promise<void>;
+  duplicatePage: (pageId: string, newId?: string) => Promise<string>;
+  deletePage: (pageId: string) => Promise<void>;
 };
 
 function pathToSelectedId(pathname: string, search: URLSearchParams): string {
@@ -54,8 +54,8 @@ export function HomeShell() {
     reorder,
     assign,
     renameDoc,
-    duplicateDoc,
-    deleteDoc,
+    duplicatePage,
+    deletePage,
   } = useFolders();
   const navigate = useNavigate();
   const location = useLocation();
@@ -68,8 +68,8 @@ export function HomeShell() {
   const openCommandMenu = useCallback(() => setCommandOpen(true), []);
 
   const [titleMap, setTitleMap] = useState<Record<string, string>>({});
-  const reportTitle = useCallback((docId: string, docTitle: string) => {
-    setTitleMap((prev) => (prev[docId] === docTitle ? prev : { ...prev, [docId]: docTitle }));
+  const reportTitle = useCallback((pageId: string, pageTitle: string) => {
+    setTitleMap((prev) => (prev[pageId] === pageTitle ? prev : { ...prev, [pageId]: pageTitle }));
   }, []);
 
   const selectFolder = useCallback(
@@ -89,7 +89,7 @@ export function HomeShell() {
     const byFolder: Record<string, string[]> = {};
     const draft: string[] = [];
     const known = new Set(manifest.folders.map((f) => f.id));
-    for (const id of docIds) {
+    for (const id of pageIds) {
       const folderId = manifest.assignments[id];
       if (folderId && known.has(folderId)) {
         byFolder[folderId] ??= [];
@@ -105,16 +105,16 @@ export function HomeShell() {
     folderId === null ? draftDocs.length : (docsByFolder[folderId]?.length ?? 0);
 
   const moveDocWithToast = useCallback(
-    async (docId: string, folderId: string | null) => {
-      if (manifest.assignments[docId] === (folderId ?? undefined)) return;
-      const docName = titleMap[docId] ?? docId;
+    async (pageId: string, folderId: string | null) => {
+      if (manifest.assignments[pageId] === (folderId ?? undefined)) return;
+      const docName = titleMap[pageId] ?? pageId;
       const folderName =
         folderId === null
           ? t.home.draft
           : (manifest.folders.find((f) => f.id === folderId)?.name ?? folderId);
       try {
-        await assign(docId, folderId);
-        toast.success(format(t.home.toastDocMoved, { doc: docName, folder: folderName }));
+        await assign(pageId, folderId);
+        toast.success(format(t.home.toastDocMoved, { page: docName, folder: folderName }));
       } catch {
         toast.error(t.home.toastDocMoveFailed);
       }
@@ -133,8 +133,8 @@ export function HomeShell() {
     titleMap,
     assign,
     renameDoc,
-    duplicateDoc,
-    deleteDoc,
+    duplicatePage,
+    deletePage,
   };
 
   return (
@@ -143,7 +143,7 @@ export function HomeShell() {
         <Sidebar
           folders={manifest.folders}
           countFor={countFor}
-          allCount={docIds.length}
+          allCount={pageIds.length}
           themesCount={themeRegistry.length}
           assetsCount={globalAssets.length}
           selectedId={selectedId}
@@ -162,8 +162,8 @@ export function HomeShell() {
             }
           }}
           onOpenCommandMenu={openCommandMenu}
-          onDropToFolder={(folderId, docId) => moveDocWithToast(docId, folderId)}
-          onDropToDraft={(docId) => moveDocWithToast(docId, null)}
+          onDropToFolder={(folderId, pageId) => moveDocWithToast(pageId, folderId)}
+          onDropToDraft={(pageId) => moveDocWithToast(pageId, null)}
           onReorder={async (ids) => {
             try {
               await reorder(ids);
@@ -203,8 +203,8 @@ export function HomeShell() {
                   )}
                 >
                   <FolderIconChip icon={{ type: 'emoji', value: '🎞️' }} />
-                  <span className="flex-1 truncate">{t.home.docs}</span>
-                  <span className="folio">{docIds.length.toString().padStart(2, '0')}</span>
+                  <span className="flex-1 truncate">{t.home.pages}</span>
+                  <span className="folio">{pageIds.length.toString().padStart(2, '0')}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => selectFolder(THEMES_ID)}

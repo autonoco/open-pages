@@ -1,0 +1,95 @@
+---
+title: "Styling"
+description: "Tailwind via className, custom CSS, layout, and responsive design."
+icon: "palette"
+---
+
+Pages are styled the way web pages are styled. Tailwind v4 is configured by the runtime, custom CSS is a file import away, and inline `style` works for the odd one-off.
+
+## Tailwind via `className`
+
+The runtime generates a Tailwind stylesheet that scans `pages/` and `themes/`. Any utility you use in a `className` shows up in the preview and the export; nothing else does.
+
+```tsx
+<section className="mx-auto max-w-6xl px-6 py-20">
+  <h2 className="text-3xl font-bold tracking-tight sm:text-5xl">Pricing</h2>
+  <p className="mt-4 max-w-xl text-lg text-slate-600">Simple plans that grow with you.</p>
+</section>
+```
+
+- Arbitrary values work: `bg-[#0b0b10]`, `max-w-[46ch]`, `grid-cols-[repeat(auto-fill,minmax(240px,1fr))]`.
+- Responsive variants work: `sm:`, `md:`, `lg:`, `xl:`. Tailwind is mobile-first, so unprefixed utilities apply at every width and prefixed ones kick in at that breakpoint and up.
+- State variants work: `hover:`, `focus-visible:`, `disabled:`, `aria-pressed:`, `dark:`.
+- Tailwind's preflight reset applies, so headings and lists start unstyled. Set your own type scale.
+
+## Custom CSS
+
+Import a stylesheet from the page and write plain CSS in it. Vite bundles it with the page.
+
+```tsx pages/launch/index.tsx
+import './styles.css';
+```
+
+```css pages/launch/styles.css
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+.marquee {
+  animation: marquee 30s linear infinite;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+```
+
+Use it for keyframes, complex selectors, and font imports. Keep it small; utilities in `className` are easier for the inspector-and-comment loop because every style sits on the element it affects.
+
+## Layout
+
+Use flex and grid; the page owns the whole viewport.
+
+- A page usually starts with `<main className="min-h-screen ...">` and centers content in a container: `mx-auto max-w-6xl px-6`.
+- Section rhythm: `py-16` to `py-24` between sections, `mt-4` to `mt-8` between blocks inside one.
+- Grids for cards: `grid gap-6 sm:grid-cols-2 lg:grid-cols-3`.
+- Let content set height. Fixed-height sections and absolutely positioned layouts break the moment copy changes.
+
+## Responsive design
+
+The viewer's toolbar switches the frame between desktop (full width), tablet (820px), and mobile (390px). Check all three before handing off.
+
+- Write mobile-first: single column by default, add columns at `sm:` or `md:`.
+- Hide secondary navigation on small widths (`hidden sm:flex`) rather than cramming it.
+- Headlines: `text-4xl sm:text-6xl`, not one giant size everywhere.
+- Touch targets at least 40px on mobile.
+
+## Type scale and color
+
+Web defaults, not print:
+
+| Element | Size |
+| --- | --- |
+| Hero headline | 48 to 72px (`text-5xl` to `text-7xl`) |
+| Section heading | 24 to 36px |
+| Body | 16 to 18px |
+| Small print, captions | 12 to 14px |
+
+- Line-height 1.1 to 1.2 for headlines (`leading-tight`), 1.5 to 1.7 for body (`leading-relaxed`).
+- One page, one palette: a background, a text color, a muted text color, one accent. Dark pages read well with `text-white/60` style opacity steps for hierarchy.
+- Check contrast. Muted text on dark backgrounds needs at least `white/60`.
+
+## Dark mode
+
+Pages decide their own appearance. A dark landing page just uses dark colors. If you want to follow the visitor's preference, use `dark:` variants; Tailwind's default `dark:` follows `prefers-color-scheme`.
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Assets and fonts" href="/authoring/assets-and-fonts">
+    Images, self-hosted fonts, and Google Fonts.
+  </Card>
+  <Card title="Themes" href="/authoring/themes">
+    Reusable palettes and components under themes/.
+  </Card>
+</CardGroup>

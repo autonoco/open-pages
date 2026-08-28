@@ -3,7 +3,7 @@ import * as t from '@babel/types';
 import { parseSource, walkJsx } from './babel-walk.ts';
 
 const MARKER_RE =
-  /\{\/\*\s*@pdf-comment\s+id="(c-[a-f0-9]+)"\s+ts="([^"]+)"\s+text="([A-Za-z0-9_-]+={0,2})"\s*\*\/\}/g;
+  /\{\/\*\s*@page-comment\s+id="(c-[a-f0-9]+)"\s+ts="([^"]+)"\s+text="([A-Za-z0-9_-]+={0,2})"\s*\*\/\}/g;
 
 export type Comment = { id: string; line: number; ts: string; note: string; hint?: string };
 
@@ -43,7 +43,7 @@ export function newCommentId(): string {
 
 export function markerDeleteRegex(id: string): RegExp {
   return new RegExp(
-    `\\{\\/\\*\\s*@pdf-comment\\s+id="${id}"\\s+ts="[^"]+"\\s+text="[A-Za-z0-9_\\-]+={0,2}"\\s*\\*\\/\\}`,
+    `\\{\\/\\*\\s*@page-comment\\s+id="${id}"\\s+ts="[^"]+"\\s+text="[A-Za-z0-9_\\-]+={0,2}"\\s*\\*\\/\\}`,
   );
 }
 

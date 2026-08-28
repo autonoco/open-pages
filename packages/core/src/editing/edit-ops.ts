@@ -159,7 +159,7 @@ function findJsxByStart(ast: t.Node, line: number, column: number): t.JSXElement
 }
 
 function findInnermostJsxElement(ast: t.Node, line: number, column: number): t.JSXElement | null {
-  // Prefer exact `loc.start` match (what `data-pdf-loc` sends) so
+  // Prefer exact `loc.start` match (what `data-op-loc` sends) so
   // we don't accidentally hit an outer JSX whose range happens to
   // enclose the click point.
   const exact = findJsxByStart(ast, line, column);

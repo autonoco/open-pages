@@ -1,24 +1,24 @@
-# @autono/create-open-pdf
+# @autono/create-open-pages
 
-Scaffold a workspace for [open-pdf](https://openpdf.sh) — the PDF framework built for agents. Your coding agent writes documents as React components; you get a live preview that **is** the PDF, click-to-comment, and export to PDF or editable Word.
+Scaffold a workspace for [open-pages](https://openpages.sh) — the web page framework built for agents. Your coding agent writes pages as React components or plain HTML; you get a live browser preview, click-to-comment, and static export to any host.
 
 ## Usage
 
 ```bash
-npm create @autono/open-pdf@latest my-docs
-cd my-docs
+npm create @autono/open-pages@latest my-pages
+cd my-pages
 npm run dev
 ```
 
 This creates a workspace containing:
 
-- `docs/getting-started/` — a starter doc you can edit or delete.
-- `package.json` — depends on `@autono/open-pdf`, which provides the runtime (viewer, inspector, export) and the `open-pdf` CLI.
-- `open-pdf.config.ts` — optional typed config (docsDir, port, base).
-- `.claude/skills/` and `.agents/skills/` — agent skills (`create-doc`, `apply-comments`, …).
-- `CLAUDE.md` — agent guide for authoring documents.
+- `pages/getting-started/` — a starter page you can edit or delete.
+- `package.json` — depends on `@autono/open-pages`, which provides the runtime (viewer, inspector, export) and the `open-pages` CLI.
+- `open-pages.config.ts` — optional typed config (pagesDir, port, base).
+- `.claude/skills/` and `.agents/skills/` — agent skills (`create-page`, `page-authoring`, `apply-comments`, `create-theme`, `current-page`).
+- `AGENTS.md` (linked as `CLAUDE.md`) — agent guide for authoring pages.
 
-You won't see any Vite, React, or tsconfig files in the workspace. They live inside `@autono/open-pdf` and you never touch them.
+You won't see any Vite, React, Tailwind, or tsconfig files in the workspace. They live inside `@autono/open-pages` and you never touch them.
 
 ## Flags
 
@@ -33,12 +33,12 @@ You won't see any Vite, React, or tsconfig files in the workspace. They live ins
 
 ## The loop
 
-1. Ask your agent to "make a doc about X" — the `create-doc` skill writes the React.
-2. `npm run dev` shows the live PDF preview; every save re-renders real PDF bytes.
+1. Ask your agent to "make a landing page for X" — the `create-page` skill writes the React.
+2. `npm run dev` shows the live preview at `http://localhost:5173/p/<id>`; every save hot-reloads.
 3. Press `i`, click anything, leave a note — it lands in the source as a marker.
-4. The agent runs `apply-comments`; `open-pdf export` ships PDF or editable Word.
+4. The agent runs `apply-comments`; `open-pages export <id>` writes a deployable static folder.
 
-Full documentation: [docs.openpdf.sh](https://docs.openpdf.sh)
+Full documentation: [docs.openpages.sh](https://docs.openpages.sh)
 
 ## License
 

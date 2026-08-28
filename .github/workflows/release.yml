@@ -23,7 +23,7 @@ on:
         type: string
 
 concurrency:
-  group: open-pdf-release
+  group: open-pages-release
   cancel-in-progress: false
 
 permissions:
@@ -94,15 +94,18 @@ jobs:
               grep -E "^v${SEMVER}$" |
               head -n1 || true
           )
-          # 0.1.0 shipped before this workflow existed, so with no v* tag yet
-          # the baseline is whatever npm already has.
+          # With no v* tag yet, the baseline is whatever npm already has; a
+          # package that has never been published starts at v0.1.0.
           if [ -z "$LATEST" ]; then
-            PUBLISHED=$(npm view @autono/open-pdf version)
-            if ! printf '%s' "$PUBLISHED" | grep -Eq "^${SEMVER}$"; then
+            PUBLISHED=$(npm view @autono/open-pages version 2>/dev/null || true)
+            if [ -z "$PUBLISHED" ]; then
+              LATEST="v0.0.0"
+            elif printf '%s' "$PUBLISHED" | grep -Eq "^${SEMVER}$"; then
+              LATEST="v$PUBLISHED"
+            else
               echo "Could not determine the published npm baseline: $PUBLISHED" >&2
               exit 1
             fi
-            LATEST="v$PUBLISHED"
           fi
           VERSION="${LATEST#v}"
           MAJOR=$(printf '%s' "$VERSION" | cut -d. -f1)
@@ -147,7 +150,7 @@ jobs:
         run: node tools/release/stamp-version.mjs "${{ steps.version.outputs.version }}"
 
       - name: Build
-        run: pnpm turbo run build --filter=@autono/open-pdf --filter=@autono/create-open-pdf
+        run: pnpm turbo run build --filter=@autono/open-pages --filter=@autono/create-open-pages
 
       - name: Publish to npm
         env:

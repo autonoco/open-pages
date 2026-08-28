@@ -1,6 +1,6 @@
 ---
 title: "Quickstart"
-description: "Scaffold a workspace, author a document with your agent, review it in the live PDF preview, and export it."
+description: "Scaffold a workspace, author a page with your agent, review it in the live preview, and export it."
 icon: "rocket"
 ---
 
@@ -10,87 +10,87 @@ icon: "rocket"
 
     <CodeGroup>
     ```bash npm
-    npm create @autono/open-pdf@latest my-docs
+    npm create @autono/open-pages@latest my-pages
     ```
     ```bash pnpm
-    pnpm dlx @autono/create-open-pdf init my-docs --use-pnpm
+    pnpm dlx @autono/create-open-pages init my-pages --use-pnpm
     ```
     ```bash yarn
-    yarn dlx @autono/create-open-pdf init my-docs --use-yarn
+    yarn dlx @autono/create-open-pages init my-pages --use-yarn
     ```
     ```bash bun
-    bunx @autono/create-open-pdf init my-docs --use-bun
+    bunx @autono/create-open-pages init my-pages --use-bun
     ```
     </CodeGroup>
 
     Useful flags: `--name <name>` overrides the package name, `--force` scaffolds into a non-empty directory, `--no-install` skips dependency installation, `--no-git` skips git init. Run interactively without a directory argument and the CLI prompts for the target and package manager.
 
-    The workspace includes `AGENTS.md` (linked as `CLAUDE.md`) and five bundled agent skills: `create-doc`, `doc-authoring`, `apply-comments`, `current-doc`, and `create-theme`.
+    The workspace includes `AGENTS.md` (linked as `CLAUDE.md`) and five bundled agent skills: `create-page`, `page-authoring`, `apply-comments`, `current-page`, and `create-theme`.
   </Step>
 
-  <Step title="Create a document with your agent">
-    Open the workspace in your coding agent (Claude Code, Cursor, Codex) and run `/create-doc` with a prompt:
+  <Step title="Create a page with your agent">
+    Open the workspace in your coding agent (Claude Code, Cursor, Codex) and run `/create-page` with a prompt:
 
     ```
-    /create-doc an invoice for Harborline Freight, 3 line items, net 30
+    /create-page a landing page for Meridian, an analytics tool for founders, with pricing
     ```
 
-    The skill asks a few scoping questions (visual direction, length, density, page setup), then writes `docs/<id>/index.tsx`: one React component in HTML-shaped JSX, styled with Tailwind via the `tw` prop.
+    The skill asks a few scoping questions (page type and audience, visual direction, sections, interactivity), then writes `pages/<id>/index.tsx`: one React component styled with Tailwind via `className`.
   </Step>
 
   <Step title="Start the live preview">
     ```bash
-    cd my-docs
+    cd my-pages
     npm run dev
     ```
 
-    Open `http://localhost:5173`. Each document lives at `http://localhost:5173/s/<id>`. The preview renders actual PDF bytes with the Takumi engine in a web worker and hot-reloads on every edit. What you see is the PDF, not an HTML rendition of it.
+    Open `http://localhost:5173`. Each page lives at `http://localhost:5173/p/<id>`. The viewer runs the real page in a browser frame and hot-reloads on every edit. Use the toolbar to switch between desktop, tablet (820px), and mobile (390px) widths, or hit **Open** to see the page by itself in a new tab.
   </Step>
 
   <Step title="Inspect, comment, apply">
-    In the preview, press `i` (or hit **Inspect**) and click any element. The inspector maps your click to the exact source lines and saves each comment into the document as a `@pdf-comment` marker.
+    In the preview, press `i` (or hit **Inspect**) and click any element. The inspector maps your click to the exact source line and saves each comment into the page as a `@page-comment` marker.
 
     Back in your agent, ask it to apply them:
 
     ```
-    apply the comments on the invoice
+    apply the comments on the landing page
     ```
 
-    The `apply-comments` skill reads the markers, makes the edits, and removes the markers. The dev server also tracks which document and element you last selected in `node_modules/.open-pdf/current.json`, so "make this bigger" resolves without naming anything.
+    The `apply-comments` skill reads the markers, makes the edits, and removes the markers. The dev server also tracks which page and element you last selected in `node_modules/.open-pages/current.json`, so "make this bigger" resolves without naming anything.
   </Step>
 
   <Step title="Export">
-    Render headlessly to `export/`:
+    Build static folders under `export/`:
 
     ```bash
-    # every doc, as PDF
+    # every page → export/<id>/
     npm run export
 
-    # one doc, as editable Word
-    npm run export -- invoice-harborline --format docx
+    # one page
+    npm run export -- meridian-launch
     ```
 
-    The PDF export is the same bytes as the preview. The DOCX output opens in Word, and dropping it into Google Drive converts it to an editable Google Doc. `--out-dir <dir>` changes the output directory.
+    Each folder holds an `index.html` plus hashed assets with relative URLs. Drop it on any static host. `--out-dir <dir>` changes the output directory.
   </Step>
 </Steps>
 
 <Note>
-  The agent never needs to touch `package.json` or `open-pdf.config.ts`. Documents are self-contained under `docs/<id>/`, with per-doc assets in `docs/<id>/assets/`.
+  The agent never needs to touch `package.json` or `open-pages.config.ts`. Pages are self-contained under `pages/<id>/`, with per-page assets in `pages/<id>/assets/`.
 </Note>
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Documents" icon="file-code" href="/authoring/documents">
-    The full file contract and the `tw` styling dialect.
+  <Card title="Pages" icon="file-code" href="/authoring/pages">
+    The full file contract and what a page folder may contain.
   </Card>
   <Card title="Inspector" icon="mouse-pointer-click" href="/inspector">
     How comments become source markers and edits.
   </Card>
   <Card title="Export" icon="download" href="/export">
-    PDF and DOCX output in depth.
+    Static output and deploy targets.
   </Card>
-  <Card title="What is open-pdf" icon="file-text" href="/">
+  <Card title="What is open-pages" icon="layout-template" href="/">
     The architecture and the authoring loop.
   </Card>
 </CardGroup>

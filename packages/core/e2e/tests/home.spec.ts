@@ -1,47 +1,57 @@
 import { expect, test } from '@playwright/test';
-import { pdfPages } from './helpers.ts';
+import { pageFrame } from './helpers.ts';
 
-test.describe('home doc browser', () => {
-  test('lists every fixture doc with its display title', async ({ page }) => {
+test.describe('home page browser', () => {
+  test('lists every fixture page with its display title and a live thumbnail', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('li h3')).toHaveCount(4);
-    await expect(page.getByText('Alpha Doc')).toBeVisible();
-    await expect(page.getByText('Tables Doc')).toBeVisible();
-    await expect(page.getByText('Edit Target')).toBeVisible();
-    await expect(page.getByText('Hot Doc')).toBeVisible();
+    await expect(page.locator('li h3')).toHaveCount(5);
+    for (const title of ['Alpha Page', 'Pricing Page', 'Edit Target', 'Hot Page', 'Plain HTML']) {
+      await expect(page.getByText(title, { exact: true })).toBeVisible();
+    }
+    await expect(page.locator('li iframe')).toHaveCount(5);
+    const thumb = page.locator('li iframe').first();
+    await expect(thumb).toHaveAttribute('src', /frame\.html\?page=/);
+    await expect(
+      page.frameLocator('li iframe[src="/frame.html?page=alpha"]').locator('h1'),
+    ).toHaveText('Alpha headline', { timeout: 30_000 });
   });
 
-  test('doc card links to the viewer', async ({ page }) => {
+  test('page card links to the viewer', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: 'Alpha Doc' }).click();
-    await expect(page).toHaveURL(/\/s\/alpha$/);
-    await expect(pdfPages(page).first()).toBeVisible({ timeout: 30_000 });
+    await page.getByRole('link', { name: 'Alpha Page' }).click();
+    await expect(page).toHaveURL(/\/p\/alpha$/);
+    await expect(pageFrame(page).locator('h1').first()).toBeVisible({ timeout: 30_000 });
   });
 
-  test('search filters docs and can be cleared', async ({ page }) => {
+  test('search filters pages and can be cleared', async ({ page }) => {
     await page.goto('/');
-    const search = page.getByPlaceholder('Search docs');
-    await search.fill('tables');
+    const search = page.getByPlaceholder('Search pages');
+    await search.fill('pricing');
     await expect(page.locator('li h3')).toHaveCount(1);
-    await expect(page.getByText('Tables Doc')).toBeVisible();
+    await expect(page.getByText('Pricing Page')).toBeVisible();
 
     await search.fill('zzz-no-match');
     await expect(page.getByText('No matches')).toBeVisible();
     await page.getByRole('button', { name: 'Clear search' }).first().click();
-    await expect(page.locator('li h3')).toHaveCount(4);
+    await expect(page.locator('li h3')).toHaveCount(5);
   });
 
-  test('sort control reorders docs by created date', async ({ page }) => {
+  test('sort control reorders pages by created date', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('li h3').first()).toHaveText('Alpha Doc');
+    await expect(page.locator('li h3').first()).toHaveText('Alpha Page');
     await page.getByRole('button', { name: /^Sort:/ }).click();
     await page.getByRole('menuitem', { name: 'Oldest' }).click();
-    await expect(page.locator('li h3').first()).toHaveText('Hot Doc');
+    // The html page has no createdAt and sorts before every dated page.
+    await expect(page.locator('li h3').first()).toHaveText('Plain HTML');
+    await expect(page.locator('li h3').nth(1)).toHaveText('Hot Page');
   });
 
-  test('doc theme badge links to the theme page', async ({ page }) => {
+  test('page theme badge links to the theme page', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: 'plain' }).click();
+    await page
+      .locator('li', { hasText: 'Alpha Page' })
+      .getByRole('link', { name: 'plain', exact: true })
+      .click();
     await expect(page).toHaveURL(/\/themes\/plain$/);
     await expect(page.getByText('Plain').first()).toBeVisible();
   });
@@ -57,10 +67,12 @@ test.describe('home doc browser', () => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Change language' }).click();
     await page.getByRole('menuitem', { name: '繁體中文' }).click();
-    await expect(page.getByText('投影片').first()).toBeVisible();
+    await expect(page.getByPlaceholder('Search pages')).toHaveCount(0);
+    await expect(page.getByText(/頁面|投影片/).first()).toBeVisible();
 
     await page.reload();
-    await expect(page.getByText('投影片').first()).toBeVisible();
+    await expect(page.getByPlaceholder('Search pages')).toHaveCount(0);
+    await expect(page.getByText(/頁面|投影片/).first()).toBeVisible();
   });
 
   test('sidebar toolbar buttons label themselves on hover', async ({ page }) => {
@@ -105,12 +117,33 @@ test.describe('home doc browser', () => {
       const actions = page.getByRole('button', { name: 'Folder actions' });
       await expect(actions).toBeVisible();
       await actions.click();
-      await page.getByRole('menuitem', { name: 'Delete' }).click();
+      // The menu keeps repositioning while the card thumbnails behind it
+      // load, so Playwright never sees it "stable"; the item is interactable.
+      const remove = page.getByRole('menuitem', { name: 'Delete' });
+      await expect(remove).toBeVisible();
+      await remove.click({ force: true });
       await expect(actions).toHaveCount(0);
     } finally {
-      const { folders } = (await (await request.get('/__folders')).json()) as {
-        folders: { id: string }[];
-      };
+      // The sidebar delete rewrites the manifest; a read racing that write can
+      // fail once, so poll until the endpoint answers cleanly.
+      const folders = await expect
+        .poll(async () => {
+          try {
+            const body = (await (await request.get('/__folders')).json()) as {
+              folders: { id: string }[];
+            };
+            return body.folders;
+          } catch {
+            return null;
+          }
+        })
+        .not.toBeNull()
+        .then(async () => {
+          const body = (await (await request.get('/__folders')).json()) as {
+            folders: { id: string }[];
+          };
+          return body.folders;
+        });
       for (const folder of folders) await request.delete(`/__folders/${folder.id}`);
     }
   });

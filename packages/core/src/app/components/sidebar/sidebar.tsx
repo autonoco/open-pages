@@ -47,8 +47,8 @@ export function Sidebar({
   onRename: (id: string, name: string) => void;
   onChangeIcon: (id: string, icon: FolderIcon) => void;
   onDelete: (id: string) => void;
-  onDropToFolder: (folderId: string, docId: string) => void;
-  onDropToDraft: (docId: string) => void;
+  onDropToFolder: (folderId: string, pageId: string) => void;
+  onDropToDraft: (pageId: string) => void;
   onReorder: (ids: string[]) => void;
   onOpenCommandMenu: () => void;
 }) {
@@ -240,7 +240,7 @@ export function Sidebar({
                 count={countFor(folder.id)}
                 selected={selectedId === folder.id}
                 onSelect={() => onSelect(folder.id)}
-                onDropDoc={(docId) => onDropToFolder(folder.id, docId)}
+                onDropDoc={(pageId) => onDropToFolder(folder.id, pageId)}
               />
             </div>
           );

@@ -75,7 +75,7 @@ export async function gitInitAndCommit(target: string): Promise<GitInitResult> {
     };
   }
 
-  const commit = await run('git', ['commit', '-m', 'chore: init open-pdf project'], target);
+  const commit = await run('git', ['commit', '-m', 'chore: init open-pages project'], target);
   if (commit.code !== 0) {
     return {
       status: 'failed',

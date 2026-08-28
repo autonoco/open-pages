@@ -2,7 +2,7 @@ import { type StdioOptions, spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-export const PKG = '@autono/open-pdf';
+export const PKG = '@autono/open-pages';
 const CACHE_TTL_MS = 10 * 60 * 1000;
 const COMMAND_TIMEOUT_MS = 300_000;
 
@@ -103,7 +103,7 @@ export async function updateCommandFor(
  * The freshly installed package's own CLI, so skills come from the new
  * version rather than whatever process is driving the update.
  */
-export function localOpenPdfCommand(cwd: string, args: string[]): CommandSpec {
+export function localOpenPagesCommand(cwd: string, args: string[]): CommandSpec {
   const bin = path.join(cwd, 'node_modules', ...PKG.split('/'), 'bin.js');
   return { cmd: process.execPath, args: [bin, ...args], shell: false };
 }

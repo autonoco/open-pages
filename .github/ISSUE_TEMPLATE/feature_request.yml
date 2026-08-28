@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest a new capability for open-pdf.
+description: Suggest a new capability for open-pages.
 title: "[Feature]: "
 labels: ["request"]
 body:
@@ -7,7 +7,7 @@ body:
     id: problem
     attributes:
       label: Problem
-      description: What are you trying to do that open-pdf makes hard or impossible today?
+      description: What are you trying to do that open-pages makes hard or impossible today?
     validations:
       required: true
   - type: textarea
@@ -28,10 +28,10 @@ body:
       label: Which package would this affect?
       multiple: true
       options:
-        - "@autono/open-pdf (runtime, inspector, present mode, CLI)"
-        - "@autono/create-open-pdf (scaffolder / template)"
-        - Agent skills (create-doc, doc-authoring, apply-comments)
-        - Docs / marketing site
+        - "@autono/open-pages (runtime, inspector, present mode, CLI)"
+        - "@autono/create-open-pages (scaffolder / template)"
+        - Agent skills (create-page, page-authoring, apply-comments)
+        - Pages / marketing site
         - Not sure
     validations:
       required: true

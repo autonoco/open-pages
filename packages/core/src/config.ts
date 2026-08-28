@@ -1,23 +1,22 @@
 import type { Locale } from './locale/types';
 
-export type OpenPdfBuildConfig = {
-  showDocBrowser?: boolean;
-  showDocUi?: boolean;
-  allowHtmlDownload?: boolean;
+export type OpenPagesBuildConfig = {
+  showPageBrowser?: boolean;
+  showPageUi?: boolean;
 };
 
-export type OpenPdfConfig = {
+export type OpenPagesConfig = {
   base?: string;
-  docsDir?: string;
+  pagesDir?: string;
   themesDir?: string;
   assetsDir?: string;
   port?: number;
   allowedHosts?: string[] | true;
   /**
-   * @deprecated Pick the UI language from the language switcher in the doc UI
+   * @deprecated Pick the UI language from the language switcher in the page UI
    * instead. When set, this only seeds the initial language until the user
    * chooses one (their choice is then remembered locally).
    */
   locale?: Locale;
-  build?: OpenPdfBuildConfig;
+  build?: OpenPagesBuildConfig;
 };

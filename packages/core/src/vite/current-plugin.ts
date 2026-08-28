@@ -1,20 +1,19 @@
+import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { Plugin, ViteDevServer } from 'vite';
-import { DOC_ID_RE } from '../editing/doc-ops.ts';
+import { PAGE_ID_RE } from '../editing/page-ops.ts';
 
 const TEXT_SNIPPET_MAX = 120;
 
 export type CurrentPluginOptions = {
   userCwd: string;
-  docsDir?: string;
+  pagesDir?: string;
 };
 
 type IncomingPayload = {
-  docId?: unknown;
-  pageIndex?: unknown;
-  totalPages?: unknown;
-  docTitle?: unknown;
+  pageId?: unknown;
+  pageTitle?: unknown;
   view?: unknown;
   selection?: unknown;
 };
@@ -34,12 +33,9 @@ type Selection = {
 };
 
 type Cached = {
-  docId: string;
-  pageIndex: number;
-  pageNumber: number;
-  totalPages: number;
-  docTitle: string;
-  view: 'docs' | 'assets';
+  pageId: string;
+  pageTitle: string;
+  view: 'pages' | 'assets';
   pagePath: string;
   selection: Selection | null;
 };
@@ -65,58 +61,35 @@ function parseSelection(raw: unknown): Selection | null {
 
 export function currentPlugin(opts: CurrentPluginOptions): Plugin {
   const userCwd = opts.userCwd;
-  const docsDir = opts.docsDir ?? 'docs';
-  const outDir = path.join(userCwd, 'node_modules', '.open-pdf');
+  const pagesDir = opts.pagesDir ?? 'pages';
+  const outDir = path.join(userCwd, 'node_modules', '.open-pages');
   const outFile = path.join(outDir, 'current.json');
   const tmpFile = `${outFile}.tmp`;
 
   let cached: Cached | null = null;
 
   return {
-    name: 'open-pdf:current',
+    name: 'open-pages:current',
     apply: 'serve',
     configureServer(server: ViteDevServer) {
-      server.ws.on('open-pdf:current', async (raw: IncomingPayload) => {
+      server.ws.on('open-pages:current', async (raw: IncomingPayload) => {
         const next: Cached = cached
           ? { ...cached }
-          : {
-              docId: '',
-              pageIndex: 0,
-              pageNumber: 1,
-              totalPages: 1,
-              docTitle: '',
-              view: 'docs',
-              pagePath: '',
-              selection: null,
-            };
+          : { pageId: '', pageTitle: '', view: 'pages', pagePath: '', selection: null };
 
-        if (typeof raw?.docId === 'string') {
-          if (!DOC_ID_RE.test(raw.docId)) return;
+        if (typeof raw?.pageId === 'string') {
+          if (!PAGE_ID_RE.test(raw.pageId)) return;
+          const pageTitle = typeof raw.pageTitle === 'string' ? raw.pageTitle : raw.pageId;
+          const view = raw.view === 'assets' ? 'assets' : 'pages';
+          const entry = existsSync(path.join(userCwd, pagesDir, raw.pageId, 'index.tsx'))
+            ? 'index.tsx'
+            : 'index.html';
+          const pagePath = path.join(pagesDir, raw.pageId, entry).split(path.sep).join('/');
 
-          const totalPages =
-            typeof raw.totalPages === 'number' &&
-            Number.isFinite(raw.totalPages) &&
-            raw.totalPages > 0
-              ? Math.floor(raw.totalPages)
-              : 1;
-          const rawIndex =
-            typeof raw.pageIndex === 'number' && Number.isFinite(raw.pageIndex)
-              ? Math.floor(raw.pageIndex)
-              : 0;
-          const pageIndex = Math.max(0, Math.min(totalPages - 1, rawIndex));
-          const docTitle = typeof raw.docTitle === 'string' ? raw.docTitle : raw.docId;
-          const view = raw.view === 'assets' ? 'assets' : 'docs';
-          const pagePath = path.join(docsDir, raw.docId, 'index.tsx').split(path.sep).join('/');
+          if (cached?.pageId !== raw.pageId) next.selection = null;
 
-          if (cached?.docId !== raw.docId || cached?.pageIndex !== pageIndex) {
-            next.selection = null;
-          }
-
-          next.docId = raw.docId;
-          next.pageIndex = pageIndex;
-          next.pageNumber = pageIndex + 1;
-          next.totalPages = totalPages;
-          next.docTitle = docTitle;
+          next.pageId = raw.pageId;
+          next.pageTitle = pageTitle;
           next.view = view;
           next.pagePath = pagePath;
         }
@@ -125,7 +98,7 @@ export function currentPlugin(opts: CurrentPluginOptions): Plugin {
           next.selection = parseSelection(raw.selection);
         }
 
-        if (!next.docId) return;
+        if (!next.pageId) return;
 
         cached = next;
 

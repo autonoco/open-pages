@@ -1,10 +1,10 @@
 {
-  "name": "@autono/create-open-pdf",
+  "name": "@autono/create-open-pages",
   "version": "0.1.0",
-  "description": "Scaffold an open-pdf workspace — agent skills preconfigured, live real-PDF preview out of the box.",
+  "description": "Scaffold an open-pages workspace — agent skills preconfigured, live real-PDF preview out of the box.",
   "type": "module",
   "bin": {
-    "create-open-pdf": "dist/cli.js"
+    "create-open-pages": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -22,7 +22,7 @@
   },
   "keywords": [
     "pdf",
-    "documents",
+    "pages",
     "claude-code",
     "agents",
     "scaffold"
@@ -32,14 +32,14 @@
     "name": "autonoco",
     "url": "https://github.com/autonoco"
   },
-  "homepage": "https://openpdf.sh",
+  "homepage": "https://openpages.sh",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/autonoco/open-pdf.git",
+    "url": "git+https://github.com/autonoco/open-pages.git",
     "directory": "packages/cli"
   },
   "bugs": {
-    "url": "https://github.com/autonoco/open-pdf/issues"
+    "url": "https://github.com/autonoco/open-pages/issues"
   },
   "publishConfig": {
     "access": "public"

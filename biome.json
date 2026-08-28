@@ -13,7 +13,7 @@
       "!**/*.tsbuildinfo",
       "!**/*.svg",
       "!packages/core/src/app/components/ui",
-      "!docs",
+      "!pages",
       "!notes"
     ]
   },
@@ -31,7 +31,7 @@
   },
   "overrides": [
     {
-      "includes": ["**/docs/**", "apps/web/components/landing/**"],
+      "includes": ["**/pages/**", "apps/web/components/landing/**"],
       "linter": {
         "rules": {
           "a11y": {

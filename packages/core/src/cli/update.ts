@@ -6,7 +6,7 @@ import {
   fetchLatest,
   formatCommand,
   isOutdated,
-  localOpenPdfCommand,
+  localOpenPagesCommand,
   PKG,
   runCommand,
   updateCommandFor,
@@ -53,11 +53,11 @@ export async function update(opts: UpdateOptions): Promise<void> {
   await runCommand(install, cwd, { stdio: 'inherit' });
 
   if (opts.skills !== false) {
-    process.stdout.write(chalk.dim('$ open-pdf sync:skills\n'));
-    await runCommand(localOpenPdfCommand(cwd, ['sync:skills']), cwd, { stdio: 'inherit' });
+    process.stdout.write(chalk.dim('$ open-pages sync:skills\n'));
+    await runCommand(localOpenPagesCommand(cwd, ['sync:skills']), cwd, { stdio: 'inherit' });
   }
 
   process.stdout.write(
-    `${chalk.green('✓')} Updated ${PKG} to ${target}. Restart \`open-pdf dev\` to use it.\n`,
+    `${chalk.green('✓')} Updated ${PKG} to ${target}. Restart \`open-pages dev\` to use it.\n`,
   );
 }

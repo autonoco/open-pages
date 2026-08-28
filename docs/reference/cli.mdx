@@ -1,28 +1,28 @@
 ---
 title: "CLI"
-description: "Every open-pdf command, flag by flag."
+description: "Every open-pages command, flag by flag."
 icon: "terminal"
 ---
 
-open-pdf ships two packages that both register an `open-pdf` binary:
+open-pages ships two packages with two binaries:
 
-- **`@autono/create-open-pdf`** provides `init`. Run it with `npm create @autono/open-pdf@latest` from anywhere, no install needed.
-- **`@autono/open-pdf`** provides everything else (`dev`, `build`, `preview`, `export`, `sync:skills`, `update`). It is a dependency of every workspace, so inside a workspace `npx open-pdf <command>` resolves to it. The scaffolded `package.json` also maps npm scripts: `npm run dev`, `npm run build`, `npm run preview`, `npm run export`, `npm run sync:skills`, `npm run update`.
+- **`@autono/create-open-pages`** provides `init`. Run it with `npm create @autono/open-pages@latest` from anywhere, no install needed.
+- **`@autono/open-pages`** provides `open-pages` with everything else (`dev`, `build`, `preview`, `export`, `sync:skills`, `update`). It is a dependency of every workspace, so inside a workspace `npx open-pages <command>` resolves to it. The scaffolded `package.json` also maps npm scripts: `npm run dev`, `npm run build`, `npm run preview`, `npm run export`, `npm run sync:skills`, `npm run update`.
 
 When passing flags through an npm script, separate them with `--`:
 
 ```bash
-npm run export -- --format docx
+npm run export -- launch --out-dir out
 ```
 
 Both binaries accept `-v, --version` and `-h, --help`.
 
 ## init
 
-Create a new open-pdf workspace.
+Create a new open-pages workspace.
 
 ```bash
-npm create @autono/open-pdf@latest [dir]
+npm create @autono/open-pages@latest [dir]
 ```
 
 | Flag | Description |
@@ -36,8 +36,8 @@ npm create @autono/open-pdf@latest [dir]
 
 What init does:
 
-1. Copies the workspace template into the target directory: `docs/`, `assets/`, `themes/`, `open-pdf.config.ts`, an `AGENTS.md` agent guide (linked as `CLAUDE.md`), and the five bundled agent skills under `.agents/skills/` (symlinked into `.claude/skills/`).
-2. Sets the package name, marks the package private, and sets `@autono/open-pdf` to a caret range on the version the CLI was built against (`^x.y.z`).
+1. Copies the workspace template into the target directory: `pages/`, `assets/`, `themes/`, `open-pages.config.ts`, an `AGENTS.md` agent guide (linked as `CLAUDE.md`), and the five bundled agent skills under `.agents/skills/` (symlinked into `.claude/skills/`).
+2. Sets the package name, marks the package private, and sets `@autono/open-pages` to a caret range on the version the CLI was built against (`^x.y.z`).
 3. Writes a `.gitignore` covering `node_modules`, `dist`, `export`, and `.DS_Store`.
 4. Installs dependencies (unless `--no-install`) and creates a git repository with a first commit (unless `--no-git`). Git setup is skipped automatically when the target sits inside an existing repository.
 
@@ -49,56 +49,56 @@ On Windows, the `CLAUDE.md` link and skill symlinks are created as copies instea
 
 ## dev
 
-Start the dev server. The preview renders actual PDF bytes and updates as docs change. See [Quickstart](/quickstart).
+Start the dev server. The workspace home lists every page; `/p/<id>` previews one live. See [Quickstart](/quickstart).
 
 ```bash
-open-pdf dev
+open-pages dev
 ```
 
 | Flag | Description |
 | --- | --- |
-| `-p, --port <port>` | Port to listen on. Must be an integer between 0 and 65535. Defaults to `port` from [open-pdf.config.ts](/reference/config), then 5173. |
+| `-p, --port <port>` | Port to listen on. Must be an integer between 0 and 65535. Defaults to `port` from [open-pages.config.ts](/reference/config), then 5173. |
 | `--host [host]` | Expose the server on the network. Optionally pass a specific host. |
 | `--open` | Open the browser on start. |
 | `--no-skills-check` | Skip the built-in skills drift check. |
 
 ### Skills drift check
 
-Before starting, `dev` compares the skills bundled in your installed `@autono/open-pdf` against the copies in `.agents/skills/`, by content hash. If any skill was added or updated upstream:
+Before starting, `dev` compares the skills bundled in your installed `@autono/open-pages` against the copies in `.agents/skills/`, by content hash. If any skill was added or updated upstream:
 
 - In a terminal, it asks `Sync now? (Y/n)` and runs the sync on confirmation.
-- In non-interactive contexts (CI, agent shells), it prints a warning telling you to run `open-pdf sync:skills` and continues.
+- In non-interactive contexts (CI, agent shells), it prints a warning telling you to run `open-pages sync:skills` and continues.
 
 Skip the check with `--no-skills-check` or by setting the environment variable:
 
 ```bash
-OPEN_PDF_SKIP_SKILLS_CHECK=1 open-pdf dev
+OPEN_PAGES_SKIP_SKILLS_CHECK=1 open-pages dev
 ```
 
 ### Supervised process
 
-The server runs in a supervised child process. An in-app update of `@autono/open-pdf` can restart the server against the freshly installed package, and restarts reuse the same port.
+The server runs in a supervised child process. An in-app update of `@autono/open-pages` can restart the server against the freshly installed package, and restarts reuse the same port.
 
 ## build
 
-Build the workspace as a static site: the doc browser and PDF viewer, deployable to any static host.
+Build the workspace as a static site: the page browser, theme gallery, and viewer, with every page inside it, deployable to any static host. HTML pages are built into `__page/<id>/` inside the output.
 
 ```bash
-open-pdf build
+open-pages build
 ```
 
 | Flag | Description |
 | --- | --- |
 | `--out-dir <dir>` | Output directory. Defaults to `dist`. |
 
-The `build` section of [open-pdf.config.ts](/reference/config) controls which UI features the built site includes (doc browser, viewer chrome, download commands).
+The `build` section of [open-pages.config.ts](/reference/config) controls which UI features the built site includes (page browser, viewer chrome). To publish a single page without the workspace around it, use [`export`](#export).
 
 ## preview
 
 Serve the production build locally.
 
 ```bash
-open-pdf preview
+open-pages preview
 ```
 
 | Flag | Description |
@@ -109,43 +109,39 @@ open-pdf preview
 
 ## export
 
-Render docs to files headlessly, without a running dev server. See [Export](/export).
+Build pages into self-contained static folders, without a running dev server. See [Export](/export).
 
 ```bash
-open-pdf export [docs...]
+open-pages export [pages...]
 ```
 
 | Flag | Description |
 | --- | --- |
-| `[docs...]` | Doc ids to export (the folder names under `docs/`). Omit to export every doc. Unknown ids error and list the available ids. |
+| `[pages...]` | Page ids to export (the folder names under `pages/`). Omit to export every page. Unknown ids error and list the available ids. |
 | `--out-dir <dir>` | Output directory. Defaults to `export`. |
-| `--format <format>` | `pdf` or `docx`. Defaults to `pdf`. |
 
-Each doc is written as `<out-dir>/<id>.<format>`, with a per-doc line reporting size and render time:
+Each page is written to `<out-dir>/<id>/` as `index.html` plus hashed assets with relative URLs, with a per-page line reporting the page kind and build time:
 
 ```
-ok  export/quarterly-report.pdf  184.2 KB · 312ms
+ok  export/launch/  react · 1240ms
 ```
 
-Behavior by format:
-
-- **`pdf`**: byte-identical to the preview. Export compiles each doc with the same Vite pipeline the dev server uses (a middleware-mode server, no port), then renders through the same Takumi engine. Font paths in `pageOptions.fonts` are resolved from disk.
-- **`docx`**: an editable Word file built from the same rendered node tree. The document title comes from `meta.title`, falling back to the doc id. Running bands from `pageOptions.header` and `pageOptions.footer` become Word headers and footers. Constructs that do not map cleanly to DOCX are reported as warnings on stderr. Upload the file to Google Drive and it converts to an editable Google Doc.
+React pages get a generated entry that mounts the component, with `meta.title` and `meta.description` written into the HTML head. HTML pages build straight from their folder.
 
 ```bash
-# Export one doc as DOCX
-open-pdf export quarterly-report --format docx
+# Export one page
+open-pages export launch
 
-# Export everything as PDF into out/
-open-pdf export --out-dir out
+# Export everything into out/
+open-pages export --out-dir out
 ```
 
 ## sync:skills
 
-Sync the bundled agent skills from your installed `@autono/open-pdf` into the workspace.
+Sync the bundled agent skills from your installed `@autono/open-pages` into the workspace.
 
 ```bash
-open-pdf sync:skills
+open-pages sync:skills
 ```
 
 | Flag | Description |
@@ -160,14 +156,14 @@ Drift detection is hash based: each skill directory (file paths plus contents) i
 
 Changed skills are copied into `.agents/skills/` and symlinked into `.claude/skills/` (copied where symlinks are unavailable). To pull newer skills, run [`update`](#update), which upgrades the package and syncs in one step.
 
-`open-pdf dev` runs the same drift detection on startup, so most workspaces never need to call this by hand. See [For agents](/for-agents) for what the skills do.
+`open-pages dev` runs the same drift detection on startup, so most workspaces never need to call this by hand. See [For agents](/for-agents) for what the skills do.
 
 ## update
 
-Update `@autono/open-pdf` in this workspace to the latest version on npm, then sync the skills it ships.
+Update `@autono/open-pages` in this workspace to the latest version on npm, then sync the skills it ships.
 
 ```bash
-open-pdf update
+open-pages update
 ```
 
 | Flag | Description |
@@ -175,6 +171,6 @@ open-pdf update
 | `--force` | Reinstall even if the workspace is already on the latest version. |
 | `--no-skills` | Skip the skills sync after installing. |
 
-`update` checks npm's `latest` tag against the installed version and exits early if there is nothing to do. Otherwise it runs your package manager's install command (`npm install @autono/open-pdf@latest`, or the `pnpm` / `yarn` / `bun` equivalent, detected from the lockfile) and then `open-pdf sync:skills` from the freshly installed package. Your `docs/`, `open-pdf.config.ts`, and everything else in the workspace are untouched.
+`update` checks npm's `latest` tag against the installed version and exits early if there is nothing to do. Otherwise it runs your package manager's install command (`npm install @autono/open-pages@latest`, or the `pnpm` / `yarn` / `bun` equivalent, detected from the lockfile) and then `open-pages sync:skills` from the freshly installed package. Your `pages/`, `open-pages.config.ts`, and everything else in the workspace are untouched.
 
-The same update is available from the dev server: when a newer version exists, the home page shows an **Update** button. Restart `open-pdf dev` after either path.
+The same update is available from the dev server: when a newer version exists, the home page shows an **Update** button. Restart `open-pages dev` after either path.

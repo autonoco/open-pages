@@ -1,5 +1,5 @@
 import type { ViteDevServer } from 'vite';
-import { DOC_ID_RE } from '../../editing/doc-ops.ts';
+import { PAGE_ID_RE } from '../../editing/page-ops.ts';
 import {
   FOLDER_ID_RE,
   type Folder,
@@ -15,14 +15,14 @@ import { type ApiContext, json, readBody } from './context.ts';
 
 // GET    /__folders            list manifest
 // POST   /__folders            create folder { name, icon }
-// PUT    /__folders/assign     assign doc to folder { docId, folderId | null }
+// PUT    /__folders/assign     assign page to folder { pageId, folderId | null }
 // PUT    /__folders/reorder    reorder folders { ids: string[] } (permutation)
 // PATCH  /__folders/:id        rename / re-icon folder { name?, icon? }
 // DELETE /__folders/:id        delete folder + drop its assignments
 
 type CreateFolderBody = { name?: unknown; icon?: unknown };
 type PatchFolderBody = { name?: unknown; icon?: unknown };
-type AssignFolderBody = { docId?: unknown; folderId?: unknown };
+type AssignFolderBody = { pageId?: unknown; folderId?: unknown };
 type ReorderFoldersBody = { ids?: unknown };
 
 export function registerFolderRoutes(server: ViteDevServer, ctx: ApiContext): void {
@@ -60,10 +60,10 @@ export function registerFolderRoutes(server: ViteDevServer, ctx: ApiContext): vo
           return json(res, requestCheck.status, { error: requestCheck.error });
         }
         const body = (await readBody(req)) as AssignFolderBody;
-        if (typeof body.docId !== 'string' || !DOC_ID_RE.test(body.docId)) {
-          return json(res, 400, { error: 'invalid docId' });
+        if (typeof body.pageId !== 'string' || !PAGE_ID_RE.test(body.pageId)) {
+          return json(res, 400, { error: 'invalid pageId' });
         }
-        const docId = body.docId;
+        const pageId = body.pageId;
         let folderId: string | null;
         if (body.folderId === null) {
           folderId = null;
@@ -78,9 +78,9 @@ export function registerFolderRoutes(server: ViteDevServer, ctx: ApiContext): vo
           return json(res, 404, { error: 'folder not found' });
         }
         if (folderId === null) {
-          delete manifest.assignments[docId];
+          delete manifest.assignments[pageId];
         } else {
-          manifest.assignments[docId] = folderId;
+          manifest.assignments[pageId] = folderId;
         }
         await writeManifest(ctx.manifestPath, manifest);
         return json(res, 200, { ok: true });
@@ -141,8 +141,8 @@ export function registerFolderRoutes(server: ViteDevServer, ctx: ApiContext): vo
           if (manifest.folders.length === before) {
             return json(res, 404, { error: 'folder not found' });
           }
-          for (const [docId, folderId] of Object.entries(manifest.assignments)) {
-            if (folderId === id) delete manifest.assignments[docId];
+          for (const [pageId, folderId] of Object.entries(manifest.assignments)) {
+            if (folderId === id) delete manifest.assignments[pageId];
           }
           await writeManifest(ctx.manifestPath, manifest);
           return json(res, 200, { ok: true });

@@ -3,7 +3,7 @@ import { sanitizeDirName } from './init.ts';
 
 describe('sanitizeDirName', () => {
   it('leaves safe names untouched', () => {
-    expect(sanitizeDirName('my-docs')).toBe('my-docs');
+    expect(sanitizeDirName('my-pages')).toBe('my-pages');
     expect(sanitizeDirName('decks/2026-q2')).toBe('decks/2026-q2');
     expect(sanitizeDirName('Open_Doc.workspace')).toBe('Open_Doc.workspace');
   });
@@ -14,8 +14,8 @@ describe('sanitizeDirName', () => {
   });
 
   it('replaces spaces with hyphens', () => {
-    expect(sanitizeDirName('future of open pdf and how can i help')).toBe(
-      'future-of-open-pdf-and-how-can-i-help',
+    expect(sanitizeDirName('future of open pages and how can i help')).toBe(
+      'future-of-open-pages-and-how-can-i-help',
     );
   });
 
@@ -34,9 +34,9 @@ describe('sanitizeDirName', () => {
     expect(sanitizeDirName('!!!hi!!!')).toBe('hi');
   });
 
-  it('falls back to "my-docs" when nothing usable remains', () => {
-    expect(sanitizeDirName('!!!')).toBe('my-docs');
-    expect(sanitizeDirName('   ')).toBe('my-docs');
+  it('falls back to "my-pages" when nothing usable remains', () => {
+    expect(sanitizeDirName('!!!')).toBe('my-pages');
+    expect(sanitizeDirName('   ')).toBe('my-pages');
   });
 
   it('keeps path separators intact', () => {
@@ -77,14 +77,14 @@ describe('sanitizeDirName', () => {
   });
 
   it('preserves Windows backslash separators', () => {
-    expect(sanitizeDirName('docs\\q2')).toBe('docs\\q2');
+    expect(sanitizeDirName('pages\\q2')).toBe('pages\\q2');
     expect(sanitizeDirName('decks\\my new deck')).toBe('decks\\my-new-deck');
     expect(sanitizeDirName('a-\\-b')).toBe('a\\b');
   });
 
   it('falls back when sanitization would produce a root-like path', () => {
-    expect(sanitizeDirName('!!!/!!!')).toBe('my-docs');
-    expect(sanitizeDirName('!!!\\!!!')).toBe('my-docs');
-    expect(sanitizeDirName('//')).toBe('my-docs');
+    expect(sanitizeDirName('!!!/!!!')).toBe('my-pages');
+    expect(sanitizeDirName('!!!\\!!!')).toBe('my-pages');
+    expect(sanitizeDirName('//')).toBe('my-pages');
   });
 });

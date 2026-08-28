@@ -1,64 +1,76 @@
-# open-pdf workspace
+# open-pages workspace
 
-Docs as React components. Each doc lives under `docs/<id>/index.tsx` and default-exports an array of page components. The `@autono/open-pdf` runtime handles layout, scaling, navigation, thumbnails, and fullscreen play mode — you just write the pages.
+Web pages as React components. Each page lives under `pages/<id>/index.tsx` and default-exports one component. The `@autono/open-pages` runtime handles Vite, React, Tailwind, the live preview, and the inspector — you just write the page.
 
 ## Getting started
 
 ```bash
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
-Then open the dev server and edit `docs/getting-started/index.tsx`, or create a new doc at `docs/<your-doc>/index.tsx`.
+Then open `http://localhost:5173`, edit `pages/getting-started/index.tsx`, or create a new page at `pages/<your-page>/index.tsx`. Each page previews at `http://localhost:5173/p/<id>`.
 
 ## Scripts
 
 | Command | Description |
 | --- | --- |
-| `pnpm dev` | Start the dev server with hot reload. |
-| `pnpm build` | Build a static bundle you can deploy. |
-| `pnpm preview` | Preview the built bundle locally. |
+| `npm run dev` | Start the dev server with live preview and hot reload. |
+| `npm run build` | Build the whole workspace viewer as a static site. |
+| `npm run export` | Build pages into `export/<id>/`, one deployable folder per page. |
+| `npm run preview` | Preview the built workspace locally. |
+| `npm run sync:skills` | Sync the bundled agent skills into the workspace. |
+| `npm run update` | Update `@autono/open-pages` and sync skills. |
 
-## Authoring a doc
+## Authoring a page
 
 ```tsx
-// docs/my-doc/index.tsx
-import type { Page, DocMeta } from '@autono/open-pdf';
+// pages/my-page/index.tsx
+import type { PageMeta } from '@autono/open-pages';
 
-const Cover: Page = () => (
-  <div style={{ width: '100%', height: '100%' }}>Hello</div>
-);
+export const meta: PageMeta = {
+  title: 'My page',
+  createdAt: '2026-08-28T00:00:00.000Z',
+};
 
-export const meta: DocMeta = { title: 'My doc' };
-export default [Cover] satisfies Page[];
+export default function MyPage() {
+  return (
+    <main className="mx-auto max-w-2xl px-6 py-24">
+      <h1 className="text-4xl font-bold tracking-tight">Hello</h1>
+      <p className="mt-4 text-slate-600">Tailwind via className, hooks, state, all of it.</p>
+    </main>
+  );
+}
 ```
 
-Every page renders into a fixed **1920 × 1080** canvas — design with absolute pixel values. Put images, videos, and fonts under `docs/<id>/assets/` and import them directly.
+A page is a real web page: Tailwind v4 utilities via `className` work out of the box, `import './styles.css'` for custom CSS, hooks and event handlers for interactivity. Put images and fonts under `pages/<id>/assets/` and import them; shared assets go in the root `assets/` folder and import via `@assets/...`.
 
-See [`CLAUDE.md`](./CLAUDE.md) for the full authoring guide.
+A folder holding an `index.html` (with sibling CSS/JS) instead of `index.tsx` works too. It is served as-is and exported the same way.
 
-## Navigation
+See [`AGENTS.md`](./AGENTS.md) for the rules your agent follows.
 
-- Arrow keys / PageUp / PageDown move between pages.
-- `F` enters fullscreen play mode; Esc exits.
-- In play mode: Space / → next, ← prev.
+## The viewer
 
-## Claude Code integration
+- Toolbar toggles between desktop, tablet (820px), and mobile (390px) widths.
+- `i` toggles Inspect mode: click any element to see its source line and leave a comment for your agent.
+- **Open** shows the page by itself in a new tab.
 
-This workspace ships with Claude Code skills preconfigured under `.claude/skills/` and `.agents/skills/`. Ask Claude Code to "make docs about X" and the `create-doc` skill takes over. Use `apply-comments` to iterate via inspector-style markers inside your source.
+## Agent integration
+
+This workspace ships agent skills under `.agents/skills/` (symlinked into `.claude/skills/`). Ask your agent to "make a landing page for X" and the `create-page` skill takes over. Leave comments in Inspect mode and ask for `apply-comments` to iterate.
 
 ## Config
 
-Optional `open-pdf.config.ts` at the workspace root:
+Optional `open-pages.config.ts` at the workspace root:
 
 ```ts
-import type { OpenPdfConfig } from '@autono/open-pdf';
+import type { OpenPagesConfig } from '@autono/open-pages';
 
-const openPdfConfig: OpenPdfConfig = {
+const openPagesConfig: OpenPagesConfig = {
   port: 5173,
 };
 
-export default openPdfConfig;
+export default openPagesConfig;
 ```
 
-Supported fields: `docsDir`, `port`.
+Supported fields: `pagesDir`, `themesDir`, `assetsDir`, `port`, `base`, `allowedHosts`, `build`.

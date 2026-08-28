@@ -1,99 +1,82 @@
 ---
 title: "Export"
-description: "Render finished documents to PDF or editable DOCX, from the preview or the CLI."
+description: "Build finished pages into static folders and deploy them anywhere."
 icon: "download"
 ---
 
-There are two ways out of open-pdf: the **Download** button in the preview, and the `open-pdf export` CLI. Both render through the same Takumi engine that draws the preview, so what you export is what you saw.
-
-## The Download button
-
-The preview toolbar has a Download button that saves the current document as a PDF. It is a clean render: no inspector metadata, no source-line mapping, none of the instrumentation that powers [click-to-inspect](/inspector). Just the document.
-
-Use it when a human is looking at the preview and wants the file now. Use the CLI when an agent or a script needs to produce files headlessly.
+`open-pages export` builds each page into a self-contained static folder. It runs the same Vite pipeline as the dev preview (same React transform, same Tailwind, same aliases), so what you export is what you saw.
 
 ## The export CLI
 
-`open-pdf export` renders docs to files without starting a server. It spins up a middleware-mode Vite instance internally, so your TSX compiles through the exact same pipeline as the dev preview: same plugins, same aliases, same JSX transform.
-
 ```bash
-# Every doc in the workspace → export/<id>.pdf
-npx open-pdf export
+# Every page in the workspace → export/<id>/
+npx open-pages export
 
-# Specific docs by id
-npx open-pdf export invoice services-proposal
+# Specific pages by id
+npx open-pages export launch status-board
 
 # Custom output directory (default: export/)
-npx open-pdf export invoice --out-dir dist/pdfs
+npx open-pages export launch --out-dir dist/pages
 ```
 
-Doc ids are the folder names under `docs/`, the same ids the preview uses. Passing an unknown id fails with the list of available docs. Each rendered file prints with its size and render time:
+Page ids are the folder names under `pages/`, the same ids the preview uses. Passing an unknown id fails with the list of available pages. Each build prints with its kind and build time:
 
 ```text
-ok  export/invoice.pdf  38.2 KB · 412ms
-1 document → export/
+ok  export/launch/  react · 1240ms
+ok  export/plain-html/  html · 310ms
+2 pages → export/
 ```
 
 Flags:
 
 | Flag | Meaning | Default |
 |------|---------|---------|
-| `[docs...]` | Doc ids to export | all docs |
+| `[pages...]` | Page ids to export | all pages |
 | `--out-dir <dir>` | Output directory, relative to the project root | `export` |
-| `--format <format>` | `pdf` or `docx` | `pdf` |
 
-## Editable Word files
+## What you get
 
-```bash
-npx open-pdf export invoice --format docx
+```
+export/launch/
+  index.html
+  assets/
+    index-B3k9xQ.js
+    index-Dm2a1F.css
+    hero-Hx81sP.png
 ```
 
-`--format docx` does not embed a PDF or rasterize pages. It serializes the document tree into real OOXML, so the result opens in Word as a document someone can keep editing:
+- **`index.html`** with the page's `meta.title` as `<title>` and `meta.description` as the description meta tag, mounting the React component.
+- **Hashed JS and CSS** with only the Tailwind utilities the page actually uses.
+- **Relative URLs.** Every reference is `./assets/...`, so the folder works from a domain root, a subpath, or `file://`.
+- **No inspector instrumentation.** The `data-op-loc` attributes that power click-to-source exist only in dev.
 
-- **Real paragraphs and headings.** `h1` through `h3` map to Word's Heading 1 to 3 styles with outline levels, so the document has a navigable structure pane. Deeper headings clamp to Heading 3.
-- **Tables with repeating headers.** `<thead>` rows carry Word's repeat-on-every-page flag, so long tables stay labeled as the reader scrolls, the same behavior described in [Tables](/authoring/tables).
-- **Images.** Embedded as native media at their rendered dimensions.
-- **Live page-number fields.** `<PageNumber />` and `<TotalPages />` become Word `PAGE` and `NUMPAGES` fields. When the reader edits and the document reflows, the numbers update.
-- **Headers and footers.** `pageOptions.header` and `pageOptions.footer` become Word running bands, including justified layouts like `Page X of Y` on the right.
-- **Lists, bold, italic, underline, colors, alignment, page breaks.** `break-before-page` becomes a Word page break, `break-inside-avoid` becomes keep-lines.
+HTML pages build straight from their folder: `index.html` plus whatever CSS and JS it references, bundled and hashed the same way.
 
-Page size and margins carry over from `pageOptions` for named sizes (`a4`, `letter`, `legal`, `a3`, `a5`).
+## Deploying
 
-### The Google Docs path
+The output is plain static files. Some common targets:
 
-Google Drive converts `.docx` files to Google Docs natively. This is the intended path for handing a document to someone who lives in Docs:
+<AccordionGroup>
+  <Accordion title="Netlify">
+    Drag the folder onto the Netlify dashboard, or point a site at it: `netlify deploy --dir export/launch --prod`.
+  </Accordion>
+  <Accordion title="Vercel">
+    `vercel deploy export/launch --prod`, or set the project's output directory to `export/<id>` and its build command to `npx open-pages export <id>`.
+  </Accordion>
+  <Accordion title="Cloudflare Pages">
+    `npx wrangler pages deploy export/launch`, or connect the repo with build command `npx open-pages export launch` and output directory `export/launch`.
+  </Accordion>
+  <Accordion title="GitHub Pages">
+    Commit the folder to a `gh-pages` branch or upload it as a Pages artifact in an Actions workflow. Relative URLs mean the `/<repo>/` subpath just works.
+  </Accordion>
+  <Accordion title="S3 / any static host">
+    `aws s3 sync export/launch s3://my-bucket --delete`. Serve `index.html` as the default document.
+  </Accordion>
+</AccordionGroup>
 
-<Steps>
-  <Step title="Export">
-    `npx open-pdf export proposal --format docx`
-  </Step>
-  <Step title="Upload to Google Drive">
-    Drag `export/proposal.docx` into Drive, or upload it via the Drive API.
-  </Step>
-  <Step title="Open with Google Docs">
-    Drive converts on open. Headings, tables with repeating headers, images, and page-number fields survive the conversion. Verified.
-  </Step>
-</Steps>
+## The workspace build
 
-The result is a real Google Doc the recipient edits and comments on, with no awareness that it started as JSX.
-
-### What does not carry over
-
-DOCX export is faithful to structure and text. It approximates visual styling, because Word is a different layout engine, and that is the point of exporting to Word: the reader edits on.
-
-- **Exact visual fidelity.** Spacing, line breaks, and font rendering will differ from the PDF. If pixel-exact output matters, ship the PDF.
-- **Inline `<svg>`.** Skipped, with a warning. Rasterize to an image if a graphic must survive.
-- **Custom pixel page sizes.** `size: { width, height }` falls back to A4 in DOCX. Named sizes carry over.
-
-Skipped content prints as warnings on stderr during export, per doc, so an agent can see exactly what was dropped:
-
-```text
-!  proposal: inline <svg> skipped (not representable in DOCX v1)
-```
-
-<Note>
-  The PDF output of `open-pdf export` is byte-identical in rendering to the preview. DOCX is a translation, not a render. Review the `.docx` once in Word or Google Docs before sending it somewhere important.
-</Note>
+`open-pages build` is different: it builds the **whole workspace viewer** (the home page, folders, theme gallery, and every page behind its viewer chrome) into `dist/`, for publishing the browsing experience itself. Use `export` when you want the page; use `build` when you want the workspace. See [CLI reference](/reference/cli#build) and the `build` options in [Configuration](/reference/config#build).
 
 ## Next
 
@@ -101,7 +84,7 @@ Skipped content prints as warnings on stderr during export, per doc, so an agent
   <Card title="CLI reference" href="/reference/cli">
     All commands and flags, including `dev`, `build`, and `sync:skills`.
   </Card>
-  <Card title="Pagination" href="/authoring/pagination">
-    Page sizes, margins, headers, footers, and break control.
+  <Card title="Assets and fonts" href="/authoring/assets-and-fonts">
+    How images and fonts end up in the export.
   </Card>
 </CardGroup>

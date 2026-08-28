@@ -1,8 +1,8 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "aspen",
-  "name": "open-pdf",
-  "description": "The PDF framework built for agents. Documents are React components; the preview is the PDF.",
+  "name": "open-pages",
+  "description": "The web page framework built for agents. Pages are React components or plain HTML; the preview is the real page.",
   "colors": {
     "primary": "#C63A21",
     "light": "#E05A3A",
@@ -11,7 +11,7 @@
   "logo": {
     "light": "/logo/mark-light.svg",
     "dark": "/logo/mark-dark.svg",
-    "href": "https://openpdf.sh"
+    "href": "https://openpages.sh"
   },
   "favicon": "/favicon.svg",
   "appearance": {
@@ -40,8 +40,8 @@
   },
   "navbar": {
     "links": [
-      { "label": "openpdf.sh", "href": "https://openpdf.sh" },
-      { "label": "GitHub", "href": "https://github.com/autonoco/open-pdf" }
+      { "label": "openpages.sh", "href": "https://openpages.sh" },
+      { "label": "GitHub", "href": "https://github.com/autonoco/open-pages" }
     ]
   },
   "navigation": {
@@ -53,10 +53,11 @@
       {
         "group": "Authoring",
         "pages": [
-          "authoring/documents",
-          "authoring/tables",
-          "authoring/pagination",
-          "authoring/fonts-and-images",
+          "authoring/pages",
+          "authoring/styling",
+          "authoring/interactivity",
+          "authoring/assets-and-fonts",
+          "authoring/html-pages",
           "authoring/themes"
         ]
       },
@@ -76,7 +77,7 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/autonoco/open-pdf"
+      "github": "https://github.com/autonoco/open-pages"
     }
   }
 }

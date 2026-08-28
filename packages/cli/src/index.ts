@@ -146,17 +146,17 @@ export async function run(argv: string[]): Promise<void> {
 
   const program = new Command();
   program
-    .name('create-open-pdf')
-    .description('Scaffold and manage open-pdf workspaces.')
+    .name('create-open-pages')
+    .description('Scaffold and manage open-pages workspaces.')
     .version(version, '-v, --version', 'print version')
     .helpOption('-h, --help', 'show help')
-    .showHelpAfterError(chalk.dim('(run `create-open-pdf --help` for usage)'));
+    .showHelpAfterError(chalk.dim('(run `create-open-pages --help` for usage)'));
 
   program
-    // isDefault lets `npm create @autono/open-pdf <dir>` work — npm invokes the
+    // isDefault lets `npm create @autono/open-pages <dir>` work — npm invokes the
     // bin with just the dir, no `init` subcommand.
     .command('init', { isDefault: true })
-    .description('Create a new open-pdf workspace')
+    .description('Create a new open-pages workspace')
     .argument('[dir]', 'target directory', undefined)
     .option('-f, --force', 'overwrite non-empty target directory', false)
     .option('-n, --name <name>', 'override package name (defaults to folder name)')

@@ -2,11 +2,11 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { localOpenPdfCommand } from '../../shared/update-package.ts';
+import { localOpenPagesCommand } from '../../shared/update-package.ts';
 import { detectPackageManager, updateCommandFor } from './update.ts';
 
 async function tempProject(): Promise<string> {
-  return await fs.mkdtemp(path.join(os.tmpdir(), 'open-pdf-update-'));
+  return await fs.mkdtemp(path.join(os.tmpdir(), 'open-pages-update-'));
 }
 
 describe('update routes helpers', () => {
@@ -58,19 +58,19 @@ describe('update routes helpers', () => {
     const cwd = await tempProject();
     await expect(updateCommandFor('pnpm', cwd)).resolves.toEqual({
       cmd: 'pnpm',
-      args: ['add', '@autono/open-pdf@latest'],
+      args: ['add', '@autono/open-pages@latest'],
     });
     await expect(updateCommandFor('yarn', cwd)).resolves.toEqual({
       cmd: 'yarn',
-      args: ['add', '@autono/open-pdf@latest'],
+      args: ['add', '@autono/open-pages@latest'],
     });
     await expect(updateCommandFor('bun', cwd)).resolves.toEqual({
       cmd: 'bun',
-      args: ['add', '@autono/open-pdf@latest'],
+      args: ['add', '@autono/open-pages@latest'],
     });
     await expect(updateCommandFor('npm', cwd)).resolves.toEqual({
       cmd: 'npm',
-      args: ['install', '@autono/open-pdf@latest'],
+      args: ['install', '@autono/open-pages@latest'],
     });
   });
 
@@ -80,17 +80,17 @@ describe('update routes helpers', () => {
 
     await expect(updateCommandFor('pnpm', cwd)).resolves.toEqual({
       cmd: 'pnpm',
-      args: ['add', '--workspace-root', '@autono/open-pdf@latest'],
+      args: ['add', '--workspace-root', '@autono/open-pages@latest'],
     });
   });
 
   it('runs the local CLI through node without a shell', async () => {
     const cwd = await tempProject();
-    const spec = localOpenPdfCommand(cwd, ['sync:skills']);
+    const spec = localOpenPagesCommand(cwd, ['sync:skills']);
 
     expect(spec.cmd).toBe(process.execPath);
     expect(spec.args).toEqual([
-      path.join(cwd, 'node_modules', '@autono', 'open-pdf', 'bin.js'),
+      path.join(cwd, 'node_modules', '@autono', 'open-pages', 'bin.js'),
       'sync:skills',
     ]);
     expect(spec.shell).toBe(false);

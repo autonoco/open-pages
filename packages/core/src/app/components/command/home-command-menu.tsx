@@ -1,9 +1,9 @@
 import { Image as ImageIcon, Palette, Presentation } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDocTitles } from '@/lib/use-doc-titles';
 import { useLocale } from '@/lib/use-locale';
-import { docIds } from '../../lib/docs';
+import { usePageTitles } from '@/lib/use-page-titles';
+import { pageIds } from '../../lib/pages';
 import type { Folder } from '../../lib/sdk';
 import { FolderIconChip } from '../sidebar/folder-item';
 import { ALL_DOCS_ID, ASSETS_ID, DRAFT_ID, THEMES_ID } from '../sidebar/sidebar';
@@ -24,23 +24,23 @@ export function HomeCommandMenu({
 }) {
   const t = useLocale();
   const navigate = useNavigate();
-  const loadedTitles = useDocTitles(open);
+  const loadedTitles = usePageTitles(open);
 
   const groups = useMemo<CommandGroupSpec[]>(() => {
-    const docs: CommandSpec[] = docIds.map((id) => ({
-      id: `doc-${id}`,
+    const pages: CommandSpec[] = pageIds.map((id) => ({
+      id: `page-${id}`,
       label: titleMap[id] ?? loadedTitles[id] ?? id,
       icon: <Presentation />,
       keywords: [id],
-      run: () => navigate(`/s/${id}`),
+      run: () => navigate(`/p/${id}`),
     }));
 
     const folderItems: CommandSpec[] = [
       {
         id: `view-${ALL_DOCS_ID}`,
-        label: t.home.docs,
+        label: t.home.pages,
         icon: <FolderIconChip icon={{ type: 'emoji', value: '🎞️' }} />,
-        keywords: ['all', 'docs'],
+        keywords: ['all', 'pages'],
         run: () => onSelectView(ALL_DOCS_ID),
       },
       {
@@ -79,7 +79,7 @@ export function HomeCommandMenu({
     }
 
     return [
-      { id: 'docs', heading: t.commandMenu.groupDocs, items: docs },
+      { id: 'pages', heading: t.commandMenu.groupDocs, items: pages },
       { id: 'folders', heading: t.commandMenu.groupFolders, items: folderItems },
       { id: 'navigation', heading: t.commandMenu.groupNavigation, items: navigation },
     ];

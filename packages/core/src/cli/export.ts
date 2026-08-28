@@ -1,150 +1,163 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { fromJsx } from '@takumi-rs/helpers/jsx';
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
 import chalk from 'chalk';
-import fg from 'fast-glob';
-import { createElement } from 'react';
-import { render } from 'takumi-pdf';
-import { createServer, mergeConfig } from 'vite';
-import { collectImageSrcs, DEFAULT_PAGE, type TakumiNode } from '../shared/takumi-doc.ts';
-import { createViteConfig } from '../vite/config.ts';
-import { loadUserConfig } from '../vite/open-pdf-plugin.ts';
+import { build as viteBuild } from 'vite';
+import {
+  extractMeta,
+  findPages,
+  loadUserConfig,
+  type OpenPagesConfig,
+  openPagesPlugin,
+  type PageEntry,
+} from '../vite/open-pages-plugin.ts';
 
 export interface ExportOptions {
-  /** Doc ids to export. Empty/omitted = every doc in the workspace. */
-  docs?: string[];
+  /** Page ids to export. Empty/omitted = every page in the workspace. */
+  pages?: string[];
   /** Output directory, relative to the project root. Default: `export`. */
   outDir?: string;
-  /** Output format. Default: pdf. */
-  format?: 'pdf' | 'docx';
 }
 
-const ENTRY_GLOB = '*/index.{tsx,jsx,ts,js}';
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+}
 
 /**
- * Dev-server URL -> bytes, without a listening server: Vite emits `/@fs/<abs>`
- * URLs for workspace assets; anything else root-relative resolves against the
- * project; http(s) URLs are fetched.
+ * Build one page into a self-contained static folder: `index.html` plus
+ * hashed assets, with relative URLs so the folder deploys from any path.
+ * React pages get a generated entry that mounts the component; HTML pages
+ * build straight from their folder.
  */
-async function resolveUrlBytes(url: string, userCwd: string): Promise<Uint8Array> {
-  const clean = url.replace(/[?#].*$/, '');
-  if (/^https?:/.test(clean)) {
-    const res = await fetch(clean);
-    if (!res.ok) throw new Error(`fetch failed (${res.status}): ${clean}`);
-    return new Uint8Array(await res.arrayBuffer());
+export async function buildPage(opts: {
+  userCwd: string;
+  config: OpenPagesConfig;
+  coreVersion: string;
+  entry: PageEntry;
+  outDir: string;
+  base?: string;
+}): Promise<void> {
+  const { userCwd, config, coreVersion, entry, outDir } = opts;
+  const base = opts.base ?? './';
+  const assetsAbs = path.resolve(userCwd, config.assetsDir ?? 'assets');
+
+  let root: string;
+  if (entry.kind === 'html') {
+    root = path.dirname(entry.file);
+  } else {
+    root = path.join(userCwd, 'node_modules', '.open-pages', 'export', entry.id);
+    await rm(root, { recursive: true, force: true });
+    await mkdir(root, { recursive: true });
+    // Vite realpaths `root` but not the html input; a symlinked node_modules
+    // would otherwise leave Rollup with a relative, escaping entry name.
+    root = await realpath(root);
+    const meta = extractMeta(await readFile(entry.file, 'utf8'));
+    const title = escapeHtml(meta.title ?? entry.id);
+    const description = extractDescription(await readFile(entry.file, 'utf8'));
+    await writeFile(
+      path.join(root, 'index.html'),
+      [
+        '<!doctype html>',
+        '<html lang="en">',
+        '  <head>',
+        '    <meta charset="UTF-8" />',
+        '    <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
+        `    <title>${title}</title>`,
+        description ? `    <meta name="description" content="${escapeHtml(description)}" />` : '',
+        '  </head>',
+        '  <body>',
+        '    <div id="root"></div>',
+        '    <script type="module" src="./entry.tsx"></script>',
+        '  </body>',
+        '</html>',
+        '',
+      ]
+        .filter((l) => l !== '')
+        .join('\n'),
+      'utf8',
+    );
+    await writeFile(
+      path.join(root, 'entry.tsx'),
+      [
+        "import 'virtual:open-pages/pages.css';",
+        "import { StrictMode } from 'react';",
+        "import { createRoot } from 'react-dom/client';",
+        `import Page from ${JSON.stringify(entry.file)};`,
+        '',
+        "createRoot(document.getElementById('root')!).render(",
+        '  <StrictMode>',
+        '    <Page />',
+        '  </StrictMode>,',
+        ');',
+        '',
+      ].join('\n'),
+      'utf8',
+    );
   }
-  const fsPath = clean.startsWith('/@fs/')
-    ? decodeURIComponent(clean.slice('/@fs'.length))
-    : path.join(userCwd, decodeURIComponent(clean));
-  return readFile(fsPath);
+
+  await viteBuild({
+    root,
+    base,
+    configFile: false,
+    envDir: userCwd,
+    logLevel: 'error',
+    plugins: [react(), tailwindcss(), openPagesPlugin({ userCwd, config, coreVersion })],
+    resolve: { alias: { '@assets': assetsAbs } },
+    build: {
+      outDir,
+      emptyOutDir: true,
+      target: 'es2022',
+    },
+  });
 }
 
-export async function exportPdfs(opts: ExportOptions = {}): Promise<void> {
+const META_DESCRIPTION_RE = /(?:^|[\s,{])description\s*:\s*['"]([^'"]+)['"]/;
+
+function extractDescription(src: string): string | null {
+  const metaStart = src.search(/export\s+const\s+meta\b/);
+  if (metaStart === -1) return null;
+  const end = src.indexOf('};', metaStart);
+  const body = src.slice(metaStart, end === -1 ? undefined : end);
+  return body.match(META_DESCRIPTION_RE)?.[1] ?? null;
+}
+
+export async function exportPages(opts: ExportOptions = {}): Promise<void> {
   const userCwd = process.cwd();
-  const format = opts.format ?? 'pdf';
-  if (format !== 'pdf' && format !== 'docx') {
-    throw new Error(`Unknown format: ${format} (expected pdf or docx)`);
-  }
   const config = await loadUserConfig(userCwd);
-  const docsDir = config.docsDir ?? 'docs';
-  const docsRoot = path.resolve(userCwd, docsDir);
+  const pagesDir = config.pagesDir ?? 'pages';
   const outDir = path.resolve(userCwd, opts.outDir ?? 'export');
 
-  const entries = await fg(ENTRY_GLOB, { cwd: docsRoot });
-  const idsOnDisk = entries.map((e) => e.split('/')[0]).sort();
+  const entries = await findPages(userCwd, pagesDir);
+  const idsOnDisk = entries.map((e) => e.id);
   if (idsOnDisk.length === 0) {
-    throw new Error(`No docs found under ${docsDir}/`);
+    throw new Error(`No pages found under ${pagesDir}/`);
   }
 
-  const requested = opts.docs && opts.docs.length > 0 ? opts.docs : idsOnDisk;
+  const requested = opts.pages && opts.pages.length > 0 ? opts.pages : idsOnDisk;
   const unknown = requested.filter((id) => !idsOnDisk.includes(id));
   if (unknown.length > 0) {
-    throw new Error(`Doc not found: ${unknown.join(', ')} (available: ${idsOnDisk.join(', ')})`);
+    throw new Error(`Page not found: ${unknown.join(', ')} (available: ${idsOnDisk.join(', ')})`);
   }
 
-  // A middleware-mode Vite server compiles the doc TSX with the exact same
-  // pipeline the preview uses (plugins, aliases, JSX transform) — no port.
-  const base = await createViteConfig({ userCwd, config });
-  const server = await createServer(
-    mergeConfig(base, {
-      server: { middlewareMode: true },
-      appType: 'custom',
-      logLevel: 'error',
-    }),
-  );
+  const { readCoreVersion } = await import('../vite/version.ts');
+  const coreVersion = readCoreVersion();
 
-  try {
-    await mkdir(outDir, { recursive: true });
-    for (const id of requested) {
-      const entry = entries.find((e) => e.split('/')[0] === id);
-      if (!entry) continue;
-      const abs = path.join(docsRoot, entry);
-      const started = performance.now();
-      const mod = (await server.ssrLoadModule(abs)) as {
-        default?: unknown;
-        pageOptions?: Record<string, unknown>;
-      };
-      if (typeof mod.default !== 'function') {
-        throw new Error(`${docsDir}/${entry} must default-export a component`);
-      }
-      const element = createElement(mod.default as Parameters<typeof createElement>[0]);
-      const { node, stylesheets } = await fromJsx(element);
-      const imageEntries = await Promise.all(
-        collectImageSrcs(node as TakumiNode).map(async (src) => ({
-          src,
-          data: await resolveUrlBytes(src, userCwd),
-        })),
-      );
-      const pageOptions = { ...(mod.pageOptions ?? {}) };
-
-      let bytes: Uint8Array;
-      if (format === 'docx') {
-        const { docxFromNodeTree } = await import('../export/docx.ts');
-        const meta = (mod as { meta?: { title?: string } }).meta;
-        const bandNode = async (band: unknown) =>
-          band ? ((await fromJsx(band as Parameters<typeof fromJsx>[0])).node as TakumiNode) : null;
-        const result = docxFromNodeTree(node as TakumiNode, {
-          title: meta?.title ?? id,
-          pageOptions,
-          headerNode: await bandNode(pageOptions.header),
-          footerNode: await bandNode(pageOptions.footer),
-          images: new Map(imageEntries.map((e) => [e.src, e.data])),
-        });
-        for (const warning of result.warnings) {
-          process.stderr.write(`${chalk.yellow('!')} ${id}: ${warning}\n`);
-        }
-        bytes = result.bytes;
-      } else {
-        if (Array.isArray(pageOptions.fonts)) {
-          pageOptions.fonts = await Promise.all(
-            pageOptions.fonts.map(async (f) =>
-              typeof f === 'string' && !/^https?:/.test(f)
-                ? { data: await resolveUrlBytes(f, userCwd) }
-                : f,
-            ),
-          );
-        }
-        bytes = await render(node, {
-          stylesheets,
-          images: imageEntries,
-          ...DEFAULT_PAGE,
-          ...pageOptions,
-        });
-      }
-      const outFile = path.join(outDir, `${id}.${format}`);
-      await writeFile(outFile, bytes);
-      const ms = Math.round(performance.now() - started);
-      const kb = (bytes.length / 1024).toFixed(1);
-      process.stdout.write(
-        `${chalk.green('ok')}  ${path.relative(userCwd, outFile)}  ${chalk.dim(`${kb} KB · ${ms}ms`)}\n`,
-      );
-    }
-  } finally {
-    await server.close();
+  await mkdir(outDir, { recursive: true });
+  for (const id of requested) {
+    const entry = entries.find((e) => e.id === id);
+    if (!entry) continue;
+    const started = performance.now();
+    const target = path.join(outDir, id);
+    await buildPage({ userCwd, config, coreVersion, entry, outDir: target });
+    const ms = Math.round(performance.now() - started);
+    process.stdout.write(
+      `${chalk.green('ok')}  ${path.relative(userCwd, target)}/  ${chalk.dim(`${entry.kind} · ${ms}ms`)}\n`,
+    );
   }
 
   const n = requested.length;
   process.stdout.write(
-    chalk.dim(`${n} ${n === 1 ? 'document' : 'documents'} → ${path.relative(userCwd, outDir)}/\n`),
+    chalk.dim(`${n} ${n === 1 ? 'page' : 'pages'} → ${path.relative(userCwd, outDir)}/\n`),
   );
 }

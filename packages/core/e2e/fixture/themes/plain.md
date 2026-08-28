@@ -7,31 +7,22 @@ description: Minimal fixture theme for e2e tests.
 
 A minimal theme used only by the e2e fixture project.
 
-## Voice
+## Palette
 
-Keep every doc calm and literal. Prefer one idea per page and let the
-whitespace carry the weight. Avoid decorative gradients, drop shadows, and
-anything that competes with the words.
-
-## Layout
-
-Anchor content to a generous margin. Titles sit large and flush-left; body
-copy stays a single measured column. Never center long-form text, and never
-let a line run past a comfortable reading width.
-
-## Color
-
-Ink on paper. A near-black foreground on a warm off-white background, with a
-single restrained accent reserved for the one thing that matters on a doc.
-Contrast is a feature, not a decoration.
+| Role | Tailwind | Notes |
+| --- | --- | --- |
+| text | `text-slate-800` | body copy |
+| muted | `text-slate-500` | secondary copy |
+| accent | `text-indigo-600` | links, key figures |
 
 ## Typography
 
-One display face for headings, one text face for everything else. Lean on
-size and weight for hierarchy rather than introducing new families. Tighten
-tracking on the largest titles; loosen leading on the smallest captions.
+System sans (`font-sans`). Headings `text-4xl font-bold tracking-tight`, body `text-base leading-relaxed`.
 
-## Motion
+## Layout
 
-Motion is a courtesy, not a spectacle. Cross-fades over cuts, short over
-long, and nothing that draws attention to the transition itself.
+Single measured column, `max-w-3xl mx-auto px-8 py-16`. Mobile-first; never let a line run past a comfortable reading width.
+
+## Aesthetic
+
+Ink on paper. Near-black on white, one restrained accent, no gradients or shadows.

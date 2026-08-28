@@ -1,0 +1,118 @@
+---
+title: "Pages"
+description: "The file contract every open-pages page follows: one component, meta, and what a page folder may contain."
+icon: "file-code"
+---
+
+A page is one folder under `pages/` with one entry file:
+
+```
+pages/<kebab-case-id>/
+  index.tsx        # the page: one default-exported component
+  components/      # optional: helper components, imported by index.tsx
+  styles.css       # optional: custom CSS, imported by index.tsx
+  assets/          # optional: images and fonts this page uses
+```
+
+A page is a real web page rendered by React 18 in a real browser document. Hooks, state, event handlers, client-side routing, `fetch`, and browser APIs all work. Only `react`, `react-dom`, and `@autono/open-pages` (types) are available as imports; the workspace adds no other dependencies.
+
+A page folder can instead hold an `index.html`, see [HTML pages](/authoring/html-pages).
+
+## The file contract
+
+`index.tsx` exports two things:
+
+```tsx pages/meridian-launch/index.tsx
+import type { PageMeta } from '@autono/open-pages';
+
+export const meta: PageMeta = {
+  title: 'Meridian — Launch',
+  description: 'Meridian turns your analytics into weekly decisions.',
+  createdAt: '2026-08-28T12:00:00.000Z',
+};
+
+export default function Launch() {
+  return (
+    <main className="min-h-screen bg-white text-slate-900 antialiased">
+      {/* the page */}
+    </main>
+  );
+}
+```
+
+### The default export
+
+One zero-prop React component containing the whole page. It owns the viewport: layout, styling, interactivity, and any client-side routing it wants. Helper components can live in the same file or under `components/`.
+
+Keep module top-level free of browser access. `window` and `document` exist when the component renders, but the module is also imported by the workspace to read `meta`, so reach for them inside effects and handlers, not at import time.
+
+### `meta`
+
+- `title` (optional) becomes the document title and the workspace card title. Defaults to the folder name.
+- `description` (optional) becomes `<meta name="description">` in the exported HTML.
+- `createdAt` (optional) is an ISO 8601 string literal, set once when the page is scaffolded and used to sort the page list. Keep it a plain string literal. The framework reads it with a regex and never evaluates the module to get it.
+- `theme` (optional) marks the page as built from a theme under `themes/`. The id must match a theme's `<id>.md` basename. See [Themes](/authoring/themes).
+
+## Data rows vs designed repeats
+
+Two shapes of repetition, two different rules. The distinction matters because the [inspector](/inspector) maps clicks on the page back to source JSX.
+
+**Tabular data belongs in a `.map` over a data array.** Pricing tiers, feature lists, table rows. Put the data in a typed const at the top of the file and keep the row JSX in the map body:
+
+```tsx
+const plans = [
+  { name: 'Starter', price: 0, note: 'Up to 2 sources' },
+  { name: 'Growth', price: 49, note: 'Unlimited sources' },
+];
+
+{plans.map((p) => (
+  <div key={p.name} className="rounded-2xl border p-6">
+    <h3 className="font-semibold">{p.name}</h3>
+    <p className="mt-4 text-4xl font-bold">${p.price}</p>
+    <p className="mt-2 text-sm text-slate-500">{p.note}</p>
+  </div>
+))}
+```
+
+This is the one shape where a shared source location is correct: a comment on any card means "this card template".
+
+**Designed repeats are explicit instances.** Hero sections, testimonial blocks, feature callouts that each differ: define a small helper component and write one JSX call per item, data as props:
+
+```tsx
+const Feature = ({ title, body }: { title: string; body: string }) => (
+  <div>
+    <h2 className="text-xl font-semibold">{title}</h2>
+    <p className="mt-2 text-slate-600">{body}</p>
+  </div>
+);
+
+<Feature title="One weekly brief" body="Every metric that moved, and why." />
+<Feature title="Sources you already have" body="Connect Mixpanel, Stripe, and Postgres." />
+```
+
+Explicit instances give each block its own source address, so "make the middle one green" is one edit, not three.
+
+## What you get for free
+
+- The home page lists every folder under `pages/`, with a live preview per card, folders, search, and sort.
+- The page view at `/p/<id>` runs the real page with desktop, tablet (820px), and mobile (390px) width toggles, a reload button, and **Open** to view the page by itself.
+- Hot reload: save any file under the page folder and the preview updates.
+- Inspect mode (`i`) for click-to-source and comments. See [The inspector](/inspector).
+- Tailwind v4 configured and scanning `pages/` and `themes/`. See [Styling](/authoring/styling).
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Styling" icon="palette" href="/authoring/styling">
+    Tailwind via className, custom CSS, layout, and responsive design.
+  </Card>
+  <Card title="Interactivity" icon="mouse-pointer-click" href="/authoring/interactivity">
+    State, handlers, forms, and what to avoid.
+  </Card>
+  <Card title="Assets and fonts" icon="image" href="/authoring/assets-and-fonts">
+    Images, fonts, and shared assets.
+  </Card>
+  <Card title="HTML pages" icon="code" href="/authoring/html-pages">
+    When to use index.html instead.
+  </Card>
+</CardGroup>
