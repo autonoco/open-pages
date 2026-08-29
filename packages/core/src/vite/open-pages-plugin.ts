@@ -59,6 +59,16 @@ function resolved(id: string): string {
   return `\0${id}`;
 }
 
+// Page folders come and go through the dev API as well as the editor. The
+// watcher is not a reliable signal for that on Linux (a removed directory
+// surfaces as unlinkDir, not per-file unlinks), so mutations call this
+// directly: drop the generated module and reload every client.
+export function invalidatePagesModule(server: ViteDevServer): void {
+  const mod = server.moduleGraph.getModuleById(resolved(PAGES_VMOD));
+  if (mod) server.moduleGraph.invalidateModule(mod);
+  server.ws.send({ type: 'full-reload' });
+}
+
 /**
  * Every `pages/<id>/index.*` entry. A folder with both a React entry and an
  * `index.html` is a React page — the HTML is then a plain asset of the page.
@@ -379,11 +389,10 @@ export function openPagesPlugin(opts: OpenPagesPluginOptions): Plugin {
         if (reloadTimer) clearTimeout(reloadTimer);
         reloadTimer = setTimeout(() => {
           reloadTimer = null;
-          const mod = server.moduleGraph.getModuleById(resolved(PAGES_VMOD));
-          if (mod) server.moduleGraph.invalidateModule(mod);
-          server.ws.send({ type: 'full-reload' });
+          invalidatePagesModule(server);
         }, 150);
       };
+      const isPageDir = (p: string) => path.dirname(p) === pagesRoot;
       // Vite's `root` is the core app dir, so chokidar doesn't watch the
       // user's pages folder by default. Add it explicitly — and pass the
       // directory itself, since Vite sets `disableGlobbing: true` and would
@@ -394,6 +403,12 @@ export function openPagesPlugin(opts: OpenPagesPluginOptions): Plugin {
       });
       server.watcher.on('unlink', (p) => {
         if (pageIdForEntry(p)) reload();
+      });
+      server.watcher.on('addDir', (p) => {
+        if (isPageDir(p)) reload();
+      });
+      server.watcher.on('unlinkDir', (p) => {
+        if (isPageDir(p)) reload();
       });
       server.watcher.on('change', (p) => {
         // index.html is served by the middleware below, not the module graph,
