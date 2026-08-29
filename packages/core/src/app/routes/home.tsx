@@ -15,7 +15,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+import { Button } from '~/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -23,15 +23,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '~/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { format, useLocale } from '@/lib/use-locale';
-import { cn } from '@/lib/utils';
+} from '~/components/ui/dropdown-menu';
+import { format, useLocale } from '~/lib/use-locale';
+import { cn } from '~/lib/utils';
 import { DOC_DND_MIME, FolderIconChip } from '../components/sidebar/folder-item';
 import { ALL_DOCS_ID, DRAFT_ID } from '../components/sidebar/sidebar';
 import { PageThumb } from '../lib/page-thumb';

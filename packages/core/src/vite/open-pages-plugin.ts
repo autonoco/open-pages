@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -25,6 +25,8 @@ const PAGES_VMOD = 'virtual:open-pages/pages';
 const CONFIG_VMOD = 'virtual:open-pages/config';
 const FOLDERS_VMOD = 'virtual:open-pages/folders';
 const PAGES_CSS_VMOD = 'virtual:open-pages/pages.css';
+
+const WORKSPACE_SOURCE_DIRS = ['ui', 'lib', 'hooks'];
 
 const ENTRY_GLOB = '*/index.{tsx,jsx,ts,js,html}';
 const REACT_ENTRY_RE = /^index\.(tsx|jsx|ts|js)$/;
@@ -226,6 +228,24 @@ export function pagesCssFile(userCwd: string): string {
   return path.join(userCwd, 'node_modules', '.open-pages', 'pages.css');
 }
 
+/**
+ * The workspace's own stylesheet when it has one (the shadcn `tailwind.css`
+ * entry from components.json, default `styles/globals.css`) — it carries the
+ * theme tokens every installed component reads. Falls back to the generated
+ * file for workspaces scaffolded without one.
+ */
+export function workspaceCssFile(userCwd: string): string | null {
+  let rel = 'styles/globals.css';
+  try {
+    const cfg = JSON.parse(readFileSync(path.join(userCwd, 'components.json'), 'utf8')) as {
+      tailwind?: { css?: string };
+    };
+    if (typeof cfg.tailwind?.css === 'string' && cfg.tailwind.css) rel = cfg.tailwind.css;
+  } catch {}
+  const abs = path.resolve(userCwd, rel);
+  return existsSync(abs) ? abs : null;
+}
+
 // Resolved from this package, not the workspace: pnpm does not hoist
 // tailwindcss into the user's node_modules, and the CSS lives there.
 const TAILWIND_CSS = normalizePath(createRequire(import.meta.url).resolve('tailwindcss/index.css'));
@@ -295,7 +315,13 @@ export function openPagesPlugin(opts: OpenPagesPluginOptions): Plugin {
     name: 'open-pages',
     config(_c, env) {
       isDev = env.command === 'serve';
-      cssFile = writePagesCss(userCwd, [pagesRoot, themesRoot]);
+      cssFile =
+        workspaceCssFile(userCwd) ??
+        writePagesCss(userCwd, [
+          pagesRoot,
+          themesRoot,
+          ...WORKSPACE_SOURCE_DIRS.map((d) => path.join(userCwd, d)),
+        ]);
       return {
         server: { fs: { allow: [userCwd] } },
       };

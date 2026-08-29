@@ -2,10 +2,10 @@ import config from 'virtual:open-pages/config';
 import { Loader2, RefreshCw, RotateCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { format, useLocale } from '@/lib/use-locale';
-import { useRestartServer } from '@/lib/use-restart-server';
+import { Button } from '~/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
+import { format, useLocale } from '~/lib/use-locale';
+import { useRestartServer } from '~/lib/use-restart-server';
 
 type UpdateCheck = { current: string; latest: string | null; outdated: boolean };
 type UpdateStatus = 'idle' | 'running' | 'done' | 'error';

@@ -1,0 +1,163 @@
+---
+title: "Components"
+description: "The shadcn/ui set that ships in every workspace: import paths, token classes, dark mode, forms, toasts, and when to pull more from a registry."
+icon: "blocks"
+---
+
+Every scaffolded workspace ships the full shadcn/ui component set as source. There is nothing to install and no `add` step for the core components: they are files under `ui/` that pages import directly.
+
+```
+ui/                 61 components: button, card, dialog, form, table, chart, sidebar, ...
+lib/utils.ts        cn()
+hooks/use-mobile.ts
+styles/globals.css  Tailwind v4 entry + shadcn tokens
+components.json     shadcn config (new-york, radix, @/ui aliases)
+```
+
+## Importing
+
+Components live at `@/ui/<name>`; `@` maps to the workspace root.
+
+```tsx pages/signup/index.tsx
+import { Button } from '@/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card';
+import { Input } from '@/ui/input';
+import { Label } from '@/ui/label';
+import { cn } from '@/lib/utils';
+
+export default function Signup() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Create your account</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="email">Work email</Label>
+            <Input id="email" type="email" placeholder="ada@company.com" />
+          </div>
+          <Button className={cn('w-full')}>Create account</Button>
+        </CardContent>
+      </Card>
+    </main>
+  );
+}
+```
+
+The full list: accordion, alert, alert-dialog, aspect-ratio, attachment, avatar, badge, breadcrumb, bubble, button, button-group, calendar, card, carousel, chart, checkbox, collapsible, combobox, command, context-menu, dialog, direction, drawer, dropdown-menu, empty, field, form, hover-card, input, input-group, input-otp, item, kbd, label, marker, menubar, message, message-scroller, native-select, navigation-menu, pagination, popover, progress, radio-group, resizable, scroll-area, select, separator, sheet, sidebar, skeleton, slider, sonner, spinner, switch, table, tabs, textarea, toggle, toggle-group, tooltip. Their dependencies (radix-ui, lucide-react, cmdk, sonner, vaul, recharts, react-day-picker, react-hook-form, zod, and friends) are preinstalled.
+
+`npx shadcn@latest docs button --json` prints a component's usage from the registry when you need the props.
+
+## Token classes
+
+Every component is written against the shadcn theme tokens, exposed as Tailwind utilities by the `@theme inline` block in `styles/globals.css`:
+
+| Class | Token |
+| --- | --- |
+| `bg-background` `text-foreground` | page surface and copy |
+| `bg-card` `text-card-foreground` | raised surfaces |
+| `bg-primary` `text-primary-foreground` | the accent, buttons |
+| `bg-secondary` `bg-muted` `bg-accent` + `-foreground` | supporting surfaces |
+| `text-muted-foreground` | secondary copy |
+| `border-border` `border-input` `ring-ring` | rules and focus |
+| `bg-destructive` | danger |
+| `rounded-sm` ... `rounded-4xl` | scale from `--radius` |
+
+Use these on your own markup too. A page rooted in `min-h-screen bg-background text-foreground` and built from token classes restyles completely when a [theme](/authoring/themes) swaps the variables. Raw palette classes (`bg-slate-900`) still work, but they ignore themes; keep them for deliberate one-off moments.
+
+## Dark mode
+
+The variant is `@custom-variant dark (&:is(.dark *))`, so dark mode is a class, not a media query. A page that wants to be dark puts `dark` on its root:
+
+```tsx
+<main className="dark min-h-screen bg-background text-foreground">
+```
+
+Every component inside picks up the `.dark` token values. To follow the visitor's preference instead, toggle the class from a `matchMedia('(prefers-color-scheme: dark)')` effect, or use `next-themes` (installed) with `attribute="class"`.
+
+## Forms
+
+`@/ui/form` wraps react-hook-form and zod, both installed:
+
+```tsx
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Button } from '@/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/ui/form';
+import { Input } from '@/ui/input';
+
+const schema = z.object({ email: z.string().email() });
+
+export default function Waitlist() {
+  const form = useForm<z.infer<typeof schema>>({ resolver: zodResolver(schema) });
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit((values) => console.log(values))} className="flex gap-2">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="sr-only">Email</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="you@company.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit">Join</Button>
+      </form>
+    </Form>
+  );
+}
+```
+
+For a simple form, plain `Input` + `Label` + `Button` with `onSubmit` is fine; reach for `form` when you want validation messages.
+
+## Toasts
+
+Render `<Toaster />` from `@/ui/sonner` once in the page, then call `toast()`:
+
+```tsx
+import { toast } from 'sonner';
+import { Toaster } from '@/ui/sonner';
+
+<Button onClick={() => toast.success('Saved')}>Save</Button>
+<Toaster />
+```
+
+## The inspector and components
+
+Click-to-source tags land on components as well as host elements. shadcn components spread their props onto their root, so clicking a rendered `<Button>` in [inspect mode](/inspector) resolves to the line in your page that rendered it, not to `ui/button.tsx`.
+
+## Adding more
+
+`components.json` is in place, so the shadcn CLI works as in any shadcn project:
+
+```bash
+# blocks from the default registry
+npx shadcn@latest add dashboard-01
+
+# items from another registry configured under "registries" in components.json
+npx shadcn@latest add @acme/hero
+```
+
+Added files land under `ui/` (or `components/` for blocks) and are importable the same way. Use the bundled `shadcn` skill for the CLI, registries, and presets; see [For agents](/for-agents).
+
+## Keep `ui/` shared
+
+`ui/`, `lib/`, and `hooks/` are shared by every page. Do not edit a component to fit one page; wrap it or pass `className` from the page instead. Change a component in `ui/` only when you mean to change it for the whole workspace.
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Styling" icon="palette" href="/authoring/styling">
+    Tailwind, tokens, custom CSS, and responsive design.
+  </Card>
+  <Card title="Themes" icon="swatch-book" href="/authoring/themes">
+    Token overrides under themes/, applied per page.
+  </Card>
+</CardGroup>

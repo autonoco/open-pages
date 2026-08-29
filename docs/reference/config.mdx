@@ -26,8 +26,10 @@ The agent guide scaffolded by `init` tells agents not to modify this file. Confi
 | --- | --- | --- | --- |
 | `base` | `string` | `'/'` | Base public path (Vite's `base`). Set it when hosting a `build` output under a subpath. `export` output always uses relative URLs and ignores it. |
 | `pagesDir` | `string` | `'pages'` | Directory scanned for pages. Each page is a folder with an `index.tsx` or `index.html` entry, see [Pages](/authoring/pages). |
-| `themesDir` | `string` | `'themes'` | Directory holding theme markdown files and demos, see [Themes](/authoring/themes). |
+| `themesDir` | `string` | `'themes'` | Directory holding theme bundles (`<id>.md`, `<id>.css` token overrides, `<id>.demo.tsx`), see [Themes](/authoring/themes). |
 | `assetsDir` | `string` | `'assets'` | Shared assets directory, importable from pages via the `@assets` alias. |
+
+The page stylesheet is not configured here: the runtime reads `tailwind.css` from `components.json` (default `styles/globals.css`) and uses that file for preview and export. The `@` alias always maps to the workspace root.
 | `port` | `number` | `5173` | Dev server port. The `-p, --port` flag on [`open-pages dev`](/reference/cli) overrides it. |
 | `allowedHosts` | `string[] \| true` | unset | Hostnames allowed to reach the dev server (Vite's `server.allowedHosts`). Needed when accessing the server through a proxy or tunnel hostname. `true` allows any host. |
 | `locale` | `Locale` | unset | Deprecated. Seeds the initial UI language until the viewer picks one in the language switcher (their choice is then remembered locally). Locale objects (`en`, `ja`, `zhCN`, `zhTW`) come from `@autono/open-pages/locale`. |

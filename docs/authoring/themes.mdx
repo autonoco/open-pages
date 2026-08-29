@@ -1,35 +1,61 @@
 ---
 title: "Themes"
-description: "Reusable visual identities under themes/, consumed by the create-page skill when scaffolding new pages."
+description: "Reusable visual identities under themes/: shadcn token overrides the runtime applies per page, plus direction for the create-page skill."
 icon: "swatch-book"
 ---
 
-A theme is a reusable visual identity for your pages: palette, typography, layout, and paste-ready fixed components like a nav, hero, section wrapper, and footer. Themes let every page a team (or its agent) produces share one look.
+A theme is a reusable visual identity for your pages. Because every component under `ui/` and every token class reads the shadcn CSS variables, a theme is mostly a set of variable values: swap them and the whole page restyles, components included.
 
 ## The bundle
 
-A theme is two paired files under `themes/`, sharing the same stem so the runtime can pair them:
+A theme is three files under `themes/` sharing one stem:
 
 ```
 themes/
-  midnight-saas.md         # the theme definition
-  midnight-saas.demo.tsx   # a runnable demo page of the theme
+  midnight-saas.md         # direction for the agent
+  midnight-saas.css        # token overrides the runtime applies
+  midnight-saas.demo.tsx   # a demo page composed from ui/*
 ```
 
-**`<id>.md`** is the definition the agent reads: a palette table (background, text, muted, accent, rule roles as Tailwind utilities and hex), typography (fonts and type scale), layout (container widths, spacing rhythm, breakpoints), fixed components as paste-ready JSX with `className`, and an aesthetic paragraph that commits to one direction.
+**`<id>.css`** holds `:root { … }` and `.dark { … }` blocks overriding the shadcn tokens (`--background`, `--foreground`, `--primary`, `--muted`, `--border`, `--radius`, `--chart-1..5`, the `--sidebar-*` set), optionally a Google Fonts `@import` and `--font-sans` / `--font-heading` values. No Tailwind import and no `@theme` block: `styles/globals.css` already maps the variables to utilities.
 
-**`<id>.demo.tsx`** is a runnable page with the same module shape as `pages/<id>/index.tsx`: one default-exported component. It inlines the same fixed components the markdown defines, so what the demo shows matches what gets pasted into real pages.
+```css themes/midnight-saas.css
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --background: oklch(0.13 0.02 265);
+  --foreground: oklch(0.97 0 0);
+  --primary: oklch(0.78 0.16 160);
+  --primary-foreground: oklch(0.15 0.02 160);
+  --muted-foreground: oklch(0.7 0.01 265);
+  --border: oklch(1 0 0 / 12%);
+  --radius: 0.75rem;
+}
+```
+
+**`<id>.md`** is what the agent reads before authoring: the aesthetic, fonts, a palette table mapping each token to its value, and notes on which components and layouts the theme favors.
+
+**`<id>.demo.tsx`** is a page module (one default-exported component) composed from `@/ui/*`, so the workspace's **Themes** panel shows the tokens on real parts. The runtime injects `<id>.css` into the demo automatically.
+
+## Applying a theme
+
+A page opts in with `meta.theme`:
+
+```tsx
+export const meta: PageMeta = {
+  title: 'Meridian — Launch',
+  theme: 'midnight-saas',
+  createdAt: '2026-08-28T12:00:00.000Z',
+};
+```
+
+The runtime injects `themes/midnight-saas.css` into that page's frame in the preview and into its [export](/export). Pages without `meta.theme` use the neutral defaults in `styles/globals.css`. Because the theme is a stylesheet, not copied source, editing `<id>.css` restyles every page that uses it.
+
+## Authoring one
+
+- Ask your agent to "create a theme called X from these images" (or from a brand guide, a description, or an existing page). The bundled **create-theme** skill writes all three files.
+- Tune colors, radius, and fonts at [ui.shadcn.com/create](https://ui.shadcn.com/create) and hand the preset code to the agent, or apply it yourself: `npx shadcn@latest apply <code> --only theme,font`. The agent then lifts the resulting variables into `themes/<id>.css`.
+- The **create-page** skill lists registered themes as a picker when scaffolding a new page and sets `meta.theme` for you.
 
 The workspace's **Themes** panel previews every demo live, in the same frame the pages use, and lists the pages built from each theme.
-
-## How themes get used
-
-- The bundled **create-theme** skill authors the bundle. It can derive a theme from screenshots or brand images, a free-text description, or an existing page whose look you want to lift out and reuse. See [For agents](/for-agents).
-- The **create-page** skill lists registered themes as a picker option when scaffolding a new page, then copies the theme's palette, utilities, and fixed components into the page's source.
-- A page built from a theme sets `meta.theme` to the theme id (matching the `<id>.md` basename). When editing such a page, the theme file is authoritative over the framework's defaults.
-
-The theme markdown is authoring-time direction, not a runtime import. Its styles are copied into each page's source, so a page stays self-contained and a theme change never silently restyles shipped pages.
-
-## Writing one
-
-Ask your agent to "create a theme called X from these images" (or from an existing page), and the create-theme skill handles structure, pairing, and self-review. If you write one by hand, match an existing bundle's section order: Palette, Typography, Layout, Fixed components, Aesthetic, Example usage. The fixed components must be valid React JSX with `className` and no external imports, because they get pasted verbatim into pages. See [Styling](/authoring/styling) for the conventions.

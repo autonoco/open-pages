@@ -2,18 +2,18 @@ import { Menu } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { LanguageToggle } from '@/components/language-toggle';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { LanguageToggle } from '~/components/language-toggle';
+import { ThemeToggle } from '~/components/theme-toggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useAssets } from '@/lib/assets';
-import { useFolders } from '@/lib/folders';
-import { format, useLocale } from '@/lib/use-locale';
-import { cn } from '@/lib/utils';
+} from '~/components/ui/dropdown-menu';
+import { useAssets } from '~/lib/assets';
+import { useFolders } from '~/lib/folders';
+import { format, useLocale } from '~/lib/use-locale';
+import { cn } from '~/lib/utils';
 import { CommandMenuTrigger } from '../components/command/command-menu';
 import { HomeCommandMenu } from '../components/command/home-command-menu';
 import { FolderIconChip } from '../components/sidebar/folder-item';

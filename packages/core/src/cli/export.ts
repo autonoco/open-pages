@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { mkdir, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
@@ -55,6 +56,11 @@ export async function buildPage(opts: {
     const meta = extractMeta(await readFile(entry.file, 'utf8'));
     const title = escapeHtml(meta.title ?? entry.id);
     const description = extractDescription(await readFile(entry.file, 'utf8'));
+    const themeCss = meta.theme
+      ? path.resolve(userCwd, config.themesDir ?? 'themes', `${meta.theme}.css`)
+      : null;
+    const themeImport =
+      themeCss && existsSync(themeCss) ? `import ${JSON.stringify(themeCss)};` : '';
     await writeFile(
       path.join(root, 'index.html'),
       [
@@ -81,6 +87,7 @@ export async function buildPage(opts: {
       path.join(root, 'entry.tsx'),
       [
         "import 'virtual:open-pages/pages.css';",
+        themeImport,
         "import { StrictMode } from 'react';",
         "import { createRoot } from 'react-dom/client';",
         `import Page from ${JSON.stringify(entry.file)};`,
@@ -91,7 +98,9 @@ export async function buildPage(opts: {
         '  </StrictMode>,',
         ');',
         '',
-      ].join('\n'),
+      ]
+        .filter((l) => l !== '')
+        .join('\n'),
       'utf8',
     );
   }
@@ -103,7 +112,7 @@ export async function buildPage(opts: {
     envDir: userCwd,
     logLevel: 'error',
     plugins: [react(), tailwindcss(), openPagesPlugin({ userCwd, config, coreVersion })],
-    resolve: { alias: { '@assets': assetsAbs } },
+    resolve: { alias: { '@': userCwd, '@assets': assetsAbs } },
     build: {
       outDir,
       emptyOutDir: true,

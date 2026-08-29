@@ -1,12 +1,12 @@
 import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { LanguageToggle } from '@/components/language-toggle';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import type { Folder, FolderIcon } from '@/lib/sdk';
-import { format, useLocale } from '@/lib/use-locale';
-import { cn } from '@/lib/utils';
+import { LanguageToggle } from '~/components/language-toggle';
+import { ThemeToggle } from '~/components/theme-toggle';
+import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
+import type { Folder, FolderIcon } from '~/lib/sdk';
+import { format, useLocale } from '~/lib/use-locale';
+import { cn } from '~/lib/utils';
 import { CommandMenuTrigger } from '../command/command-menu';
 import { FolderIconChip, FolderItem } from './folder-item';
 import { IconPicker, PRESET_COLORS } from './icon-picker';

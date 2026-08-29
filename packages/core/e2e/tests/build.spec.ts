@@ -59,7 +59,7 @@ test.describe('static build and preview', () => {
     // Each react page is lazily imported, so it code-splits into at least one
     // chunk per page plus the two entries. Chunk names depend on the bundler,
     // so assert the split happened rather than pinning a naming convention.
-    const reactPageCount = 4;
+    const reactPageCount = 5;
     const assets = await fs.readdir(path.join(dist, 'assets'));
     const jsChunks = assets.filter((name) => name.endsWith('.js'));
     expect(jsChunks.length).toBeGreaterThanOrEqual(reactPageCount + 2);
@@ -191,5 +191,31 @@ test.describe('export', () => {
     expect(res.code).toBe(1);
     expect(res.stderr).toContain('Page not found: nope');
     expect(res.stderr).toContain('alpha');
+  });
+});
+
+test.describe('export with shadcn', () => {
+  test('a themed shadcn page exports with its components and theme css', async ({ page }) => {
+    test.setTimeout(300_000);
+    const projectDir = prepareScratchProject('export-shadcn');
+    const res = await runCli(['export', 'shadcn'], projectDir);
+    expect(res.code, res.stderr).toBe(0);
+
+    const dir = path.join(projectDir, 'export', 'shadcn');
+    const html = await fs.readFile(path.join(dir, 'index.html'), 'utf8');
+    expect(html).toContain('<title>Shadcn Page</title>');
+
+    const served = await serveStatic(dir);
+    try {
+      await page.goto(`${served.url}/`);
+      const button = page.getByRole('button', { name: 'Create account' });
+      await expect(button).toBeVisible();
+      await expect(button).toHaveCSS('background-color', 'oklch(0.6 0.2 30)');
+      await expect(button).toHaveCSS('border-radius', '0px');
+      await page.getByRole('tab', { name: 'SSO' }).click();
+      await expect(page.getByRole('button', { name: 'Continue with SSO' })).toBeVisible();
+    } finally {
+      await served.close();
+    }
   });
 });

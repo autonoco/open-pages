@@ -1,16 +1,16 @@
 import { Languages } from 'lucide-react';
-import { IconTooltip } from '@/components/icon-tooltip';
-import { buttonVariants } from '@/components/ui/button';
+import { IconTooltip } from '~/components/icon-tooltip';
+import { buttonVariants } from '~/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { TooltipTrigger } from '@/components/ui/tooltip';
-import { LOCALE_OPTIONS, setLocale } from '@/lib/locale-store';
-import { useLocale } from '@/lib/use-locale';
-import { cn } from '@/lib/utils';
+} from '~/components/ui/dropdown-menu';
+import { TooltipTrigger } from '~/components/ui/tooltip';
+import { LOCALE_OPTIONS, setLocale } from '~/lib/locale-store';
+import { useLocale } from '~/lib/use-locale';
+import { cn } from '~/lib/utils';
 
 export function LanguageToggle() {
   const t = useLocale();

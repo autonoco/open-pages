@@ -26,6 +26,7 @@ type ParsedTheme = {
   frontmatter: Frontmatter;
   body: string;
   demoAbs: string | null;
+  cssAbs: string | null;
 };
 
 const FM_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
@@ -78,7 +79,9 @@ async function readTheme(mdAbs: string, themesRoot: string): Promise<ParsedTheme
       break;
     }
   }
-  return { id, frontmatter: fm, body, demoAbs };
+  const cssPath = path.join(themesRoot, `${id}.css`);
+  const cssAbs = existsSync(cssPath) ? cssPath : null;
+  return { id, frontmatter: fm, body, demoAbs, cssAbs };
 }
 
 function generateThemesModule(themes: ParsedTheme[], isDev: boolean): string {
@@ -88,6 +91,7 @@ function generateThemesModule(themes: ParsedTheme[], isDev: boolean): string {
     description: t.frontmatter.description,
     body: t.body,
     hasDemo: t.demoAbs !== null,
+    hasCss: t.cssAbs !== null,
   }));
 
   const cases = themes
@@ -102,8 +106,29 @@ function generateThemesModule(themes: ParsedTheme[], isDev: boolean): string {
     })
     .join('\n');
 
+  const withCss = themes.filter((t): t is ParsedTheme & { cssAbs: string } => t.cssAbs !== null);
+  const cssCases = withCss
+    .map((t) => {
+      const importPath = isDev ? `@fs/${normalizePath(t.cssAbs).replace(/^\/+/, '')}` : t.cssAbs;
+      const importExpr = isDev
+        ? `import(/* @vite-ignore */ import.meta.env.BASE_URL + ${JSON.stringify(importPath)})`
+        : `import(${JSON.stringify(importPath)})`;
+      return `    case ${JSON.stringify(t.id)}: return ${importExpr};`;
+    })
+    .join('\n');
+
   return `// virtual:open-pages/themes — generated
 export const themes = ${JSON.stringify(meta)};
+export const themeCssIds = ${JSON.stringify(withCss.map((t) => t.id))};
+
+// Importing a stylesheet through Vite injects it into the document; the
+// frame calls this for a page's meta.theme and for theme demos.
+export async function loadThemeCss(id) {
+  switch (id) {
+${cssCases}
+    default: return;
+  }
+}
 
 export async function loadThemeDemo(id) {
   switch (id) {
@@ -141,7 +166,7 @@ export function themesPlugin(opts: ThemesPluginOptions): Plugin {
         const rel = path.relative(themesRoot, p);
         if (rel.startsWith('..') || path.isAbsolute(rel)) return false;
         if (rel.includes(path.sep)) return false;
-        return /\.(md|demo\.(tsx|jsx|ts|js))$/.test(rel);
+        return /\.(md|css|demo\.(tsx|jsx|ts|js))$/.test(rel);
       };
 
       let reloadTimer: ReturnType<typeof setTimeout> | null = null;

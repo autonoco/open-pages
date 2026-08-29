@@ -34,10 +34,10 @@ describe('injectLocTags', () => {
     expect(out).toContain('<div data-op-loc="2:2">hello</div>');
   });
 
-  it('skips capitalized component invocations', () => {
+  it('tags component invocations so prop-spreading components carry the loc', () => {
     const src = ['export default [() => (', '  <MyComp>hi</MyComp>', ')];', ''].join('\n');
     const out = injectLocTags(src);
-    expect(out).toBeNull();
+    expect(out).toContain('<MyComp data-op-loc="2:2">hi</MyComp>');
   });
 
   it('tags every host element including nested ones', () => {
@@ -87,7 +87,7 @@ describe('injectLocTags', () => {
     expect(injectLocTags(src)).toBeNull();
   });
 
-  it('tags only host elements, leaving custom components untouched', () => {
+  it('tags host elements and components alike, nested', () => {
     const src = [
       'export default [() => (',
       '  <Layout>',
@@ -99,36 +99,30 @@ describe('injectLocTags', () => {
     ].join('\n');
     const out = injectLocTags(src);
     if (out === null) throw new Error('expected transform');
+    expect(out).toContain('<Layout data-op-loc="2:2">');
     expect(out).toContain('<h1 data-op-loc="3:4">Title</h1>');
+    expect(out).toContain('<SubBox data-op-loc="4:4">');
     expect(out).toContain('<span data-op-loc="4:12">nested</span>');
-    expect(out).not.toContain('<Layout data-op-loc');
-    expect(out).not.toContain('<SubBox data-op-loc');
   });
 
-  it('tags <ImagePlaceholder> as a forwarding component', () => {
-    const src = ['export default [() => (', '  <ImagePlaceholder hint="hero" />', ')];', ''].join(
-      '\n',
-    );
-    const out = injectLocTags(src);
-    if (out === null) throw new Error('expected transform');
-    expect(out).toContain('<ImagePlaceholder data-op-loc="2:2" hint="hero" />');
-  });
-
-  it('does not tag other PascalCase components alongside ImagePlaceholder', () => {
+  it('skips Fragment-like components and member expressions', () => {
     const src = [
       'export default [() => (',
-      '  <Layout>',
-      '    <ImagePlaceholder hint="hero" />',
-      '    <CustomThing />',
-      '  </Layout>',
+      '  <Fragment>',
+      '    <React.Fragment><b>x</b></React.Fragment>',
+      '    <StrictMode><Suspense><i>y</i></Suspense></StrictMode>',
+      '  </Fragment>',
       ')];',
       '',
     ].join('\n');
     const out = injectLocTags(src);
     if (out === null) throw new Error('expected transform');
-    expect(out).toContain('<ImagePlaceholder data-op-loc="3:4"');
-    expect(out).not.toContain('<Layout data-op-loc');
-    expect(out).not.toContain('<CustomThing data-op-loc');
+    expect(out).not.toContain('<Fragment data-op-loc');
+    expect(out).not.toContain('<React.Fragment data-op-loc');
+    expect(out).not.toContain('<StrictMode data-op-loc');
+    expect(out).not.toContain('<Suspense data-op-loc');
+    expect(out).toContain('<b data-op-loc="3:20">');
+    expect(out).toContain('<i data-op-loc="4:26">');
   });
 });
 

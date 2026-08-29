@@ -1,6 +1,17 @@
 # open-pages workspace
 
-Web pages as React components. Each page lives under `pages/<id>/index.tsx` and default-exports one component. The `@autono/open-pages` runtime handles Vite, React, Tailwind, the live preview, and the inspector — you just write the page.
+Web pages as React components. Each page lives under `pages/<id>/index.tsx` and default-exports one component, composed from the shadcn/ui set that ships under `ui/`. The `@autono/open-pages` runtime handles Vite, React, the live preview, and the inspector — you just write the page.
+
+```
+pages/            one folder per page
+ui/               all shadcn/ui components (import from @/ui/*)
+lib/utils.ts      cn()
+hooks/            use-mobile
+styles/globals.css  Tailwind v4 + shadcn tokens (:root / .dark)
+themes/           <id>.md + <id>.css + <id>.demo.tsx
+assets/           shared assets (import via @assets/...)
+components.json   shadcn config
+```
 
 ## Getting started
 
@@ -27,6 +38,7 @@ Then open `http://localhost:5173`, edit `pages/getting-started/index.tsx`, or cr
 ```tsx
 // pages/my-page/index.tsx
 import type { PageMeta } from '@autono/open-pages';
+import { Button } from '@/ui/button';
 
 export const meta: PageMeta = {
   title: 'My page',
@@ -35,15 +47,16 @@ export const meta: PageMeta = {
 
 export default function MyPage() {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-24">
+    <main className="min-h-screen bg-background px-6 py-24 text-foreground">
       <h1 className="text-4xl font-bold tracking-tight">Hello</h1>
-      <p className="mt-4 text-slate-600">Tailwind via className, hooks, state, all of it.</p>
+      <p className="mt-4 text-muted-foreground">shadcn components, Tailwind, hooks, all of it.</p>
+      <Button className="mt-8">Get started</Button>
     </main>
   );
 }
 ```
 
-A page is a real web page: Tailwind v4 utilities via `className` work out of the box, `import './styles.css'` for custom CSS, hooks and event handlers for interactivity. Put images and fonts under `pages/<id>/assets/` and import them; shared assets go in the root `assets/` folder and import via `@assets/...`.
+A page is a real web page: every shadcn component is importable from `@/ui/<name>`, Tailwind v4 utilities via `className` work out of the box (prefer the token classes: `bg-background`, `text-muted-foreground`, `bg-primary`), `import './styles.css'` for custom CSS, hooks and event handlers for interactivity. `npx shadcn@latest add <block>` still works for blocks and other registries. Put images and fonts under `pages/<id>/assets/` and import them; shared assets go in the root `assets/` folder and import via `@assets/...`.
 
 A folder holding an `index.html` (with sibling CSS/JS) instead of `index.tsx` works too. It is served as-is and exported the same way.
 
@@ -74,3 +87,7 @@ export default openPagesConfig;
 ```
 
 Supported fields: `pagesDir`, `themesDir`, `assetsDir`, `port`, `base`, `allowedHosts`, `build`.
+
+## Themes
+
+A theme is `themes/<id>.md` (direction for the agent), `themes/<id>.css` (`:root` / `.dark` overrides of the shadcn tokens, optionally a Google Fonts `@import`), and `themes/<id>.demo.tsx` (a demo page). Set `meta.theme: '<id>'` on a page and the runtime injects that CSS into its preview and export. `npx shadcn@latest apply <code> --only theme,font` from [ui.shadcn.com/create](https://ui.shadcn.com/create) is a quick way to produce the tokens.

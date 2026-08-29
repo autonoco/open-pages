@@ -1,6 +1,6 @@
 import 'virtual:open-pages/pages.css';
 import { loadPage } from 'virtual:open-pages/pages';
-import { loadThemeDemo } from 'virtual:open-pages/themes';
+import { loadThemeCss, loadThemeDemo, themeCssIds } from 'virtual:open-pages/themes';
 import { createElement, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { FrameMessage, WorkspaceMessage } from '../lib/frame';
@@ -59,6 +59,8 @@ async function mount() {
         `${themeId ? `themes/${themeId}.demo.tsx` : `pages/${pageId}/index.tsx`} must default-export a component. Got: ${typeof mod.default}`,
       );
     }
+    const theme = themeId ?? mod.meta?.theme;
+    if (theme && themeCssIds.includes(theme)) await loadThemeCss(theme);
     const title = mod.meta?.title ?? pageId ?? themeId ?? '';
     document.title = title;
     root.render(createElement(StrictMode, null, createElement(mod.default)));

@@ -14,8 +14,8 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Button } from '~/components/ui/button';
+import { cn } from '~/lib/utils';
 import { type FrameMessage, frameUrl, isFrameMessage, type WorkspaceMessage } from '../lib/frame';
 import { pageChangeIncludes, pageIds, pageKinds } from '../lib/pages';
 import { usePageModule } from '../lib/use-page-module';

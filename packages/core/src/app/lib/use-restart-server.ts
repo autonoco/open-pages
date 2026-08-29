@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { toast } from 'sonner';
-import { useLocale } from '@/lib/use-locale';
+import { useLocale } from '~/lib/use-locale';
 
 type ServerStatus = { executionId: string; canRestart: boolean };
 

@@ -1,4 +1,4 @@
-import { format, useLocale } from '@/lib/use-locale';
+import { format, useLocale } from '~/lib/use-locale';
 import { PageThumb } from '../../lib/page-thumb';
 import { type Theme, themes } from '../../lib/themes';
 

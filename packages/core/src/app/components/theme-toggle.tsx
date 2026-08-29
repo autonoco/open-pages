@@ -1,17 +1,17 @@
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { IconTooltip } from '@/components/icon-tooltip';
-import { buttonVariants } from '@/components/ui/button';
+import { IconTooltip } from '~/components/icon-tooltip';
+import { buttonVariants } from '~/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { TooltipTrigger } from '@/components/ui/tooltip';
-import { useLocale } from '@/lib/use-locale';
-import { cn } from '@/lib/utils';
+} from '~/components/ui/dropdown-menu';
+import { TooltipTrigger } from '~/components/ui/tooltip';
+import { useLocale } from '~/lib/use-locale';
+import { cn } from '~/lib/utils';
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();

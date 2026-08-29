@@ -1,49 +1,106 @@
 ---
 name: create-theme
-description: Use this skill when the user wants to create, draft, author, or extract a page theme in this open-pages repo. Triggers on phrases like "create a theme", "make a theme called X", "extract a theme from <page>", "build a design system from these screenshots", "match our brand". Produces two paired files under `themes/` — `<id>.md` (palette, typography, layout, fixed components) and `<id>.demo.tsx` (a runnable demo page the workspace's Themes panel previews live). Do NOT use for editing real pages — only for authoring the theme bundle.
+description: Use this skill when the user wants to create, draft, author, or extract a theme in this open-pages repo. Triggers on phrases like "create a theme", "make a theme called X", "extract a theme from <page>", "match our brand", "build a design system from these screenshots", "apply this shadcn preset". Produces a three-file bundle under `themes/` — `<id>.md` (direction, fonts, component notes, token table), `<id>.css` (the shadcn token overrides), and `<id>.demo.tsx` (a demo page composed from `ui/` components that the workspace's Themes panel previews live). Do NOT use for editing real pages — only for authoring the theme bundle.
 ---
 
-# Create a page theme
+# Create a theme
 
-This skill produces a **theme bundle** under `themes/`: two paired files that together describe a reusable visual identity for web pages.
+A theme is a **token set**. Every workspace ships the full shadcn/ui set under `ui/`, and every component reads its colors, radius, and fonts from the CSS variables in `styles/globals.css` (`--background`, `--primary`, `--radius`, …). A theme overrides those variables; every component and every token-styled page restyles at once. Nothing is copied into pages.
 
-1. `themes/<id>.md` — agent-facing documentation: palette, typography, layout, fixed components (nav, hero, section wrapper, buttons, card, footer). This is what `create-page` reads when an author picks the theme.
-2. `themes/<id>.demo.tsx` — a runnable demo page (same module shape as `pages/<id>/index.tsx`: **one default-exported component**) that shows the theme on a single scrolling page. The workspace's Themes panel renders it live, exactly like a real page.
+The bundle is three files sharing one stem under `themes/`:
 
-Both files share the same stem so the runtime can pair them automatically.
+1. `themes/<id>.md` — agent-facing direction: aesthetic, fonts, how to use the components in this theme, and a table of token → value. This is what `create-page` reads when an author picks the theme.
+2. `themes/<id>.css` — **only** `:root { … }` and `.dark { … }` blocks overriding the shadcn tokens (plus an optional Google Fonts `@import url(…)` at the very top). No `@theme` block, no Tailwind import, no selectors beyond those two.
+3. `themes/<id>.demo.tsx` — a runnable page module (same shape as `pages/<id>/index.tsx`, **one default-exported component**) composed from `@/ui/*` components so the tokens are shown on real parts. The Themes panel renders it with `<id>.css` injected automatically; the demo does not set `meta.theme`.
 
-The theme markdown is authoring-time direction — `create-page` copies its palette, utilities, and components into a real page's source. The demo `.tsx` is a self-contained preview, not a real page — it does not appear in the pages list.
+A page opts in with `meta.theme: '<id>'`; the runtime injects `themes/<id>.css` into that page's preview frame and into its export.
 
-You only write `themes/<id>.md` and `themes/<id>.demo.tsx`. Never modify real pages or configuration. The styling rules and web defaults that themes override live in the **`page-authoring`** skill — read it before writing the theme so your overrides are stated explicitly.
+You only write the three theme files. Never modify pages, `ui/`, `styles/globals.css`, or configuration. The token names and how pages consume them live in the **`page-authoring`** skill (`references/typography-and-color.md`) — read it first. Component props and variants: the **`shadcn`** skill.
 
 ## Step 1 — Identify the input source
 
-A theme can be derived from any combination of three input shapes:
+A theme can be derived from any combination of:
 
-- **Image references** — paths or URLs to screenshots, mood-board images, brand assets.
+- **A shadcn preset** — a code or URL from https://ui.shadcn.com/create. `npx shadcn@latest preset decode <code>` prints its tokens; or run `npx shadcn@latest apply <code> --only theme,font` in a scratch copy and lift the resulting `:root`/`.dark` values. Never run `apply` against the workspace's `styles/globals.css` directly — that changes the default for every page.
+- **Image references / brand guidelines** — paths or URLs to screenshots, mood boards, logo files, a brand PDF. You will translate them into OKLCH tokens.
 - **Free-text description** — prose describing the desired palette, weight, feel.
-- **An existing page** — `pages/<id>/index.tsx` whose visual identity should be lifted out into a reusable theme.
+- **An existing page** — `pages/<id>/index.tsx` whose look should become reusable.
 
-If the user's original message already specifies the inputs unambiguously, skip the question and proceed. Otherwise call `AskUserQuestion` (multi-select) so they can pick one or more sources, and ask follow-ups (paths, page id, prose) only as needed.
+If the user's original message already specifies the inputs unambiguously, skip the question and proceed. Otherwise call `AskUserQuestion` (multi-select) so they can pick one or more sources, and ask follow-ups (paths, preset code, page id, prose) only as needed.
 
 ## Step 2 — Gather raw inputs
 
-- **Images**: read each path with the `Read` tool (it accepts images). Note dominant colors as hex, type weight and family feel, corner radius, surface treatment (flat vs. cards vs. borders), density, and recurring chrome (nav style, footer).
-- **Text**: extract explicit tokens (hex codes, font names, tone words) and resolve vague language into concrete decisions before writing.
-- **Existing page**: read `pages/<id>/index.tsx` (and `components/`) and pull:
-  - The Tailwind color utilities used consistently (`bg-…`, `text-…`, accent classes) → Palette section.
-  - Type sizes and any font loading (`<link>` to Google Fonts, `font-[…]`) → Typography section.
-  - Container widths, section padding, breakpoints used → Layout section.
-  - Recurring helper components (nav, hero, cards, buttons, footer) → Fixed components section.
-  - The aesthetic feel implied → Aesthetic paragraph.
+- **Preset**: take its tokens as the baseline; adjust only what the user asked to change.
+- **Images**: read each path with the `Read` tool (it accepts images). Note dominant colors (write them as hex, then convert to OKLCH), type family feel, corner radius, surface treatment (flat vs. cards vs. borders), light or dark default, and chrome (nav style, footer).
+- **Text**: extract explicit values (hex codes, font names, "rounded", "sharp", "dense") and resolve vague language into concrete decisions before writing.
+- **Existing page**: read `pages/<id>/index.tsx` (and `components/`) and pull any raw palette classes or hex values into token roles (the page's `bg-[#0b0b10]` root → `--background`; its CTA fill → `--primary`; its card border → `--border`), plus fonts and radius.
 
-When inputs disagree (e.g. images use blue but the description says green), ask the user which to honor.
+Every color ends up as `oklch(L C H)` — the same format as `styles/globals.css`. When inputs disagree (images use blue but the description says green), ask the user which to honor.
 
 ## Step 3 — Pick a theme id
 
 Use **kebab-case**, short, descriptive. Examples: `dark-launch`, `clean-saas`, `editorial-warm`, `ops-console`. Check `themes/` to avoid collisions.
 
-## Step 4 — Write `themes/<id>.md`
+## Step 4 — Write `themes/<id>.css`
+
+Override the full token list for both modes, even when a value equals the default, so the file is self-describing:
+
+```css
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;700&family=Inter:wght@400;500&display=swap');
+
+:root {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Inter Tight', var(--font-sans);
+  --radius: 0.75rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.55 0.2 265);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.55 0.2 265);
+  --chart-1: oklch(0.55 0.2 265);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.55 0.2 265);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.55 0.2 265);
+}
+
+.dark {
+  --background: oklch(0.13 0.01 265);
+  --foreground: oklch(0.985 0 0);
+  /* … every token again, dark values … */
+}
+```
+
+Rules:
+
+- Exactly the shadcn token names (`--background` … `--sidebar-ring`, `--radius`), plus optionally `--font-sans` / `--font-heading` and the font `@import`. Unknown names do nothing; misspelled names silently fall back to the default.
+- `*-foreground` must contrast with its surface (≥ 4.5:1 for body pairs). Check `--muted-foreground` on `--background` and `--primary-foreground` on `--primary` explicitly.
+- A dark-first theme still defines `:root` for light; a page that wants dark puts `dark` on its root element. If the theme is dark-only, make both blocks the dark values.
+- `--radius` sets every radius (`rounded-sm` … `rounded-2xl` scale from it): `0` sharp, `0.5rem` default-ish, `1rem` soft.
+- Fonts load from Google Fonts via `@import url(…)` at the top of this file, or from a self-hosted file the theme tells `create-page` to place under `assets/` (then `@font-face` goes in the page's `styles.css`, not here).
+
+## Step 5 — Write `themes/<id>.md`
 
 Produce a file with this exact section order. Section bodies adapt to the theme; the headings stay consistent across all themes.
 
@@ -55,169 +112,99 @@ description: <one-line elevator pitch>
 
 # <Theme name>
 
-## Palette
+## Tokens
 
-| Role | Tailwind | Hex | Notes |
+| Token | Light | Dark | Role in pages |
 | --- | --- | --- | --- |
-| background | `bg-[#0b0b10]` | #0b0b10 | page root |
-| surface | `bg-white/[0.04] border-white/10` | — | cards, panels |
-| text | `text-white` | #ffffff | headings, body |
-| muted | `text-white/60` | — | secondary copy, labels |
-| accent | `bg-emerald-400 text-black` / `text-emerald-400` | #34d399 | primary CTA, eyebrows |
-| border | `border-white/10` | — | dividers, card edges |
+| `--background` / `--foreground` | `oklch(1 0 0)` / `oklch(0.145 0 0)` | … | page root (`bg-background text-foreground`) |
+| `--primary` / `--primary-foreground` | … | … | the one accent: CTAs, active tabs, links |
+| `--card`, `--muted`, `--accent`, `--secondary` | … | … | surfaces |
+| `--border`, `--input`, `--ring` | … | … | rules, fields, focus |
+| `--destructive` | … | … | delete, errors |
+| `--chart-1…5` | … | … | chart series order |
+| `--radius` | `0.75rem` | | rounded-lg cards, pill buttons via `rounded-full` |
+
+The full set lives in `themes/<id>.css`; this table is the reference for what each value is *for*.
 
 ## Typography
 
-- Font: system stack, or a named family with how to load it (Google Fonts `<link>` rendered in the page, or a self-hosted file the page must place under `assets/`).
-- Type-scale overrides (only list what differs from `page-authoring` defaults):
-  - Hero heading: `text-5xl sm:text-7xl font-bold leading-[1.02] tracking-tight`
-  - Section heading: `text-3xl font-bold tracking-tight`
-  - Body: `text-lg text-white/60`
-  - Eyebrow: `text-xs font-semibold uppercase tracking-[0.25em] text-emerald-400`
+- Fonts: `--font-sans` / `--font-heading` set in the CSS (how they load: Google Fonts `@import`, or a self-hosted file under `assets/`).
+- Type-scale overrides (only what differs from `page-authoring` defaults): hero `text-5xl sm:text-7xl font-heading tracking-tight`; body `text-lg`; eyebrow `<Badge variant="secondary">`.
 
 ## Layout
 
-- Container: `mx-auto max-w-6xl px-6`.
-- Section rhythm: `py-20`, sections separated by `border-t border-white/10`.
-- Breakpoints: single column by default; `sm:grid-cols-3` for feature and pricing grids; nav links `hidden sm:flex`.
-- Radius: `rounded-full` for buttons, `rounded-2xl` for cards.
+- Container: `mx-auto max-w-6xl px-6`; section rhythm `py-20`; separators `border-t border-border`.
+- Default mode: light | dark (`dark` on the page root).
+- Density: airy | standard | dense — how much `gap-*` and padding pages should use.
 
-## Fixed components
+## Components in this theme
 
-These are paste-ready React JSX with `className`. Copy them verbatim into a page that uses this theme.
+Notes on how to use the `ui/` set so pages feel like this theme — which variants to prefer, what to avoid:
 
-### Nav
-
-```tsx
-const Nav = ({ brand, links, cta }: { brand: string; links: { label: string; href: string }[]; cta: { label: string; href: string } }) => (
-  <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-    <span className="font-semibold tracking-tight">{brand}</span>
-    <nav className="hidden gap-8 text-sm text-white/70 sm:flex">
-      {links.map((l) => (
-        <a key={l.href} href={l.href} className="hover:text-white">{l.label}</a>
-      ))}
-    </nav>
-    <a href={cta.href} className="rounded-full bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/90">{cta.label}</a>
-  </header>
-);
-```
-
-### Hero
-
-```tsx
-const Hero = ({ eyebrow, title, lede, children }: { eyebrow: string; title: string; lede: string; children?: React.ReactNode }) => (
-  <section className="mx-auto max-w-6xl px-6 pt-20 pb-24 text-center">
-    <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-400">{eyebrow}</p>
-    <h1 className="mx-auto mt-6 max-w-3xl text-5xl font-bold leading-[1.02] tracking-tight sm:text-7xl">{title}</h1>
-    <p className="mx-auto mt-6 max-w-xl text-lg text-white/60">{lede}</p>
-    <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">{children}</div>
-  </section>
-);
-```
-
-### Section
-
-```tsx
-const Section = ({ id, children }: { id?: string; children: React.ReactNode }) => (
-  <section id={id} className="border-t border-white/10">
-    <div className="mx-auto max-w-6xl px-6 py-20">{children}</div>
-  </section>
-);
-```
-
-### Buttons
-
-```tsx
-const PrimaryButton = ({ href, children }: { href: string; children: React.ReactNode }) => (
-  <a href={href} className="rounded-full bg-emerald-400 px-6 py-3 font-medium text-black hover:bg-emerald-300">{children}</a>
-);
-const SecondaryButton = ({ href, children }: { href: string; children: React.ReactNode }) => (
-  <a href={href} className="rounded-full border border-white/20 px-6 py-3 font-medium text-white/80 hover:border-white/40">{children}</a>
-);
-```
-
-### Card
-
-```tsx
-const Card = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-    <h3 className="font-semibold">{title}</h3>
-    <div className="mt-2 text-white/60">{children}</div>
-  </div>
-);
-```
-
-### Footer
-
-```tsx
-const Footer = ({ left, right }: { left: string; right: string }) => (
-  <footer className="border-t border-white/10">
-    <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-8 text-sm text-white/40">
-      <span>{left}</span>
-      <span>{right}</span>
-    </div>
-  </footer>
-);
-```
+- Buttons: primary CTA `<Button size="lg">`; secondary `<Button size="lg" variant="outline">`; pill shape via `className="rounded-full"` (or not).
+- Cards: `<Card>` with `border-border`, no shadow | `shadow-sm`.
+- Nav: `<NavigationMenu>` on desktop, `<Sheet>` on mobile; sticky with `bg-background/90 backdrop-blur`.
+- Data: `<Table>` + `<Badge>` for status; charts use `--chart-*` in order.
+- Feedback: `<Alert>`, `sonner` toasts.
+- Avoid: gradients | shadows | more than one accent | … (whatever the theme forbids).
 
 ## Aesthetic
 
-One paragraph. What it feels like, the references it draws on, what to avoid (e.g. "no gradients; one accent only; borders over shadows; motion limited to hover color changes"). Commit to a single direction.
+One paragraph. What it feels like, the references it draws on, what to avoid. Commit to a single direction.
 
 ## Example usage
 
 ```tsx
-<main className="min-h-screen bg-[#0b0b10] text-white antialiased">
-  <Nav brand="Meridian" links={links} cta={{ label: 'Get started', href: '#pricing' }} />
-  <Hero eyebrow="Now in public beta" title="Your analytics, turned into decisions" lede="…">
-    <PrimaryButton href="#pricing">Start free</PrimaryButton>
-    <SecondaryButton href="#features">See how it works</SecondaryButton>
-  </Hero>
-  {/* … */}
-  <Footer left="© 2026 Meridian" right="Built with open-pages" />
+export const meta: PageMeta = { title: '…', theme: '<id>', createdAt: '…' };
+
+<main className="min-h-screen bg-background text-foreground antialiased">
+  <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">…<Button>Get started</Button></header>
+  <section className="mx-auto max-w-6xl px-6 py-20">…</section>
 </main>
 ```
 ````
 
-## Step 4b — Write `themes/<id>.demo.tsx`
+The markdown never contains color values that are not also in the CSS, and never contains paste-ready components with raw colors — pages compose `ui/` and the tokens do the rest.
 
-The demo is a normal page module — same shape as `pages/<id>/index.tsx`, just sitting under `themes/` so the runtime knows it's preview-only.
+## Step 6 — Write `themes/<id>.demo.tsx`
+
+The demo is a normal page module — same shape as `pages/<id>/index.tsx`, sitting under `themes/` so the runtime knows it's preview-only.
 
 Contract:
 
-- `import type { PageMeta } from '@autono/open-pages';` and React hooks as needed.
-- **One default-exported component** — a single scrolling page that exercises the theme: nav, hero with both buttons, a section with a card grid, a footer.
-- Inline the **same** fixed components defined in the theme markdown — verbatim, no abstractions. Demo and markdown must stay in lockstep so what `create-page` pastes matches what the demo shows.
-- Root element sets `min-h-screen`, the theme background, and text color. Must look right at Mobile (390px) as well as Desktop.
-- Content should be plausible and realistic, not lorem ipsum. Self-contained: no `@/` imports, no page-local assets; if the theme names a Google Font, render the `<link>` tag in the demo too.
+- `import type { PageMeta } from '@autono/open-pages';`, `@/ui/*` imports, React hooks as needed. No `meta.theme` (the runtime injects `<id>.css` for demos).
+- **One default-exported component** — a single scrolling page that exercises the tokens on real components: a header with `<Button>`s, a hero, a `<Card>` grid, a `<Tabs>` or `<Accordion>`, a `<Table>` with `<Badge>` status, an `<Input>` + `<Button>` form row, and a footer. Include one dark section (`<div className="dark bg-background text-foreground">`) if the theme is light-first, or one light section if dark-first, so both blocks of the CSS are visible.
+- Root element: `min-h-screen bg-background text-foreground` (with `dark` if the theme is dark by default). Everything token-styled — the demo is the proof that pages need no raw colors.
+- Realistic content, not lorem ipsum. Must look right at Mobile (390px) as well as Desktop. Self-contained: no page-local assets.
 
-## Step 5 — Self-review
+## Step 7 — Self-review
 
-- [ ] Palette table covers background / surface / text / muted / accent / border as Tailwind utilities, with hex where fixed.
-- [ ] Frontmatter has `name` and `description` only (the runtime reads nothing else).
-- [ ] Typography names only fonts the theme explains how to load (or the system stack).
-- [ ] Layout specifies container width, section rhythm, and breakpoints.
-- [ ] Fixed components are paste-ready React JSX (`className`, typed props, no `@/` imports) and cover nav, hero, section, buttons, card, footer.
-- [ ] Aesthetic paragraph names a single coherent direction.
-- [ ] Both files written: `themes/<id>.md` and `themes/<id>.demo.tsx`. No page changes, no config changes.
-- [ ] Demo `.tsx` default-exports one component and inlines the same fixed components as the markdown; contrast holds; nothing overflows on mobile.
+- [ ] `themes/<id>.css` overrides every shadcn token in both `:root` and `.dark`, in OKLCH, with only those two selectors (plus an optional font `@import`).
+- [ ] Every `*-foreground` passes contrast on its surface; `--muted-foreground` is readable on `--background`.
+- [ ] Frontmatter in the `.md` has `name` and `description` only (the runtime reads nothing else).
+- [ ] Typography names only fonts the CSS loads (or the system stack).
+- [ ] "Components in this theme" gives variant guidance for buttons, cards, nav, data, feedback.
+- [ ] Demo `.tsx` default-exports one component, imports only `@/ui/*`, uses semantic tokens only, shows both modes, nothing overflows on mobile.
+- [ ] All three files written with the same stem. No page changes, no `ui/` changes, no `styles/globals.css` changes.
 
-## Step 6 — Hand off
+## Step 8 — Hand off
 
 Tell the user:
 
-- The theme id and the two file paths.
+- The theme id and the three file paths.
 - That the Themes panel in the workspace (`http://localhost:5173/themes`) previews the demo live, and `/create-page` will list the theme as a picker option on its next run.
-- A one-line summary of the look (palette + aesthetic).
+- That any existing page can adopt it by setting `meta.theme: '<id>'` — no other change.
+- A one-line summary of the look (accent, mode, radius, fonts).
 
 Do not run the dev server. Do not modify real pages — the demo `.tsx` is the demonstration.
 
 ## Anti-patterns
 
-- ❌ Writing executable code in `themes/<id>.md` outside the labeled component snippets — the markdown is documentation.
-- ❌ Producing only the markdown without the demo, or only the demo without the markdown. A theme is the **bundle** — both files, every time.
-- ❌ Desktop-only components: a nav with no mobile behaviour, grids with no stacking fallback.
-- ❌ Naming font families the theme never explains how to load.
-- ❌ Inventing palette / styling when the user supplied images or an existing page. Extract, don't fabricate.
-- ❌ Editing `pages/`, `packages/`, `package.json`, or `open-pages.config.ts`.
-- ❌ Skipping Fixed components. Nav, hero, buttons, and footer are the most common reuse targets — they must be paste-ready.
+- ❌ Pasting token values into pages, or theme markdown full of `bg-[#hex]` snippets. Tokens live in the CSS; pages stay semantic.
+- ❌ `@theme inline`, `@import "tailwindcss"`, `@source`, or selectors other than `:root`/`.dark` in `themes/<id>.css`.
+- ❌ Editing `styles/globals.css` or running `npx shadcn apply` against the workspace — that silently rethemes every page.
+- ❌ Producing one or two of the three files. A theme is the **bundle** — `.md`, `.css`, `.demo.tsx`, every time.
+- ❌ A demo with raw colors or hand-rolled buttons — it must prove the tokens carry the look through `ui/`.
+- ❌ Naming font families the CSS never loads.
+- ❌ Inventing values when the user supplied a preset, images, or an existing page. Extract, don't fabricate.
+- ❌ Editing `pages/`, `ui/`, `packages/`, `package.json`, or `open-pages.config.ts`.

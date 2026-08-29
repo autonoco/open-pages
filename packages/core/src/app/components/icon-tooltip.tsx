@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Tooltip, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider } from '~/components/ui/tooltip';
 
 /**
  * Shared hover label for the toolbar icon buttons. `children` supplies the

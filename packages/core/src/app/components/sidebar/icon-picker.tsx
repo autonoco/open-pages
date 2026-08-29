@@ -1,7 +1,7 @@
 import EmojiPicker, { EmojiStyle, Theme } from 'emoji-picker-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { FolderIcon } from '@/lib/sdk';
-import { useLocale } from '@/lib/use-locale';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import type { FolderIcon } from '~/lib/sdk';
+import { useLocale } from '~/lib/use-locale';
 
 export const PRESET_COLORS = [
   '#e5484d', // red

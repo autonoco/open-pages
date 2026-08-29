@@ -4,7 +4,7 @@ description: "The file contract every open-pages page follows: one component, me
 icon: "file-code"
 ---
 
-A page is one folder under `pages/` with one entry file:
+A page is one folder under `pages/` with one entry file, inside a workspace that carries the shared shadcn set:
 
 ```
 pages/<kebab-case-id>/
@@ -12,9 +12,13 @@ pages/<kebab-case-id>/
   components/      # optional: helper components, imported by index.tsx
   styles.css       # optional: custom CSS, imported by index.tsx
   assets/          # optional: images and fonts this page uses
+ui/                # shared: all shadcn/ui components, imported as @/ui/<name>
+lib/utils.ts       # shared: cn()
+hooks/             # shared: use-mobile
+styles/globals.css # shared: Tailwind v4 entry + shadcn tokens
 ```
 
-A page is a real web page rendered by React 18 in a real browser document. Hooks, state, event handlers, client-side routing, `fetch`, and browser APIs all work. Only `react`, `react-dom`, and `@autono/open-pages` (types) are available as imports; the workspace adds no other dependencies.
+A page is a real web page rendered by React 18 in a real browser document. Hooks, state, event handlers, client-side routing, `fetch`, and browser APIs all work. Imports available: `react`, `react-dom`, `@autono/open-pages` (types), everything under `@/ui`, `@/lib`, and `@/hooks`, and the libraries those components bring (radix-ui, lucide-react, sonner, recharts, react-hook-form, zod, date-fns, and friends). The shared directories are read by pages, not edited per page: wrap a component in the page rather than changing `ui/`.
 
 A page folder can instead hold an `index.html`, see [HTML pages](/authoring/html-pages).
 
@@ -33,8 +37,8 @@ export const meta: PageMeta = {
 
 export default function Launch() {
   return (
-    <main className="min-h-screen bg-white text-slate-900 antialiased">
-      {/* the page */}
+    <main className="min-h-screen bg-background text-foreground antialiased">
+      {/* the page, composed from @/ui/* and token classes */}
     </main>
   );
 }
@@ -51,7 +55,7 @@ Keep module top-level free of browser access. `window` and `document` exist when
 - `title` (optional) becomes the document title and the workspace card title. Defaults to the folder name.
 - `description` (optional) becomes `<meta name="description">` in the exported HTML.
 - `createdAt` (optional) is an ISO 8601 string literal, set once when the page is scaffolded and used to sort the page list. Keep it a plain string literal. The framework reads it with a regex and never evaluates the module to get it.
-- `theme` (optional) marks the page as built from a theme under `themes/`. The id must match a theme's `<id>.md` basename. See [Themes](/authoring/themes).
+- `theme` (optional) applies a theme under `themes/`: the runtime injects `themes/<id>.css` (shadcn token overrides) into the page's preview and export. The id must match the theme's file stem. See [Themes](/authoring/themes).
 
 ## Data rows vs designed repeats
 
@@ -98,13 +102,16 @@ Explicit instances give each block its own source address, so "make the middle o
 - The page view at `/p/<id>` runs the real page with desktop, tablet (820px), and mobile (390px) width toggles, a reload button, and **Open** to view the page by itself.
 - Hot reload: save any file under the page folder and the preview updates.
 - Inspect mode (`i`) for click-to-source and comments. See [The inspector](/inspector).
-- Tailwind v4 configured and scanning `pages/` and `themes/`. See [Styling](/authoring/styling).
+- Tailwind v4 through `styles/globals.css`, scanning `pages/`, `ui/`, `lib/`, `hooks/`, and `themes/`. See [Styling](/authoring/styling) and [Components](/authoring/components).
 
 ## Next
 
 <CardGroup cols={2}>
   <Card title="Styling" icon="palette" href="/authoring/styling">
-    Tailwind via className, custom CSS, layout, and responsive design.
+    Tokens, Tailwind via className, custom CSS, and responsive design.
+  </Card>
+  <Card title="Components" icon="blocks" href="/authoring/components">
+    The shadcn/ui set under ui/, forms, toasts, and registries.
   </Card>
   <Card title="Interactivity" icon="mouse-pointer-click" href="/authoring/interactivity">
     State, handlers, forms, and what to avoid.

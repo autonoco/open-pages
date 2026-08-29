@@ -14,7 +14,22 @@
       "!**/*.svg",
       "!packages/core/src/app/components/ui",
       "!pages",
-      "!notes"
+      "!notes",
+      "!packages/cli/template/ui",
+      "!packages/cli/template/lib",
+      "!packages/cli/template/hooks",
+      "!packages/cli/template/styles",
+      "!packages/cli/template/components.json",
+      "!apps/demo/ui",
+      "!apps/demo/lib",
+      "!apps/demo/hooks",
+      "!apps/demo/styles",
+      "!apps/demo/components.json",
+      "!packages/core/e2e/fixture/ui",
+      "!packages/core/e2e/fixture/lib",
+      "!packages/core/e2e/fixture/hooks",
+      "!packages/core/e2e/fixture/styles",
+      "!packages/core/e2e/fixture/components.json"
     ]
   },
   "formatter": {

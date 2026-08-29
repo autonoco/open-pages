@@ -46,7 +46,8 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
     ],
     resolve: {
       alias: {
-        '@': APP_ROOT,
+        '~': APP_ROOT,
+        '@': userCwd,
         '@assets': assetsAbs,
       },
     },

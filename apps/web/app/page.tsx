@@ -25,7 +25,8 @@ const LINE_ITEMS = [
   {
     loc: 'index.tsx:62',
     name: 'React or plain HTML',
-    detail: 'Tailwind via className, hooks, state, routing. Or drop in an index.html.',
+    detail:
+      'Every shadcn/ui component preinstalled under ui/. Tailwind, hooks, state, routing. Or drop in an index.html.',
     qty: 'pages/<id>/',
     amount: 'included',
   },
@@ -41,6 +42,7 @@ const LINE_ITEMS = [
 const SOURCE = [
   'import type { PageMeta }',
   "  from '@autono/open-pages';",
+  "import { Button } from '@/ui/button';",
   "import { useState } from 'react';",
   '',
   'export const meta: PageMeta = {',
@@ -57,10 +59,10 @@ const SOURCE = [
   '        The web page framework',
   '        built for agents',
   '      </h1>',
-  '      <button onClick={() =>',
+  '      <Button onClick={() =>',
   '        setOpen((v) => !v)}>',
   '        Start free',
-  '      </button>',
+  '      </Button>',
   '    </main>',
   '  );',
   '}',

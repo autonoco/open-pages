@@ -55,6 +55,7 @@
         "pages": [
           "authoring/pages",
           "authoring/styling",
+          "authoring/components",
           "authoring/interactivity",
           "authoring/assets-and-fonts",
           "authoring/html-pages",

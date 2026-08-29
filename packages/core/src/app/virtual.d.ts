@@ -43,9 +43,12 @@ declare module 'virtual:open-pages/themes' {
     description: string;
     body: string;
     hasDemo: boolean;
+    hasCss: boolean;
   };
 
   export const themes: ThemeMeta[];
+  export const themeCssIds: string[];
+  export function loadThemeCss(id: string): Promise<void>;
   export function loadThemeDemo(id: string): Promise<{
     default: PageComponent;
     design?: DesignSystem;

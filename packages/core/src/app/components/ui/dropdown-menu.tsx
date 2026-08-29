@@ -4,7 +4,7 @@ import * as React from 'react';
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react';
 import { Menu as DropdownMenuPrimitive } from '@base-ui/react/menu';
 
-import { cn } from '@/lib/utils';
+import { cn } from '~/lib/utils';
 
 type DropdownMenuPositionerProps = Pick<
   React.ComponentProps<typeof DropdownMenuPrimitive.Positioner>,
