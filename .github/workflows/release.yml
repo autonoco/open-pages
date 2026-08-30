@@ -33,7 +33,9 @@ permissions:
 jobs:
   release:
     name: Tag and release
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    # GitHub-hosted on purpose: npm trusted publishing rejects OIDC tokens
+    # from self-hosted runners (Blacksmith included), failing with ENEEDAUTH.
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     if: |
       github.event_name == 'workflow_dispatch' ||
