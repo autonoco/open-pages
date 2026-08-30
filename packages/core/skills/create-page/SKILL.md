@@ -77,7 +77,7 @@ Before writing code, map every planned section to the shadcn components it shoul
 | --- | --- |
 | Landing / marketing | `navigation-menu` or plain links + `sheet` for mobile nav, `button` (CTAs), `badge` (eyebrows), `card` (features, pricing tiers), `tabs` or `switch` (billing toggle), `accordion` (FAQ), `separator` |
 | Dashboard / app UI | `sidebar` (`SidebarProvider` + `SidebarInset`), `table`, `chart`, `card` (KPIs), `tabs`, `select`, `dropdown-menu`, `badge` (status), `skeleton`, `empty` |
-| Form / signup | `form` (react-hook-form + zod) or `field`, `input`, `select`, `checkbox`, `radio-group`, `switch`, `textarea`, `button`, `alert` |
+| Form / signup | `field`, `input`, `select`, `checkbox`, `radio-group`, `switch`, `textarea`, `button`, `alert` |
 | Docs / long-form | `sidebar` or a sticky `scroll-area` TOC, `breadcrumb`, prose in a `max-w-[65ch]` column, `kbd`, `table`, `alert` (callouts) |
 | Portfolio / gallery | `carousel`, `aspect-ratio`, `card`, `dialog` (lightbox), `hover-card` |
 | Internal tool | `command` (palette), `combobox`, `resizable`, `context-menu`, `tooltip`, `sonner` (toasts), `alert-dialog` (confirm) |
