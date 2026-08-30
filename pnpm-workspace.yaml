@@ -2,3 +2,11 @@ packages:
   - "apps/*"
   - "packages/*"
   - "packages/core/e2e/fixture"
+
+# Transitive-only security floors (Dependabot alerts); drop each once the
+# parent dependency ships the fix itself.
+overrides:
+  postcss: ">=8.5.26"
+  valibot: ">=1.4.2"
+  diff: ">=8.0.3"
+  sharp: ">=0.35.0"
