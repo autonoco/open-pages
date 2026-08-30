@@ -18,9 +18,8 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["./src/app/*"],
-      // The workspace has @types/react 18 (core, demo) and 19 (web). pnpm hoists one of
-      // them nondeterministically, and react-router/lucide types resolve `react` through the
-      // hoisted copy. Pin resolution to this package's own @types/react.
+      // react-router/lucide types resolve `react` through whichever @types/react pnpm
+      // hoists. Pin resolution to this package's own copy so the types stay in step.
       "react": ["./node_modules/@types/react"],
       "react/*": ["./node_modules/@types/react/*"]
     },

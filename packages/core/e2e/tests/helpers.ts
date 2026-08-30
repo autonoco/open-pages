@@ -63,6 +63,15 @@ export async function enableInspect(page: Page): Promise<void> {
   await expect(toggle).toBeEnabled({ timeout: 15_000 });
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  // The frame flips into inspect mode on a postMessage; clicking before it
+  // lands goes to the page instead of the inspector.
+  await expect
+    .poll(() =>
+      pageFrame(page)
+        .locator('html')
+        .evaluate((el) => el.style.cursor),
+    )
+    .toBe('crosshair');
 }
 
 /** Selects an element inside the frame while inspect mode is on. */

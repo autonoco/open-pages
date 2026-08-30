@@ -34,7 +34,7 @@ Requires Node.js 18+.
 
 - **A preview that is the page.** Each page runs as a real document in an iframe: real DOM, real CSS, real interactivity. No approximation.
 - **Click-to-source inspector.** Every element knows its exact source line. Comments persist in the source, ready for an agent.
-- **React or HTML.** A page is `pages/<id>/index.tsx` (React 18) or `pages/<id>/index.html` with sibling CSS and JS. Tailwind v4 via `className` works out of the box.
+- **React or HTML.** A page is `pages/<id>/index.tsx` (React 19) or `pages/<id>/index.html` with sibling CSS and JS. Tailwind v4 via `className` works out of the box.
 - **shadcn/ui, already installed.** All 61 components live under `ui/` with `lib/utils.ts`, `hooks/`, and a `styles/globals.css` token theme. `import { Button } from '@/ui/button'` and go; no `add` step. `components.json` is in place for blocks and other registries.
 - **Themes are tokens.** `themes/<id>.css` overrides the shadcn variables; a page sets `meta.theme` and every component restyles.
 - **Responsive by default.** Desktop, tablet (820px), and mobile (390px) viewport toggles in the viewer.
