@@ -81,6 +81,12 @@ interface SyncFlags {
   dryRun?: boolean;
 }
 
+function resolveWorkspaceSetDir(): string {
+  // dist/cli/bin.js → ../../workspace (package root + /workspace)
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  return path.resolve(here, '..', '..', 'workspace');
+}
+
 function resolveBuiltinSkillsDir(): string {
   // dist/cli/bin.js → ../../skills (package root + /skills)
   const here = path.dirname(fileURLToPath(import.meta.url));
@@ -153,11 +159,23 @@ export async function run(argv: string[]): Promise<void> {
     });
 
   program
+    .command('sync:ui')
+    .description('Sync ui/, lib/, and hooks/ from @autono/open-pages — files you edited are kept')
+    .option('--dry-run', 'show what would change without writing')
+    .option('--force', 'overwrite files even where you have edited them')
+    .action(async (flags: { dryRun?: boolean; force?: boolean }) => {
+      const { printUiSummary, syncUi } = await import('./sync-ui.ts');
+      const result = await syncUi(process.cwd(), resolveWorkspaceSetDir(), flags);
+      printUiSummary(result, flags.dryRun ?? false);
+    });
+
+  program
     .command('update')
     .description('Update @autono/open-pages to the latest version and sync skills')
     .option('--force', 'reinstall even if already on the latest version')
     .option('--no-skills', 'skip the skills sync after updating')
-    .action(async (flags: { force?: boolean; skills?: boolean }) => {
+    .option('--no-ui', 'skip the ui set sync after updating')
+    .action(async (flags: { force?: boolean; skills?: boolean; ui?: boolean }) => {
       const { update } = await import('./update.ts');
       await update({ current: version, ...flags });
     });

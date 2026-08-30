@@ -5,6 +5,7 @@ import {
   detectPackageManager,
   fetchLatest,
   formatCommand,
+  installCommandFor,
   isOutdated,
   localOpenPagesCommand,
   PKG,
@@ -16,6 +17,7 @@ export interface UpdateOptions {
   current: string;
   force?: boolean;
   skills?: boolean;
+  ui?: boolean;
 }
 
 // The workspace's installed copy, not the CLI driving the update — they differ
@@ -55,6 +57,20 @@ export async function update(opts: UpdateOptions): Promise<void> {
   if (opts.skills !== false) {
     process.stdout.write(chalk.dim('$ open-pages sync:skills\n'));
     await runCommand(localOpenPagesCommand(cwd, ['sync:skills']), cwd, { stdio: 'inherit' });
+  }
+
+  if (opts.ui !== false) {
+    process.stdout.write(chalk.dim('$ open-pages sync:ui\n'));
+    const pkgFile = path.join(cwd, 'package.json');
+    const before = await readFile(pkgFile, 'utf8').catch(() => '');
+    await runCommand(localOpenPagesCommand(cwd, ['sync:ui']), cwd, { stdio: 'inherit' });
+    const after = await readFile(pkgFile, 'utf8').catch(() => '');
+    if (after !== before) {
+      // sync:ui added workspace dependencies; install them right away.
+      const reinstall = installCommandFor(packageManager);
+      process.stdout.write(chalk.dim(`$ ${formatCommand(reinstall)}\n`));
+      await runCommand(reinstall, cwd, { stdio: 'inherit' });
+    }
   }
 
   process.stdout.write(

@@ -30,7 +30,8 @@
     "src/app",
     "src/locale",
     "skills",
-    "README.md"
+    "README.md",
+    "workspace"
   ],
   "scripts": {
     "build": "tsdown",

@@ -13,3 +13,8 @@ test-results
 .vscode/
 apps/demo/export
 apps/web/out
+packages/cli/template/ui
+packages/cli/template/lib
+packages/cli/template/hooks
+packages/cli/template/styles
+packages/cli/template/components.json
