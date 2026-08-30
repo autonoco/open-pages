@@ -1,7 +1,8 @@
 import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { cp, mkdir, readdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
-import { basename, dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import { gitInitAndCommit } from './git.ts';
@@ -76,6 +77,40 @@ async function materializeTemplateLinks(target: string): Promise<void> {
   }
 }
 
+// `open-pages sync:ui` only replaces files whose content still matches this
+// manifest, so the user's edits survive updates. Recorded at scaffold time,
+// when every file is pristine by definition.
+async function writeUiManifest(target: string): Promise<void> {
+  const manifest: Record<string, string> = {};
+  for (const entry of ['ui', 'lib', 'hooks']) {
+    const root = join(target, entry);
+    if (!existsSync(root)) continue;
+    for (const rel of await collectFiles(root)) {
+      const wsRel = join(entry, rel).split(sep).join('/');
+      manifest[wsRel] = createHash('sha256')
+        .update(await readFile(join(root, rel)))
+        .digest('hex');
+    }
+  }
+  const sorted = Object.fromEntries(
+    Object.entries(manifest).sort(([a], [b]) => a.localeCompare(b)),
+  );
+  await writeFile(
+    join(target, 'ui', '.sync-manifest.json'),
+    `${JSON.stringify(sorted, null, 2)}\n`,
+  );
+}
+
+async function collectFiles(dir: string, prefix = ''): Promise<string[]> {
+  const out: string[] = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const rel = prefix ? join(prefix, entry.name) : entry.name;
+    if (entry.isDirectory()) out.push(...(await collectFiles(join(dir, entry.name), rel)));
+    else if (entry.isFile()) out.push(rel);
+  }
+  return out;
+}
+
 async function runInstall(pm: PackageManager, cwd: string): Promise<void> {
   await new Promise<void>((res, rej) => {
     const child = spawn(pm, ['install'], { cwd, stdio: 'inherit', shell: IS_WINDOWS });
@@ -104,6 +139,7 @@ export async function init(opts: InitOptions): Promise<void> {
 
   await cp(TEMPLATE_DIR, target, { recursive: true });
   await materializeTemplateLinks(target);
+  await writeUiManifest(target);
 
   const pkgPath = join(target, 'package.json');
   if (existsSync(pkgPath)) {

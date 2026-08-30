@@ -29,7 +29,8 @@
       "!packages/core/e2e/fixture/lib",
       "!packages/core/e2e/fixture/hooks",
       "!packages/core/e2e/fixture/styles",
-      "!packages/core/e2e/fixture/components.json"
+      "!packages/core/e2e/fixture/components.json",
+      "!packages/core/workspace"
     ]
   },
   "formatter": {

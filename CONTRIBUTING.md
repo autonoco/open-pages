@@ -20,7 +20,7 @@ pnpm + Turbo monorepo.
 | Path | Package | Role |
 | --- | --- | --- |
 | [`packages/core`](packages/core) | `@autono/open-pages` | Runtime (workspace viewer, live iframe preview, inspector), Vite plugin, `open-pages` dev/build/export CLI, bundled agent skills. |
-| [`packages/cli`](packages/cli) | `@autono/create-open-pages` | `npm create @autono/open-pages@latest` scaffolder + project template. `template/{ui,lib,hooks,styles,components.json}` is the canonical shadcn set. |
+| [`packages/cli`](packages/cli) | `@autono/create-open-pages` | `npm create @autono/open-pages@latest` scaffolder + project template (template contents generated from core at build time). |
 | [`apps/demo`](apps/demo) | private | Local consumer of `@autono/open-pages` via `workspace:*`. The dogfood target for the framework. |
 | [`apps/web`](apps/web) | private | Marketing site (Next.js). |
 | [`docs/`](docs) | | Mintlify documentation site. |
@@ -88,7 +88,7 @@ pnpm cli <script>
 - **Default to writing no comments.** Only add one when the *why* is non-obvious — a hidden constraint, a subtle invariant, a workaround for a specific bug. Don't explain *what* the code does; well-named identifiers handle that.
 - **Leave `packages/core/src/app/components/ui` alone.** It's shadcn-generated and biome-ignored unless you're regenerating it.
 - **Skills are source.** The agent skills under `packages/core/skills/` ship in the npm package and get mirrored into the CLI template at build time. Edit them there, never in a workspace's `.agents/skills/` copy. `skills/shadcn` is the vendored official shadcn skill; refresh it from upstream rather than editing it.
-- **The shadcn set is source too.** `packages/cli/template/{ui,lib,hooks,styles,components.json}` is what every scaffolded workspace gets. After changing it, run `node packages/cli/scripts/sync-workspace-ui.mjs` to mirror it into `apps/demo` and `packages/core/e2e/fixture` (real copies, not symlinks: Vite resolves symlinks to their real path and would then look for deps under `packages/cli`). To refresh from upstream, run `npx shadcn@latest add <items> --yes --overwrite` inside the template with the full item list; `--all` currently fails on the `questionnaire` item.
+- **The shadcn set is source too.** `packages/core/workspace/{ui,lib,hooks,styles,components.json,deps.json}` is what every workspace gets (and what `open-pages sync:ui` updates it from). After changing it, run `node packages/cli/scripts/sync-workspace-ui.mjs` to mirror it into `apps/demo` and `packages/core/e2e/fixture` (real copies, not symlinks: Vite resolves symlinks to their real path and would then look for deps under `packages/core`); the cli build mirrors it into the template. To refresh from upstream, scaffold `npx shadcn@latest init -t vite --base radix --preset nova`, point its aliases at `@/ui` `@/lib` `@/hooks`, `add` the full item list (`--all` currently fails on `questionnaire`), and copy the result in.
 
 ## Testing
 

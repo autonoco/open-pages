@@ -31,6 +31,7 @@ Then open `http://localhost:5173`, edit `pages/getting-started/index.tsx`, or cr
 | `npm run export` | Build pages into `export/<id>/`, one deployable folder per page. |
 | `npm run preview` | Preview the built workspace locally. |
 | `npm run sync:skills` | Sync the bundled agent skills into the workspace. |
+| `npx open-pages sync:ui` | Update `ui/`, `lib/`, and `hooks/` to the installed runtime's set; files you edited are kept (`--force` to overwrite). |
 | `npm run update` | Update `@autono/open-pages` and sync skills. |
 
 ## Authoring a page

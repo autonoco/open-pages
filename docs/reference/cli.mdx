@@ -7,7 +7,7 @@ icon: "terminal"
 open-pages ships two packages with two binaries:
 
 - **`@autono/create-open-pages`** provides `init`. Run it with `npm create @autono/open-pages@latest` from anywhere, no install needed.
-- **`@autono/open-pages`** provides `open-pages` with everything else (`dev`, `build`, `preview`, `export`, `sync:skills`, `update`). It is a dependency of every workspace, so inside a workspace `npx open-pages <command>` resolves to it. The scaffolded `package.json` also maps npm scripts: `npm run dev`, `npm run build`, `npm run preview`, `npm run export`, `npm run sync:skills`, `npm run update`.
+- **`@autono/open-pages`** provides `open-pages` with everything else (`dev`, `build`, `preview`, `export`, `sync:skills`, `sync:ui`, `update`). It is a dependency of every workspace, so inside a workspace `npx open-pages <command>` resolves to it. The scaffolded `package.json` also maps npm scripts: `npm run dev`, `npm run build`, `npm run preview`, `npm run export`, `npm run sync:skills`, `npm run update`.
 
 When passing flags through an npm script, separate them with `--`:
 
@@ -158,6 +158,21 @@ Changed skills are copied into `.agents/skills/` and symlinked into `.claude/ski
 
 `open-pages dev` runs the same drift detection on startup, so most workspaces never need to call this by hand. See [For agents](/for-agents) for what the skills do.
 
+## sync:ui
+
+```bash
+open-pages sync:ui
+```
+
+Updates the workspace's shadcn set — `ui/`, `lib/`, and `hooks/` — from the installed `@autono/open-pages`, and adds any newly required dependencies to `package.json`.
+
+Safety model: `ui/.sync-manifest.json` records the hash each file had when it was scaffolded or last synced. A file that still matches is replaced with the new version; a file you edited is skipped and reported. Files the runtime no longer ships are reported but never deleted.
+
+| Flag | What it does |
+| --- | --- |
+| `--dry-run` | Show what would change without writing. |
+| `--force` | Overwrite files even where you have edited them. |
+
 ## update
 
 Update `@autono/open-pages` in this workspace to the latest version on npm, then sync the skills it ships.
@@ -171,6 +186,6 @@ open-pages update
 | `--force` | Reinstall even if the workspace is already on the latest version. |
 | `--no-skills` | Skip the skills sync after installing. |
 
-`update` checks npm's `latest` tag against the installed version and exits early if there is nothing to do. Otherwise it runs your package manager's install command (`npm install @autono/open-pages@latest`, or the `pnpm` / `yarn` / `bun` equivalent, detected from the lockfile) and then `open-pages sync:skills` from the freshly installed package. Your `pages/`, `open-pages.config.ts`, and everything else in the workspace are untouched.
+`update` checks npm's `latest` tag against the installed version and exits early if there is nothing to do. Otherwise it runs your package manager's install command (`npm install @autono/open-pages@latest`, or the `pnpm` / `yarn` / `bun` equivalent, detected from the lockfile), then `open-pages sync:skills` and `open-pages sync:ui` from the freshly installed package (skip with `--no-skills` / `--no-ui`). If `sync:ui` added workspace dependencies, `update` runs the install once more. Your `pages/`, `open-pages.config.ts`, and every file you have edited are untouched.
 
 The same update is available from the dev server: when a newer version exists, the home page shows an **Update** button. Restart `open-pages dev` after either path.

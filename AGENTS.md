@@ -11,7 +11,7 @@ pnpm + Turbo monorepo.
 | Path | Package | Role |
 | --- | --- | --- |
 | `packages/core` | `@autono/open-pages` | Runtime (workspace viewer, live iframe preview, inspector), Vite plugin, `open-pages` dev/build/export CLI, bundled agent skills. |
-| `packages/cli` | `@autono/create-open-pages` | `npm create @autono/open-pages@latest` scaffolder + project template. The template's `ui/`, `lib/`, `hooks/`, `styles/`, and `components.json` are the canonical shadcn set every workspace ships. |
+| `packages/cli` | `@autono/create-open-pages` | `npm create @autono/open-pages@latest` scaffolder + project template (generated from core at build time). |
 | `apps/demo` | private | Local consumer of `@autono/open-pages` via `workspace:*`. Dogfood target — run `pnpm dev` here to exercise the framework. |
 | `apps/web` | private | Marketing site (Next.js). |
 | `docs/` | | Mintlify docs site. |
@@ -39,7 +39,7 @@ Filter to one package: `pnpm core <script>` / `pnpm cli <script>`.
 - **Never push to `main`.** Branch, open a PR, let the maintainer merge. Every merge to `main` is a release.
 - Don't add dependencies casually. The `core` runtime ships to users; every dep inflates install size.
 - `packages/core/src/app/components/ui` is shadcn-generated and biome-ignored — leave it alone unless regenerating. Its alias is `~/`; the `@/` alias belongs to the user's workspace.
-- `packages/cli/template/{ui,lib,hooks,styles,components.json}` is the shadcn set baked into every workspace. Edit it there, then run `node packages/cli/scripts/sync-workspace-ui.mjs` to mirror it into `apps/demo` and `packages/core/e2e/fixture` (copies, not symlinks). Refresh from upstream with `npx shadcn@latest add <items> --yes --overwrite` in the template.
+- `packages/core/workspace/{ui,lib,hooks,styles,components.json,deps.json}` is the canonical shadcn set every workspace ships; `open-pages sync:ui` updates workspaces from it. Edit it there, then run `node packages/cli/scripts/sync-workspace-ui.mjs` to mirror it into `apps/demo` and `packages/core/e2e/fixture` (copies, not symlinks; the cli build mirrors it into the template). Regenerate from upstream via `npx shadcn init -t vite --base radix --preset nova` + `add` — never hand-write components.json.
 - **Default to writing no comments.** Only add one when the WHY is non-obvious — a hidden constraint, a subtle invariant, a workaround for a specific bug, behavior that would surprise a reader. Don't explain WHAT the code does (well-named identifiers handle that), don't reference tasks/PRs/callers ("added for X", "used by Y"), don't write section-divider banners (`// ── Section ──`) or module-header descriptions, and don't leave commented-out code. If removing a comment wouldn't confuse a future reader, don't write it.
 
 ## Releasing (reference)

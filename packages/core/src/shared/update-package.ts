@@ -103,6 +103,10 @@ export async function updateCommandFor(
  * The freshly installed package's own CLI, so skills come from the new
  * version rather than whatever process is driving the update.
  */
+export function installCommandFor(packageManager: PackageManager): CommandSpec {
+  return { cmd: packageManager, args: ['install'] };
+}
+
 export function localOpenPagesCommand(cwd: string, args: string[]): CommandSpec {
   const bin = path.join(cwd, 'node_modules', ...PKG.split('/'), 'bin.js');
   return { cmd: process.execPath, args: [bin, ...args], shell: false };

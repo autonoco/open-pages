@@ -87,6 +87,7 @@ Compose from `@/ui/*` and the semantic token classes (`bg-background`, `text-mut
 | `open-pages preview` | Serve the production build. |
 | `open-pages export [pages...]` | Build pages into `export/<id>/`, one deployable folder per page. |
 | `open-pages sync:skills` | Sync the built-in agent skills into the workspace. |
+| `open-pages sync:ui` | Update `ui/`, `lib/`, and `hooks/` from the installed runtime; your edited files are kept. |
 | `open-pages update` | Update `@autono/open-pages` to the latest version and sync skills. |
 
 Full flags: [CLI reference](https://docs.openpages.sh/reference/cli) · [Config reference](https://docs.openpages.sh/reference/config)
