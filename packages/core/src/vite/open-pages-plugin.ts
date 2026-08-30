@@ -282,6 +282,13 @@ export function rewriteHtmlUrls(html: string, pageDir: string): string {
   );
 }
 
+// The file is part of the signature so that replacing a page's entry with a
+// same-kind file (index.tsx -> index.jsx) still invalidates the module, whose
+// import path embeds the old file.
+export function pagesSignature(entries: PageEntry[]): string {
+  return entries.map((e) => `${e.id}:${e.kind}:${e.file}`).join(',');
+}
+
 export function openPagesPlugin(opts: OpenPagesPluginOptions): Plugin {
   const { userCwd, config, coreVersion } = opts;
   const pagesDir = config.pagesDir ?? 'pages';
@@ -293,7 +300,6 @@ export function openPagesPlugin(opts: OpenPagesPluginOptions): Plugin {
   let isDev = false;
   let cssFile = '';
   let generatedSignature = '';
-  const signatureOf = (entries: PageEntry[]) => entries.map((e) => `${e.id}:${e.kind}`).join(',');
 
   const pageIdForEntry = (p: string): { id: string; kind: PageKind } | null => {
     const rel = path.relative(pagesRoot, p);
@@ -348,7 +354,7 @@ export function openPagesPlugin(opts: OpenPagesPluginOptions): Plugin {
     async load(id) {
       if (id === resolved(PAGES_VMOD)) {
         const entries = await findPages(userCwd, pagesDir);
-        generatedSignature = signatureOf(entries);
+        generatedSignature = pagesSignature(entries);
         const { code, ignored } = await generatePagesModule(entries, isDev);
         for (const pageId of ignored) {
           if (warnedInvalidPageIds.has(pageId)) continue;
@@ -396,8 +402,16 @@ export function openPagesPlugin(opts: OpenPagesPluginOptions): Plugin {
         if (reloadTimer) clearTimeout(reloadTimer);
         reloadTimer = setTimeout(async () => {
           reloadTimer = null;
-          const entries = await findPages(userCwd, pagesDir);
-          if (signatureOf(entries) === generatedSignature) return;
+          try {
+            const entries = await findPages(userCwd, pagesDir);
+            if (pagesSignature(entries) === generatedSignature) return;
+          } catch (err) {
+            // Invalidate anyway: the module's load path rescans and surfaces
+            // the error through Vite instead of leaving stale pages.
+            server.config.logger.error(`[open-pages] failed to rescan pages: ${err}`, {
+              error: err instanceof Error ? err : undefined,
+            });
+          }
           invalidatePagesModule(server);
         }, 150);
       };

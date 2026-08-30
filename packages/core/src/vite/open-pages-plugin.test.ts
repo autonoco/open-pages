@@ -2,7 +2,12 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { findPages, generatePagesModule, rewriteHtmlUrls } from './open-pages-plugin.ts';
+import {
+  findPages,
+  generatePagesModule,
+  pagesSignature,
+  rewriteHtmlUrls,
+} from './open-pages-plugin.ts';
 
 async function withPagesRoot<T>(fn: (root: string) => Promise<T>): Promise<T> {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'open-pages-test-'));
@@ -46,6 +51,20 @@ describe('findPages', () => {
         ['cover', 'react'],
         ['legacy', 'html'],
       ]);
+    });
+  });
+});
+
+describe('pagesSignature', () => {
+  it('changes when a page entry is replaced by a same-kind file with another extension', async () => {
+    await withPagesRoot(async (root) => {
+      await writeReactPage(root, 'cover');
+      const before = pagesSignature(await findPages(path.dirname(root), path.basename(root)));
+
+      await fs.rename(path.join(root, 'cover', 'index.tsx'), path.join(root, 'cover', 'index.jsx'));
+      const after = pagesSignature(await findPages(path.dirname(root), path.basename(root)));
+
+      expect(after).not.toBe(before);
     });
   });
 });
