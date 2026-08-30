@@ -100,6 +100,6 @@ test.describe('page viewer', () => {
     await openPage(page, 'alpha');
     await page.getByRole('link', { name: 'Back to pages' }).click();
     await expect(page).toHaveURL(/\/$/);
-    await expect(page.locator('li h3')).toHaveCount(5);
+    await expect(page.locator('li h3')).toHaveCount(6);
   });
 });

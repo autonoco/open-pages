@@ -20,9 +20,10 @@ pnpm add @autono/open-pages react react-dom
 
 - **Dev server + workspace viewer** — a home page listing every page with live thumbnails, folders, search, and sort; a per-page viewer at `/p/<id>` with desktop / tablet (820px) / mobile (390px) viewport toggles, reload, and open-in-new-tab.
 - **Inspect mode** — press `i`, click any element on the page to see its exact source line and leave a comment. Comments persist as `@page-comment` markers in the source, ready for a coding agent to apply.
-- **Vite plugin** — discovers `pages/<id>/index.tsx` and `pages/<id>/index.html`, exposes pages via virtual modules, generates a Tailwind v4 stylesheet scoped to `pages/` and `themes/`, hot-reloads on add/remove/edit.
+- **Vite plugin** — discovers `pages/<id>/index.tsx` and `pages/<id>/index.html`, exposes pages via virtual modules, serves the workspace's `styles/globals.css` (Tailwind v4 plus the shadcn tokens) as the page stylesheet, maps `@` to the workspace root, and hot-reloads on add/remove/edit.
+- **shadcn/ui baked in** — a scaffolded workspace ships all 61 components under `ui/`, `lib/utils.ts`, `hooks/`, and a token theme in `styles/globals.css`. Pages import from `@/ui/*`; no `add` step. Themes are `themes/<id>.css` token overrides the runtime injects when a page sets `meta.theme`.
 - **Export CLI** — builds each page into `export/<id>/index.html` plus hashed assets with relative URLs.
-- **Agent skills** — file-based skills (`create-page`, `page-authoring`, `apply-comments`, `create-theme`, `current-page`) that sync into workspaces; no MCP server required.
+- **Agent skills** — file-based skills (`create-page`, `page-authoring`, `apply-comments`, `create-theme`, `current-page`, and the official `shadcn` skill) that sync into workspaces; no MCP server required.
 
 ## CLI
 
@@ -39,10 +40,11 @@ Once installed, the `open-pages` bin is available in the workspace:
 
 ## Authoring
 
-A page is one folder under `pages/` with an `index.tsx` that default-exports a React component. Style with Tailwind via `className`; it is a real web page, so hooks, state, and browser APIs all work.
+A page is one folder under `pages/` with an `index.tsx` that default-exports a React component. Compose from the bundled shadcn components, style with Tailwind via `className`; it is a real web page, so hooks, state, and browser APIs all work.
 
 ```tsx
 import type { PageMeta } from '@autono/open-pages';
+import { Button } from '@/ui/button';
 
 export const meta: PageMeta = {
   title: 'Hello, open-pages',
@@ -51,9 +53,10 @@ export const meta: PageMeta = {
 
 export default function Page() {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-24">
+    <main className="min-h-screen bg-background px-6 py-24 text-foreground">
       <h1 className="text-5xl font-bold tracking-tight">Hello, open-pages</h1>
-      <p className="mt-4 text-lg text-slate-600">This is a real web page.</p>
+      <p className="mt-4 text-lg text-muted-foreground">This is a real web page.</p>
+      <Button className="mt-8">Get started</Button>
     </main>
   );
 }

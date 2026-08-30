@@ -30,7 +30,7 @@ Derive what you can with `useMemo` or plain expressions instead of mirroring sta
 
 ## Forms
 
-Forms work as normal React forms. Without a backend, handle `onSubmit`, `preventDefault`, and show the result in the page. If the page will post somewhere real (a form service, an API), put the URL in the page and use `fetch` in the handler; the export is a plain static site and will call it from the visitor's browser.
+Forms work as normal React forms; `@/ui/input`, `@/ui/label`, `@/ui/select`, and `@/ui/button` give you styled fields, and `@/ui/form` adds react-hook-form and zod validation (see [Components](/authoring/components#forms)). Without a backend, handle `onSubmit`, `preventDefault`, and show the result in the page. If the page will post somewhere real (a form service, an API), put the URL in the page and use `fetch` in the handler; the export is a plain static site and will call it from the visitor's browser.
 
 ```tsx
 const [sent, setSent] = useState(false);
@@ -62,7 +62,7 @@ A page may implement its own routing with `history.pushState` and `popstate`, or
 
 ## Things to avoid
 
-- **No new dependencies.** Only `react` and `react-dom` are installed. Chart libraries, icon packs, and animation libraries are out; inline SVG, CSS transitions, and hand-rolled components are in.
+- **No new dependencies.** What the shadcn set brings is installed: `lucide-react` for icons, `recharts` behind `@/ui/chart`, `sonner` for toasts, `date-fns` and `react-day-picker` behind `@/ui/calendar`, `react-hook-form` and `zod` behind `@/ui/form`. Anything else is out; use inline SVG, CSS transitions, and hand-rolled components, or `npx shadcn@latest add` for a registry item.
 - **No server code.** There is no server component, API route, or SSR. The page is static HTML plus client JS.
 - **No `Date.now()` or `Math.random()` in render.** Compute them in state or effects so re-renders stay stable.
 - **No blocking work in render.** Heavy computations go in `useMemo`.

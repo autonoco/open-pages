@@ -1,9 +1,9 @@
 import { ChevronDown, ChevronLeft } from 'lucide-react';
 import { Fragment, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useLocale } from '@/lib/use-locale';
-import { cn } from '@/lib/utils';
+import { Button } from '~/components/ui/button';
+import { useLocale } from '~/lib/use-locale';
+import { cn } from '~/lib/utils';
 import { frameUrl } from '../../lib/frame';
 import { PageThumb } from '../../lib/page-thumb';
 import { loadPage, pageKinds, pagesByTheme } from '../../lib/pages';
@@ -174,7 +174,7 @@ function ThemeDocCard({ id }: { id: string }) {
 
 const PROMPT_COLLAPSED_PX = 320;
 
-const HEX_RE = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b/g;
+const HEX_RE = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b|oklch\([^)]*\)/g;
 
 function renderBodyWithSwatches(body: string): ReactNode[] {
   const out: ReactNode[] = [];

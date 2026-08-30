@@ -36,7 +36,7 @@ npm create @autono/open-pages@latest [dir]
 
 What init does:
 
-1. Copies the workspace template into the target directory: `pages/`, `assets/`, `themes/`, `open-pages.config.ts`, an `AGENTS.md` agent guide (linked as `CLAUDE.md`), and the five bundled agent skills under `.agents/skills/` (symlinked into `.claude/skills/`).
+1. Copies the workspace template into the target directory: `pages/`, the shadcn set (`ui/`, `lib/`, `hooks/`, `styles/globals.css`, `components.json`), `assets/`, `themes/`, `open-pages.config.ts`, an `AGENTS.md` agent guide (linked as `CLAUDE.md`), and the six bundled agent skills under `.agents/skills/` (symlinked into `.claude/skills/`).
 2. Sets the package name, marks the package private, and sets `@autono/open-pages` to a caret range on the version the CLI was built against (`^x.y.z`).
 3. Writes a `.gitignore` covering `node_modules`, `dist`, `export`, and `.DS_Store`.
 4. Installs dependencies (unless `--no-install`) and creates a git repository with a first commit (unless `--no-git`). Git setup is skipped automatically when the target sits inside an existing repository.

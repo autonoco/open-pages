@@ -4,7 +4,7 @@ description: "The web page framework built for agents: pages are React component
 icon: "layout-template"
 ---
 
-open-pages is a web page framework where an AI coding agent does the authoring. Every page is a React component: HTML JSX styled with Tailwind through `className`, with hooks, state, event handlers, and browser APIs available. A page folder can hold a plain `index.html` instead when that fits better.
+open-pages is a web page framework where an AI coding agent does the authoring. Every page is a React component: HTML JSX composed from the shadcn/ui set that ships in every workspace, styled with Tailwind through `className`, with hooks, state, event handlers, and browser APIs available. A page folder can hold a plain `index.html` instead when that fits better.
 
 The preview is the page. The dev server runs each page as a real document in a browser frame, so what you see at `localhost:5173` is what `open-pages export` writes to disk. Same Vite pipeline, same React, same CSS.
 
@@ -22,6 +22,7 @@ A page is one folder under `pages/` with a kebab-case id. Its `index.tsx` defaul
 
 ```tsx pages/getting-started/index.tsx
 import type { PageMeta } from '@autono/open-pages';
+import { Button } from '@/ui/button';
 import { useState } from 'react';
 
 export const meta: PageMeta = {
@@ -33,35 +34,34 @@ export const meta: PageMeta = {
 export default function GettingStarted() {
   const [count, setCount] = useState(0);
   return (
-    <main className="mx-auto max-w-3xl px-6 py-24">
-      <h1 className="text-5xl font-bold tracking-tight">The web page framework built for agents</h1>
-      <p className="mt-6 text-lg text-slate-600">
-        This page is a React component. Your coding agent writes it, the workspace previews it
-        live, and the export is plain HTML, CSS, and JS.
-      </p>
-      <button
-        type="button"
-        onClick={() => setCount((c) => c + 1)}
-        className="mt-8 rounded-full bg-black px-5 py-2 text-white"
-      >
-        Clicked {count} times
-      </button>
+    <main className="min-h-screen bg-background text-foreground">
+      <section className="mx-auto max-w-3xl px-6 py-24">
+        <h1 className="text-5xl font-bold tracking-tight">The web page framework built for agents</h1>
+        <p className="mt-6 text-lg text-muted-foreground">
+          This page is a React component. Your coding agent writes it, the workspace previews it
+          live, and the export is plain HTML, CSS, and JS.
+        </p>
+        <Button className="mt-8" onClick={() => setCount((c) => c + 1)}>
+          Clicked {count} times
+        </Button>
+      </section>
     </main>
   );
 }
 ```
 
-Tailwind v4 is configured for you and scans `pages/` and `themes/`. Import `./styles.css` for custom CSS, `./assets/hero.png` for images, and `@assets/...` for files shared across pages.
+All 61 shadcn/ui components are already under `ui/`, imported as `@/ui/<name>`; `styles/globals.css` carries Tailwind v4 and the shadcn token theme. Import `./styles.css` for custom CSS, `./assets/hero.png` for images, and `@assets/...` for files shared across pages. See [Components](/authoring/components).
 
 ## Built for agents
 
-A scaffolded workspace ships five agent skills alongside an `AGENTS.md` guide, so the agent knows the file contract before it writes a line:
+A scaffolded workspace ships six agent skills alongside an `AGENTS.md` guide, so the agent knows the file contract before it writes a line:
 
 - `create-page` walks the agent through scoping, structure, and hand-off for a new page.
 - `page-authoring` is the technical reference: file contract, styling, layout and responsiveness, interactivity, assets and fonts.
 - `apply-comments` turns inspector comments into edits.
 - `current-page` resolves "this page" and "this element" from the dev server's cursor file.
-- `create-theme` extracts reusable themes as markdown under `themes/`.
+- `create-theme` authors themes under `themes/`: direction as markdown plus shadcn token overrides as CSS.
+- `shadcn`, the official shadcn/ui skill, for the CLI, registries, presets, and component docs.
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">

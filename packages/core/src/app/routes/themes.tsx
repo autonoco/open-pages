@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useLocale } from '@/lib/use-locale';
+import { useLocale } from '~/lib/use-locale';
 import { FolderIconChip } from '../components/sidebar/folder-item';
 import { ThemeDetail } from '../components/themes/theme-detail';
 import { ThemesGallery } from '../components/themes/themes-gallery';

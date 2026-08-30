@@ -8,13 +8,15 @@ import { walkJsx } from '../editing/babel-walk.ts';
 // page source files so the inspector can map a click straight to a
 // source location, sidestepping HMR-stale `_debugSource` on fibers.
 
-// Capitalized components that explicitly forward `data-op-loc` to a
-// host root, so the inspector can target them like a host element.
-const FORWARDING_COMPONENTS = new Set(['ImagePlaceholder']);
+// Components get tagged too: shadcn-style components spread their props onto
+// a host root, so the attribute lands in the DOM and a click on <Button>
+// resolves to the page line that rendered it. Components that drop unknown
+// props just lose the tag. React warns about props on Fragment, so skip it.
+const UNTAGGABLE_COMPONENTS = new Set(['Fragment', 'StrictMode', 'Suspense']);
 
 function isTaggableJsxName(name: t.JSXOpeningElement['name']): name is t.JSXIdentifier {
   if (!t.isJSXIdentifier(name)) return false;
-  return /^[a-z]/.test(name.name) || FORWARDING_COMPONENTS.has(name.name);
+  return !UNTAGGABLE_COMPONENTS.has(name.name);
 }
 
 function alreadyTagged(opening: t.JSXOpeningElement): boolean {

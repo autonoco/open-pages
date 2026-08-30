@@ -2,7 +2,7 @@ import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Button as ButtonPrimitive } from '@base-ui/react/button';
 
-import { cn } from '@/lib/utils';
+import { cn } from '~/lib/utils';
 
 /*
  * Editorial button. Tight square-ish radius, hairline borders instead of

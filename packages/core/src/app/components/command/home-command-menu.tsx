@@ -1,8 +1,8 @@
 import { Image as ImageIcon, Palette, Presentation } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLocale } from '@/lib/use-locale';
-import { usePageTitles } from '@/lib/use-page-titles';
+import { useLocale } from '~/lib/use-locale';
+import { usePageTitles } from '~/lib/use-page-titles';
 import { pageIds } from '../../lib/pages';
 import type { Folder } from '../../lib/sdk';
 import { FolderIconChip } from '../sidebar/folder-item';

@@ -25,7 +25,7 @@ icon: "rocket"
 
     Useful flags: `--name <name>` overrides the package name, `--force` scaffolds into a non-empty directory, `--no-install` skips dependency installation, `--no-git` skips git init. Run interactively without a directory argument and the CLI prompts for the target and package manager.
 
-    The workspace includes `AGENTS.md` (linked as `CLAUDE.md`) and five bundled agent skills: `create-page`, `page-authoring`, `apply-comments`, `current-page`, and `create-theme`.
+    The workspace includes `AGENTS.md` (linked as `CLAUDE.md`), the full shadcn/ui set under `ui/` with its token theme in `styles/globals.css`, and six bundled agent skills: `create-page`, `page-authoring`, `apply-comments`, `current-page`, `create-theme`, and `shadcn`.
   </Step>
 
   <Step title="Create a page with your agent">
@@ -35,7 +35,7 @@ icon: "rocket"
     /create-page a landing page for Meridian, an analytics tool for founders, with pricing
     ```
 
-    The skill asks a few scoping questions (page type and audience, visual direction, sections, interactivity), then writes `pages/<id>/index.tsx`: one React component styled with Tailwind via `className`.
+    The skill asks a few scoping questions (page type and audience, visual direction, sections, interactivity), then writes `pages/<id>/index.tsx`: one React component composed from `@/ui/*` and styled with Tailwind via `className`.
   </Step>
 
   <Step title="Start the live preview">
@@ -75,7 +75,7 @@ icon: "rocket"
 </Steps>
 
 <Note>
-  The agent never needs to touch `package.json` or `open-pages.config.ts`. Pages are self-contained under `pages/<id>/`, with per-page assets in `pages/<id>/assets/`.
+  The agent never needs to touch `package.json`, `open-pages.config.ts`, or `components.json`. Pages are self-contained under `pages/<id>/`, with per-page assets in `pages/<id>/assets/`; the shared `ui/`, `lib/`, and `hooks/` are read, not edited, per page.
 </Note>
 
 ## Next steps

@@ -7,7 +7,7 @@
 [![CI](https://github.com/autonoco/open-pages/actions/workflows/ci.yml/badge.svg)](https://github.com/autonoco/open-pages/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Your coding agent writes web pages as React components (or plain HTML). The dev server previews each page live in a real browser frame on every save. Click any element to see its source line and leave a comment; the agent applies it and the page hot-reloads. Export any page as a self-contained static folder and deploy it anywhere.
+Your coding agent writes web pages as React components (or plain HTML), composing from the full shadcn/ui set that ships in every workspace. The dev server previews each page live in a real browser frame on every save. Click any element to see its source line and leave a comment; the agent applies it and the page hot-reloads. Export any page as a self-contained static folder and deploy it anywhere.
 
 [openpages.sh](https://openpages.sh) · [Documentation](https://docs.openpages.sh) · [Quickstart](https://docs.openpages.sh/quickstart) · [Discussions](https://github.com/autonoco/open-pages/discussions)
 
@@ -35,15 +35,19 @@ Requires Node.js 18+.
 - **A preview that is the page.** Each page runs as a real document in an iframe: real DOM, real CSS, real interactivity. No approximation.
 - **Click-to-source inspector.** Every element knows its exact source line. Comments persist in the source, ready for an agent.
 - **React or HTML.** A page is `pages/<id>/index.tsx` (React 18) or `pages/<id>/index.html` with sibling CSS and JS. Tailwind v4 via `className` works out of the box.
+- **shadcn/ui, already installed.** All 61 components live under `ui/` with `lib/utils.ts`, `hooks/`, and a `styles/globals.css` token theme. `import { Button } from '@/ui/button'` and go; no `add` step. `components.json` is in place for blocks and other registries.
+- **Themes are tokens.** `themes/<id>.css` overrides the shadcn variables; a page sets `meta.theme` and every component restyles.
 - **Responsive by default.** Desktop, tablet (820px), and mobile (390px) viewport toggles in the viewer.
 - **Static export.** `open-pages export` builds each page into `export/<id>/` with hashed assets and relative URLs. Deploy the folder anywhere.
-- **Agent-native.** File-based skills (`create-page`, `page-authoring`, `apply-comments`, `create-theme`, `current-page`) sync into the workspace. No MCP server. Works with Claude Code, Cursor, Codex, Gemini CLI, OpenCode, Windsurf, Zed, and anything else that reads `AGENTS.md`.
-- **Nothing to configure.** Vite, React, TypeScript, and Tailwind live inside the runtime. A workspace is `pages/`, an optional `open-pages.config.ts`, and your agent skills.
+- **Agent-native.** File-based skills (`create-page`, `page-authoring`, `apply-comments`, `create-theme`, `current-page`, plus the official `shadcn` skill) sync into the workspace. No MCP server. Works with Claude Code, Cursor, Codex, Gemini CLI, OpenCode, Windsurf, Zed, and anything else that reads `AGENTS.md`.
+- **Nothing to configure.** Vite, React, and TypeScript live inside the runtime. A workspace is `pages/`, the shadcn set (`ui/`, `lib/`, `hooks/`, `styles/`, `components.json`), an optional `open-pages.config.ts`, and your agent skills.
 
 ## A page
 
 ```tsx
 import type { PageMeta } from '@autono/open-pages';
+import { Button } from '@/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card';
 import { useState } from 'react';
 
 export const meta: PageMeta = {
@@ -55,22 +59,24 @@ export const meta: PageMeta = {
 export default function Page() {
   const [count, setCount] = useState(0);
   return (
-    <main className="mx-auto max-w-2xl px-6 py-24">
-      <h1 className="text-5xl font-bold tracking-tight">Hello, open-pages</h1>
-      <p className="mt-4 text-lg text-slate-600">This is a real web page.</p>
-      <button
-        type="button"
-        onClick={() => setCount((c) => c + 1)}
-        className="mt-8 rounded-full bg-black px-5 py-2 text-white"
-      >
-        Clicked {count} times
-      </button>
+    <main className="min-h-screen bg-background px-6 py-24 text-foreground">
+      <Card className="mx-auto max-w-2xl">
+        <CardHeader>
+          <CardTitle className="text-4xl tracking-tight">Hello, open-pages</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-lg text-muted-foreground">This is a real web page.</p>
+          <Button className="mt-8" onClick={() => setCount((c) => c + 1)}>
+            Clicked {count} times
+          </Button>
+        </CardContent>
+      </Card>
     </main>
   );
 }
 ```
 
-Style with Tailwind classes via `className`, import `./styles.css` for anything custom, and put images and fonts under `pages/<id>/assets/`. See [Authoring](https://docs.openpages.sh/authoring/pages) for the file contract, styling, interactivity, assets, and themes.
+Compose from `@/ui/*` and the semantic token classes (`bg-background`, `text-muted-foreground`, `bg-primary`), add Tailwind utilities via `className`, import `./styles.css` for anything custom, and put images and fonts under `pages/<id>/assets/`. See [Authoring](https://docs.openpages.sh/authoring/pages) for the file contract, styling, interactivity, assets, and themes.
 
 ## CLI
 

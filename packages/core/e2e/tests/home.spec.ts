@@ -4,11 +4,18 @@ import { pageFrame } from './helpers.ts';
 test.describe('home page browser', () => {
   test('lists every fixture page with its display title and a live thumbnail', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('li h3')).toHaveCount(5);
-    for (const title of ['Alpha Page', 'Pricing Page', 'Edit Target', 'Hot Page', 'Plain HTML']) {
+    await expect(page.locator('li h3')).toHaveCount(6);
+    for (const title of [
+      'Alpha Page',
+      'Pricing Page',
+      'Edit Target',
+      'Hot Page',
+      'Plain HTML',
+      'Shadcn Page',
+    ]) {
       await expect(page.getByText(title, { exact: true })).toBeVisible();
     }
-    await expect(page.locator('li iframe')).toHaveCount(5);
+    await expect(page.locator('li iframe')).toHaveCount(6);
     const thumb = page.locator('li iframe').first();
     await expect(thumb).toHaveAttribute('src', /frame\.html\?page=/);
     await expect(
@@ -33,12 +40,12 @@ test.describe('home page browser', () => {
     await search.fill('zzz-no-match');
     await expect(page.getByText('No matches')).toBeVisible();
     await page.getByRole('button', { name: 'Clear search' }).first().click();
-    await expect(page.locator('li h3')).toHaveCount(5);
+    await expect(page.locator('li h3')).toHaveCount(6);
   });
 
   test('sort control reorders pages by created date', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('li h3').first()).toHaveText('Alpha Page');
+    await expect(page.locator('li h3').first()).toHaveText('Shadcn Page');
     await page.getByRole('button', { name: /^Sort:/ }).click();
     await page.getByRole('menuitem', { name: 'Oldest' }).click();
     // The html page has no createdAt and sorts before every dated page.

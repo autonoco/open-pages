@@ -6,9 +6,9 @@ icon: "bot"
 
 open-pages' agent integration is entirely file-based. There is no MCP server, no plugin, no SDK to wire up. A scaffolded workspace ships skills as markdown, instructions as `AGENTS.md`, and live state as a JSON file. Any agent that can read and write files works: Claude Code, Cursor, Codex, Gemini CLI, OpenCode, Windsurf, Zed, or anything else.
 
-## The five skills
+## The six skills
 
-`npm create @autono/open-pages@latest` installs five skills into `.agents/skills/` and symlinks each into `.claude/skills/`, so Claude Code picks them up natively while other agents read them from the neutral `.agents/` location.
+`npm create @autono/open-pages@latest` installs six skills into `.agents/skills/` and symlinks each into `.claude/skills/`, so Claude Code picks them up natively while other agents read them from the neutral `.agents/` location.
 
 | Skill | Owns |
 | --- | --- |
@@ -16,11 +16,12 @@ open-pages' agent integration is entirely file-based. There is no MCP server, no
 | `page-authoring` | The technical reference: file contract, Tailwind styling, layout and responsiveness, interactivity, assets and fonts, HTML pages, self-review. `create-page` and `apply-comments` defer to it for the how. |
 | `apply-comments` | Processing `@page-comment` markers left by the [inspector](/inspector): find markers, apply the described edits, delete the markers. |
 | `current-page` | Resolving deictic references. When the user says "this page" or "this element" without naming one, this skill reads the agent cursor to find what they mean. |
-| `create-theme` | Authoring a theme bundle under `themes/`: a `<id>.md` spec (palette, typography, layout, fixed components) plus a runnable `<id>.demo.tsx`. |
+| `create-theme` | Authoring a theme bundle under `themes/`: a `<id>.md` spec, a `<id>.css` with shadcn token overrides, and a runnable `<id>.demo.tsx`. |
+| `shadcn` | The official shadcn/ui skill, vendored: CLI (`search`, `view`, `docs`, `add`, `apply`), registries, presets, theming, and composition rules. The workspace's `components.json` is what activates it. |
 
 ## AGENTS.md and CLAUDE.md
 
-The workspace root carries `AGENTS.md` and an identical `CLAUDE.md`. They are deliberately short: the hard rules (pages live at `pages/<kebab-id>/index.tsx`, do not touch `package.json` or `open-pages.config.ts`, no new dependencies) plus a routing table that points each kind of task at the right skill. Everything deeper lives in the skills, so the always-loaded context stays small.
+The workspace root carries `AGENTS.md` and an identical `CLAUDE.md`. They are deliberately short: the hard rules (pages live at `pages/<kebab-id>/index.tsx`, compose from `@/ui/*` first, do not edit `ui/` for one page, do not touch `package.json`, `open-pages.config.ts`, or `components.json`, no new dependencies) plus a routing table that points each kind of task at the right skill. Everything deeper lives in the skills, so the always-loaded context stays small.
 
 ## Keeping skills in sync
 

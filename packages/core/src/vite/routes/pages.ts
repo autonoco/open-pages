@@ -10,6 +10,7 @@ import {
 } from '../../editing/page-ops.ts';
 import { readManifest, writeManifest } from '../../files/folders.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
+import { invalidatePagesModule } from '../open-pages-plugin.ts';
 import { type ApiContext, json, readBody } from './context.ts';
 
 // POST   /__pages/:id/duplicate          duplicate page directory { newId? }
@@ -48,6 +49,7 @@ export function registerPageRoutes(server: ViteDevServer, ctx: ApiContext): void
           manifest.assignments[duplicated.pageId] = folderId;
           await writeManifest(ctx.manifestPath, manifest);
         }
+        invalidatePagesModule(server);
         return json(res, 200, { ok: true, pageId: duplicated.pageId });
       }
 
@@ -102,6 +104,7 @@ export function registerPageRoutes(server: ViteDevServer, ctx: ApiContext): void
         const manifest = await readManifest(ctx.manifestPath);
         delete manifest.assignments[pageId];
         await writeManifest(ctx.manifestPath, manifest);
+        invalidatePagesModule(server);
         return json(res, 200, { ok: true });
       }
 

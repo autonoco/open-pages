@@ -39,6 +39,7 @@ test.describe('open-pages cli', () => {
       'create-theme',
       'current-page',
       'page-authoring',
+      'shadcn',
     ];
     const agents = await fs.readdir(path.join(projectDir, '.agents', 'skills'));
     expect(agents.sort()).toEqual(expected);

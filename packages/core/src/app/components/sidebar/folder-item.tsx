@@ -5,11 +5,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import type { Folder, FolderIcon } from '@/lib/sdk';
-import { useLocale } from '@/lib/use-locale';
-import { cn } from '@/lib/utils';
+} from '~/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
+import type { Folder, FolderIcon } from '~/lib/sdk';
+import { useLocale } from '~/lib/use-locale';
+import { cn } from '~/lib/utils';
 import { IconPicker } from './icon-picker';
 
 export const DOC_DND_MIME = 'application/x-page-id';

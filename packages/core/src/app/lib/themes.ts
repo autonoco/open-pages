@@ -8,6 +8,7 @@ export type Theme = {
   description: string;
   body: string;
   hasDemo: boolean;
+  hasCss: boolean;
 };
 
 export type ThemeDemoModule = {

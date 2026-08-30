@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button, buttonVariants } from '~/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -30,23 +30,23 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '~/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '~/components/ui/dropdown-menu';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+} from '~/components/ui/select';
+import { Slider } from '~/components/ui/slider';
+import { Tabs, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { ToggleGroup, ToggleGroupItem } from '~/components/ui/toggle-group';
 import {
   type AssetSortDirection,
   type AssetSortKey,
@@ -55,7 +55,7 @@ import {
   type AssetUsageFilter,
   filterAssets,
   sortAssets,
-} from '@/lib/asset-filter';
+} from '~/lib/asset-filter';
 import {
   type AssetEntry,
   type AssetUsage,
@@ -66,9 +66,9 @@ import {
   type SvglItem,
   searchSvgl,
   useAssets,
-} from '@/lib/assets';
-import { format, useLocale } from '@/lib/use-locale';
-import { cn } from '@/lib/utils';
+} from '~/lib/assets';
+import { format, useLocale } from '~/lib/use-locale';
+import { cn } from '~/lib/utils';
 
 type Props = { pageId: string | null };
 

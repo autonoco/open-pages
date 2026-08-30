@@ -1,6 +1,6 @@
 # @autono/create-open-pages
 
-Scaffold a workspace for [open-pages](https://openpages.sh) — the web page framework built for agents. Your coding agent writes pages as React components or plain HTML; you get a live browser preview, click-to-comment, and static export to any host.
+Scaffold a workspace for [open-pages](https://openpages.sh) — the web page framework built for agents. Your coding agent writes pages as React components or plain HTML, with the full shadcn/ui set already installed; you get a live browser preview, click-to-comment, and static export to any host.
 
 ## Usage
 
@@ -13,12 +13,15 @@ npm run dev
 This creates a workspace containing:
 
 - `pages/getting-started/` — a starter page you can edit or delete.
+- `ui/` — all 61 shadcn/ui components, plus `lib/utils.ts` (`cn`) and `hooks/use-mobile.ts`. Pages import `@/ui/button` and friends; nothing to `add`.
+- `styles/globals.css` — Tailwind v4 entry with the shadcn token theme (`:root` / `.dark`). The runtime uses it for preview and export.
+- `components.json` — shadcn config (new-york, radix, `@/ui` aliases) so `npx shadcn@latest add` works for blocks and other registries, and the bundled `shadcn` skill activates.
 - `package.json` — depends on `@autono/open-pages`, which provides the runtime (viewer, inspector, export) and the `open-pages` CLI.
 - `open-pages.config.ts` — optional typed config (pagesDir, port, base).
-- `.claude/skills/` and `.agents/skills/` — agent skills (`create-page`, `page-authoring`, `apply-comments`, `create-theme`, `current-page`).
+- `.claude/skills/` and `.agents/skills/` — agent skills (`create-page`, `page-authoring`, `apply-comments`, `create-theme`, `current-page`, `shadcn`).
 - `AGENTS.md` (linked as `CLAUDE.md`) — agent guide for authoring pages.
 
-You won't see any Vite, React, Tailwind, or tsconfig files in the workspace. They live inside `@autono/open-pages` and you never touch them.
+You won't see any Vite or React config in the workspace. That lives inside `@autono/open-pages`. The shadcn components are yours: real source files under `ui/`, editable like any shadcn project.
 
 ## Flags
 

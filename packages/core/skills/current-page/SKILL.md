@@ -49,7 +49,7 @@ Path is relative to the project root (the user's `cwd`, the directory that conta
 - `view` — `"pages"` when the user is viewing the page, `"assets"` when they are browsing that page's files in the asset manager rather than the page itself.
 - `selection` — `null` if nothing is selected. Otherwise, the JSX element the user picked in the inspector:
   - `line` (1-indexed) and `column` (0-indexed) point to the JSX opening tag in the page source. This is the canonical handle — match against the source line.
-  - `tagName` is the rendered HTML tag, lowercased (`"h1"`, `"div"`, `"button"`).
+  - `tagName` is the rendered HTML tag, lowercased (`"h1"`, `"div"`, `"button"`). The source line it points at may be a shadcn component rather than that tag — a `"button"` selection usually lands on a `<Button>` line in the page, because `ui/` components spread the inspector tag onto their root. Edit the page line; never follow it into `ui/*.tsx`.
   - `text` is a trimmed text snippet (≤120 chars) of the element's content — a sanity check that you're looking at the right node.
   - Selection auto-clears whenever the user navigates to a different page or clears it in the viewer. HTML pages never produce a selection.
 - `updatedAt` — ISO timestamp of the last navigation or selection change. Use it to detect staleness.

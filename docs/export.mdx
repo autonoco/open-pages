@@ -46,7 +46,7 @@ export/launch/
 ```
 
 - **`index.html`** with the page's `meta.title` as `<title>` and `meta.description` as the description meta tag, mounting the React component.
-- **Hashed JS and CSS** with only the Tailwind utilities the page actually uses.
+- **Hashed JS and CSS.** JS is tree-shaken to the components the page imports. CSS comes from `styles/globals.css`, so it covers the whole `ui/` set; a typical shadcn page lands around 200 KB of JS and 140 KB of CSS uncompressed, a fraction of that gzipped.
 - **Relative URLs.** Every reference is `./assets/...`, so the folder works from a domain root, a subpath, or `file://`.
 - **No inspector instrumentation.** The `data-op-loc` attributes that power click-to-source exist only in dev.
 

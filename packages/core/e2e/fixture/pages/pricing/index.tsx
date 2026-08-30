@@ -1,5 +1,6 @@
 import type { PageMeta } from '@autono/open-pages';
 import { useState } from 'react';
+import { Button } from '@/ui/button';
 
 export const meta: PageMeta = {
   title: 'Pricing Page',
@@ -17,6 +18,7 @@ export default function Pricing() {
   return (
     <main className="min-h-screen bg-white px-8 py-16 text-slate-800">
       <h1 className="text-4xl font-bold">Pricing headline</h1>
+      <Button className="mt-4">Default primary</Button>
       <button
         type="button"
         onClick={() => setYearly((v) => !v)}

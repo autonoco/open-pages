@@ -4,11 +4,27 @@ description: "Tailwind via className, custom CSS, layout, and responsive design.
 icon: "palette"
 ---
 
-Pages are styled the way web pages are styled. Tailwind v4 is configured by the runtime, custom CSS is a file import away, and inline `style` works for the odd one-off.
+Pages are styled the way shadcn projects are styled. `styles/globals.css` is the Tailwind v4 entry and carries the shadcn token theme, the components under `ui/` are written against those tokens, custom CSS is a file import away, and inline `style` works for the odd one-off.
+
+## Tokens first
+
+`styles/globals.css` defines the shadcn tokens in `:root` and `.dark` (OKLCH colors, `--radius`) and exposes them as utilities through `@theme inline`. Build your own markup from them the way the components do:
+
+```tsx
+<main className="min-h-screen bg-background text-foreground">
+  <section className="mx-auto max-w-6xl px-6 py-20">
+    <h2 className="text-3xl font-bold tracking-tight">Pricing</h2>
+    <p className="mt-4 max-w-xl text-lg text-muted-foreground">Simple plans that grow with you.</p>
+    <div className="mt-8 rounded-lg border border-border bg-card p-6 text-card-foreground">…</div>
+  </section>
+</main>
+```
+
+A page written this way restyles completely when a [theme](/authoring/themes) swaps the variables. The token list and the components that consume them are in [Components](/authoring/components).
 
 ## Tailwind via `className`
 
-The runtime generates a Tailwind stylesheet that scans `pages/` and `themes/`. Any utility you use in a `className` shows up in the preview and the export; nothing else does.
+`styles/globals.css` scans `pages/`, `ui/`, `lib/`, `hooks/`, and `themes/` (explicit `@source` lines). Any utility you use in a `className` shows up in the preview and the export.
 
 ```tsx
 <section className="mx-auto max-w-6xl px-6 py-20">
@@ -21,6 +37,7 @@ The runtime generates a Tailwind stylesheet that scans `pages/` and `themes/`. A
 - Responsive variants work: `sm:`, `md:`, `lg:`, `xl:`. Tailwind is mobile-first, so unprefixed utilities apply at every width and prefixed ones kick in at that breakpoint and up.
 - State variants work: `hover:`, `focus-visible:`, `disabled:`, `aria-pressed:`, `dark:`.
 - Tailwind's preflight reset applies, so headings and lists start unstyled. Set your own type scale.
+- Raw palette classes (`bg-slate-900`, `text-indigo-600`) work but ignore themes. Prefer token classes; keep raw colors for deliberate one-offs.
 
 ## Custom CSS
 
@@ -76,20 +93,20 @@ Web defaults, not print:
 | Small print, captions | 12 to 14px |
 
 - Line-height 1.1 to 1.2 for headlines (`leading-tight`), 1.5 to 1.7 for body (`leading-relaxed`).
-- One page, one palette: a background, a text color, a muted text color, one accent. Dark pages read well with `text-white/60` style opacity steps for hierarchy.
+- One page, one palette: `bg-background`, `text-foreground`, `text-muted-foreground`, `bg-primary`. The tokens already encode this; a theme changes the values, not the classes.
 - Check contrast. Muted text on dark backgrounds needs at least `white/60`.
 
 ## Dark mode
 
-Pages decide their own appearance. A dark landing page just uses dark colors. If you want to follow the visitor's preference, use `dark:` variants; Tailwind's default `dark:` follows `prefers-color-scheme`.
+Dark mode is a class: `@custom-variant dark (&:is(.dark *))` in `styles/globals.css`. Put `dark` on the page root (`<main className="dark min-h-screen bg-background text-foreground">`) and every token and component switches to its `.dark` values. To follow the visitor's preference, toggle the class from a `matchMedia` effect or use `next-themes` (installed).
 
 ## Next
 
 <CardGroup cols={2}>
-  <Card title="Assets and fonts" href="/authoring/assets-and-fonts">
-    Images, self-hosted fonts, and Google Fonts.
+  <Card title="Components" href="/authoring/components">
+    The shadcn/ui set under ui/, tokens, forms, and toasts.
   </Card>
   <Card title="Themes" href="/authoring/themes">
-    Reusable palettes and components under themes/.
+    Token overrides under themes/, applied per page.
   </Card>
 </CardGroup>

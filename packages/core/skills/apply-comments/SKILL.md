@@ -9,7 +9,7 @@ The open-pages viewer has an inspector that lets the user click any element on t
 
 Your job: read those markers, perform the described edits, and delete the markers.
 
-> **Before making any page edit**, consult the **`page-authoring`** skill — it is the technical reference for how a page is structured (file contract, `className` styling, layout and responsive rules, type scale, interactivity). A comment like *"make this bigger"* or *"change the accent colour"* should be applied in a way that stays consistent with those rules and still works on mobile.
+> **Before making any page edit**, consult the **`page-authoring`** skill (and the **`shadcn`** skill for component props and variants) — it is the technical reference for how a page is structured (file contract, `className` styling, layout and responsive rules, type scale, interactivity). A comment like *"make this bigger"* or *"change the accent colour"* should be applied in a way that stays consistent with those rules and still works on mobile.
 
 ## Marker format
 
@@ -38,8 +38,8 @@ Your job: read those markers, perform the described edits, and delete the marker
    - If there are no markers, tell the user and stop.
 
 3. **Understand each comment in context.**
-   - The targeted JSX element is the **enclosing** element of the marker — i.e. read upward from the marker line until you reach the unclosed JSX opening tag whose body the marker lives in. That element is the target. (For self-closing elements like `<img />`, the inspector hoists the marker to the nearest non-self-closing ancestor; in that case the comment usually refers to a child of the enclosing element rather than the enclosing element itself — use the `note` text to disambiguate.)
-   - Read enough surrounding code (parent element, sibling elements, `className` strings, any state the element depends on) to apply the change faithfully. A comment inside a `<button>` with an `onClick` may be about behaviour, not looks.
+   - The targeted JSX element is the **enclosing** element of the marker — i.e. read upward from the marker line until you reach the unclosed JSX opening tag whose body the marker lives in. That element is the target. It is often a shadcn component (`<Button>`, `<Card>`, `<TabsTrigger>`): the inspector tags components too, so a click on the rendered button lands on the `<Button>` line in the page, never inside `ui/*.tsx`. (For self-closing elements like `<img />`, the inspector hoists the marker to the nearest non-self-closing ancestor; in that case the comment usually refers to a child of the enclosing element rather than the enclosing element itself — use the `note` text to disambiguate.)
+   - Read enough surrounding code (parent element, sibling elements, `className` strings, any state the element depends on) to apply the change faithfully. A comment inside a `<Button>` with an `onClick` may be about behaviour, not looks. Apply look changes with the component's variants and semantic tokens (`variant="outline"`, `bg-muted`), not raw colors; if the comment really wants a different palette across the page, say so — that is a theme change, not a page edit.
    - If the marker sits inside a `.map` body, the comment applies to the row template — every rendered row changes. If the user clearly meant one item ("make the *middle* one green"), change the data or add a per-item field rather than special-casing the JSX.
    - If the `note` is ambiguous, do the smallest reasonable interpretation and mention the assumption in your summary.
 
@@ -81,6 +81,6 @@ You can run this inline via `node -e '...'` if you need to inspect a payload; ot
 
 ## Do not
 
-- Do not touch `package.json`, `open-pages.config.ts`, or files outside `pages/`.
+- Do not touch `package.json`, `open-pages.config.ts`, `ui/`, `lib/`, `hooks/`, `styles/globals.css`, or any file outside `pages/`. A comment that asks to change a shared component ("make all buttons rounder") is applied by wrapping in the page, or flagged as a theme/`ui/` change for the user to decide.
 - Do not add dependencies.
 - Do not re-introduce markers or leave `TODO` breadcrumbs — the user already has a record in git.
