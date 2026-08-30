@@ -185,6 +185,7 @@ open-pages update
 | --- | --- |
 | `--force` | Reinstall even if the workspace is already on the latest version. |
 | `--no-skills` | Skip the skills sync after installing. |
+| `--no-ui` | Skip the UI sync after installing. |
 
 `update` checks npm's `latest` tag against the installed version and exits early if there is nothing to do. Otherwise it runs your package manager's install command (`npm install @autono/open-pages@latest`, or the `pnpm` / `yarn` / `bun` equivalent, detected from the lockfile), then `open-pages sync:skills` and `open-pages sync:ui` from the freshly installed package (skip with `--no-skills` / `--no-ui`). If `sync:ui` added workspace dependencies, `update` runs the install once more. Your `pages/`, `open-pages.config.ts`, and every file you have edited are untouched.
 
