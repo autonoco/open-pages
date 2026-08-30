@@ -45,7 +45,7 @@ export default function Signup() {
 }
 ```
 
-The full list: accordion, alert, alert-dialog, aspect-ratio, attachment, avatar, badge, breadcrumb, bubble, button, button-group, calendar, card, carousel, chart, checkbox, collapsible, combobox, command, context-menu, dialog, direction, drawer, dropdown-menu, empty, field, form, hover-card, input, input-group, input-otp, item, kbd, label, marker, menubar, message, message-scroller, native-select, navigation-menu, pagination, popover, progress, radio-group, resizable, scroll-area, select, separator, sheet, sidebar, skeleton, slider, sonner, spinner, switch, table, tabs, textarea, toggle, toggle-group, tooltip. Their dependencies (radix-ui, lucide-react, cmdk, sonner, vaul, recharts, react-day-picker, react-hook-form, zod, and friends) are preinstalled.
+The full list: accordion, alert, alert-dialog, aspect-ratio, attachment, avatar, badge, breadcrumb, bubble, button, button-group, calendar, card, carousel, chart, checkbox, collapsible, combobox, command, context-menu, dialog, direction, drawer, dropdown-menu, empty, field, field, hover-card, input, input-group, input-otp, item, kbd, label, marker, menubar, message, message-scroller, native-select, navigation-menu, pagination, popover, progress, radio-group, resizable, scroll-area, select, separator, sheet, sidebar, skeleton, slider, sonner, spinner, switch, table, tabs, textarea, toggle, toggle-group, tooltip. Their dependencies (radix-ui, lucide-react, cmdk, sonner, vaul, recharts, react-day-picker, and friends) are preinstalled.
 
 `npx shadcn@latest docs button --json` prints a component's usage from the registry when you need the props.
 
@@ -78,44 +78,27 @@ Every component inside picks up the `.dark` token values. To follow the visitor'
 
 ## Forms
 
-`@/ui/form` wraps react-hook-form and zod, both installed:
+Forms are native React forms presented with `@/ui/field`:
 
 ```tsx
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { Button } from '@/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/ui/form';
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/ui/field';
 import { Input } from '@/ui/input';
 
-const schema = z.object({ email: z.string().email() });
-
-export default function Waitlist() {
-  const form = useForm<z.infer<typeof schema>>({ resolver: zodResolver(schema) });
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit((values) => console.log(values))} className="flex gap-2">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="sr-only">Email</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="you@company.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit">Join</Button>
-      </form>
-    </Form>
-  );
-}
+<form onSubmit={handleSubmit}>
+  <FieldGroup>
+    <Field>
+      <FieldLabel htmlFor="email">Work email</FieldLabel>
+      <Input id="email" type="email" required />
+      <FieldDescription>We never share it.</FieldDescription>
+      {error && <FieldError>{error}</FieldError>}
+    </Field>
+    <Button type="submit">Create account</Button>
+  </FieldGroup>
+</form>
 ```
 
-For a simple form, plain `Input` + `Label` + `Button` with `onSubmit` is fine; reach for `form` when you want validation messages.
+For a simple form, plain `Input` + `Label` + `Button` with `onSubmit` is fine; reach for `field` when you want labels, descriptions, and validation messages.
 
 ## Toasts
 

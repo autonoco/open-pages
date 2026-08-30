@@ -35,32 +35,24 @@ const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
 
 Simple forms: `<form onSubmit>` with `@/ui/field`, `@/ui/input`, `@/ui/label`,
 `@/ui/select`, `@/ui/checkbox`, `@/ui/textarea`, `@/ui/button`. Validated
-forms: `react-hook-form` + `zod` through `@/ui/form`:
+forms: native form state (or your own) presented with `@/ui/field`:
 
 ```tsx
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { Button } from '@/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/ui/form';
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/ui/field';
 import { Input } from '@/ui/input';
 
-const schema = z.object({ email: z.string().email('Enter a valid work email') });
-
-const form = useForm<z.infer<typeof schema>>({ resolver: zodResolver(schema), defaultValues: { email: '' } });
-
-<Form {...form}>
-  <form onSubmit={form.handleSubmit((values) => setSubmitted(values))} className="flex flex-col gap-4">
-    <FormField control={form.control} name="email" render={({ field }) => (
-      <FormItem>
-        <FormLabel>Work email</FormLabel>
-        <FormControl><Input type="email" autoComplete="email" {...field} /></FormControl>
-        <FormMessage />
-      </FormItem>
-    )} />
-    <Button type="submit">Join the waitlist</Button>
-  </form>
-</Form>
+<form onSubmit={handleSubmit}>
+  <FieldGroup>
+    <Field>
+      <FieldLabel htmlFor="email">Work email</FieldLabel>
+      <Input id="email" type="email" required />
+      <FieldDescription>We never share it.</FieldDescription>
+      {error && <FieldError>{error}</FieldError>}
+    </Field>
+    <Button type="submit">Create account</Button>
+  </FieldGroup>
+</form>
 ```
 
 - Every input has a label (`<Label htmlFor>` or `<FormLabel>`), a `name`, and
