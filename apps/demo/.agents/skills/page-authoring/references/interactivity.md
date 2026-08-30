@@ -46,7 +46,7 @@ import { Input } from '@/ui/input';
   <FieldGroup>
     <Field>
       <FieldLabel htmlFor="email">Work email</FieldLabel>
-      <Input id="email" type="email" required />
+      <Input id="email" name="email" type="email" required />
       <FieldDescription>We never share it.</FieldDescription>
       {error && <FieldError>{error}</FieldError>}
     </Field>

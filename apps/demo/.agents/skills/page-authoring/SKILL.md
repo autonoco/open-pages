@@ -25,7 +25,7 @@ Every workspace is a shadcn/ui project out of the box. Nothing needs installing:
 | `lib/utils.ts` | `cn()` for merging class names. Import as `@/lib/utils`. |
 | `hooks/use-mobile.ts` | `useIsMobile()` breakpoint hook. Import as `@/hooks/use-mobile`. |
 | `styles/globals.css` | Tailwind v4 entry: `@source` for `pages/ ui/ lib/ hooks/ themes/`, the `dark` variant, `:root`/`.dark` OKLCH tokens, `@theme inline`, base layer. Loaded into every page automatically. |
-| `components.json` | shadcn config (style `new-york`, base `radix`, aliases `@/ui`, `@/lib/utils`, `@/hooks`, `@/components`). Activates the `shadcn` skill and CLI lookups. |
+| `components.json` | shadcn config (style `radix-nova`, aliases `@/ui`, `@/lib/utils`, `@/hooks`, `@/components`). Activates the `shadcn` skill and CLI lookups. |
 | `themes/<id>.css` | Optional token overrides a page opts into with `meta.theme` (see Themes). |
 
 Installed deps you may import directly: `lucide-react` (icons), `radix-ui`, `class-variance-authority`, `clsx`, `tailwind-merge`, `cmdk`, `sonner`, `vaul`, `recharts`, `react-day-picker`, `date-fns`, `input-otp`, `embla-carousel-react`, `react-resizable-panels`, `next-themes`. Nothing else.
