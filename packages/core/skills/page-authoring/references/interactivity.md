@@ -1,6 +1,6 @@
 # Interactivity
 
-Pages are real React 18 components running in the browser, wrapped in
+Pages are real React 19 components running in the browser, wrapped in
 `StrictMode`. Everything React can do is available; the constraints below
 keep pages preview-safe, export-safe, and inspectable. Interactive UI comes
 from `ui/` first — `Tabs`, `Accordion`, `Dialog`, `Sheet`, `Drawer`,

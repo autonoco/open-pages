@@ -292,6 +292,8 @@ export function openPagesPlugin(opts: OpenPagesPluginOptions): Plugin {
 
   let isDev = false;
   let cssFile = '';
+  let generatedSignature = '';
+  const signatureOf = (entries: PageEntry[]) => entries.map((e) => `${e.id}:${e.kind}`).join(',');
 
   const pageIdForEntry = (p: string): { id: string; kind: PageKind } | null => {
     const rel = path.relative(pagesRoot, p);
@@ -346,6 +348,7 @@ export function openPagesPlugin(opts: OpenPagesPluginOptions): Plugin {
     async load(id) {
       if (id === resolved(PAGES_VMOD)) {
         const entries = await findPages(userCwd, pagesDir);
+        generatedSignature = signatureOf(entries);
         const { code, ignored } = await generatePagesModule(entries, isDev);
         for (const pageId of ignored) {
           if (warnedInvalidPageIds.has(pageId)) continue;
@@ -384,11 +387,17 @@ export function openPagesPlugin(opts: OpenPagesPluginOptions): Plugin {
       return [];
     },
     configureServer(server) {
+      // The dev API already reloads clients when it adds or removes a page,
+      // and the watcher then reports the same files a beat later. Reload only
+      // when the page set differs from what the module was last generated
+      // from, so one mutation is one reload.
       let reloadTimer: ReturnType<typeof setTimeout> | null = null;
       const reload = () => {
         if (reloadTimer) clearTimeout(reloadTimer);
-        reloadTimer = setTimeout(() => {
+        reloadTimer = setTimeout(async () => {
           reloadTimer = null;
+          const entries = await findPages(userCwd, pagesDir);
+          if (signatureOf(entries) === generatedSignature) return;
           invalidatePagesModule(server);
         }, 150);
       };

@@ -18,7 +18,7 @@ hooks/             # shared: use-mobile
 styles/globals.css # shared: Tailwind v4 entry + shadcn tokens
 ```
 
-A page is a real web page rendered by React 18 in a real browser document. Hooks, state, event handlers, client-side routing, `fetch`, and browser APIs all work. Imports available: `react`, `react-dom`, `@autono/open-pages` (types), everything under `@/ui`, `@/lib`, and `@/hooks`, and the libraries those components bring (radix-ui, lucide-react, sonner, recharts, react-hook-form, zod, date-fns, and friends). The shared directories are read by pages, not edited per page: wrap a component in the page rather than changing `ui/`.
+A page is a real web page rendered by React 19 in a real browser document. Hooks, state, event handlers, client-side routing, `fetch`, and browser APIs all work. Imports available: `react`, `react-dom`, `@autono/open-pages` (types), everything under `@/ui`, `@/lib`, and `@/hooks`, and the libraries those components bring (radix-ui, lucide-react, sonner, recharts, react-hook-form, zod, date-fns, and friends). The shared directories are read by pages, not edited per page: wrap a component in the page rather than changing `ui/`.
 
 A page folder can instead hold an `index.html`, see [HTML pages](/authoring/html-pages).
 
