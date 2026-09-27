@@ -254,11 +254,12 @@ export function PageView() {
               </Button>
             )}
             <a
-              href={src}
+              href={known ? src : undefined}
               target="_blank"
               rel="noreferrer"
               aria-label="Open page in a new tab"
               aria-disabled={!known || undefined}
+              tabIndex={known ? undefined : -1}
               title="Open the page by itself in a new tab"
               className={cn(
                 buttonVariants({ variant: 'outline', size: 'sm' }),

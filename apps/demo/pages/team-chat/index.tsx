@@ -55,7 +55,9 @@ function nowLabel(): string {
 export default function TeamChat() {
   const [channelId, setChannelId] = useState('launch-week');
   const [messages, setMessages] = useState<Message[]>(seedMessages);
-  const [thinking, setThinking] = useState<AgentId | null>(null);
+  const [pending, setPending] = useState<{ id: string; channelId: string; agent: AgentId } | null>(
+    null,
+  );
   const [readIds, setReadIds] = useState<string[]>(['launch-week']);
   const timers = useRef<number[]>([]);
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
@@ -87,7 +89,7 @@ export default function TeamChat() {
     ]);
     const agent = mentionedAgent(text, channel);
     if (!agent) return;
-    setThinking(agent);
+    setPending({ id, channelId: channel.id, agent });
     const t = window.setTimeout(() => {
       setMessages((m) => [
         ...m,
@@ -98,7 +100,7 @@ export default function TeamChat() {
           ...scriptedReply(agent, text),
         },
       ]);
-      setThinking(null);
+      setPending((p) => (p?.id === id ? null : p));
     }, REPLY_DELAY_MS);
     timers.current.push(t);
   }
@@ -243,8 +245,17 @@ export default function TeamChat() {
               className="flex min-h-0 min-w-0 flex-1 flex-col"
               aria-label={`${channel.name} conversation`}
             >
-              <Thread channel={channel} messages={thread} thinking={thinking} />
-              <Composer channel={channel} onSend={send} textareaRef={composerRef} />
+              <Thread
+                channel={channel}
+                messages={thread}
+                thinking={pending?.channelId === channel.id ? pending.agent : null}
+              />
+              <Composer
+                key={channel.id}
+                channel={channel}
+                onSend={send}
+                textareaRef={composerRef}
+              />
             </section>
 
             <aside className="hidden w-72 shrink-0 flex-col gap-6 overflow-y-auto border-l border-border px-5 py-6 xl:flex">

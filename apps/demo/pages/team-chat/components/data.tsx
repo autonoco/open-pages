@@ -175,10 +175,13 @@ export function isAgent(id: AuthorId): id is AgentId {
   return agents.some((a) => a.id === id);
 }
 
+// A mention is an @token at the start of the text or after whitespace, so an
+// email address or a partial id never summons an agent.
 export function mentionedAgent(text: string, channel: Channel): AgentId | null {
-  const lower = text.toLowerCase();
-  for (const agent of agents) {
-    if (lower.includes(`@${agent.id}`)) return agent.id;
+  for (const match of text.matchAll(/(?:^|\s)@(\w+)/g)) {
+    const token = match[1].toLowerCase();
+    const agent = agents.find((a) => a.id === token);
+    if (agent) return agent.id;
   }
   if (channel.kind === 'agent') return channel.id.replace('dm-', '') as AgentId;
   return null;
