@@ -18,6 +18,7 @@ You are authoring **web pages** in this repo. Every page is a React component re
 - **Applying inspector comments** (`@page-comment` markers in a page) — use the `apply-comments` skill.
 - **Creating or extracting a theme** — use the `create-theme` skill. A theme is `themes/<id>.md` plus `themes/<id>.css` (shadcn token overrides) and a `<id>.demo.tsx` preview; `create-page` reads it before authoring and a page opts in with `meta.theme`.
 - **shadcn CLI, registries, presets, component docs** — the bundled `shadcn` skill (the official one) covers `npx shadcn@latest search / view / docs / add / apply`.
+- **Reviewing a page for accessibility and interaction quality** — the bundled `web-design-guidelines` skill (Vercel's, vendored) checks a page against the current Web Interface Guidelines. `create-page` runs it before hand-off; run it on its own when asked to "review my page" or "check accessibility".
 - **Resolving "this page" / "this element"** — when the user references the current page or selection without naming it, consult the `current-page` skill. It reads the dev server's `node_modules/.open-pages/current.json` to find which page and inspector-picked element they mean.
 - **Any other page edit** — read the `page-authoring` skill before writing. It is the technical reference for everything inside `pages/<id>/`: file contract, styling with Tailwind, layout and responsiveness, interactivity, assets and fonts, self-review checklist. `create-page` and `apply-comments` both defer to it for the *how*.
 

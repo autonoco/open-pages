@@ -25,6 +25,7 @@ A theme can be derived from any combination of:
 - **Image references / brand guidelines** — paths or URLs to screenshots, mood boards, logo files, a brand PDF. You will translate them into OKLCH tokens.
 - **Free-text description** — prose describing the desired palette, weight, feel.
 - **An existing page** — `pages/<id>/index.tsx` whose look should become reusable.
+- **A `DESIGN.md`** — a design-system document in the Google-spec shape (YAML frontmatter, then Overview, Colors, Typography, Layout, Elevation, Shapes, Components, Do's and Don'ts). [designmd.supply](https://designmd.supply) generates one from any public domain, so "match our brand" is: run the site through it, drop the file at `themes/<id>.design.md` (or paste the path), and ask for a theme.
 
 If the user's original message already specifies the inputs unambiguously, skip the question and proceed. Otherwise call `AskUserQuestion` (multi-select) so they can pick one or more sources, and ask follow-ups (paths, preset code, page id, prose) only as needed.
 
@@ -34,6 +35,7 @@ If the user's original message already specifies the inputs unambiguously, skip 
 - **Images**: read each path with the `Read` tool (it accepts images). Note dominant colors (write them as hex, then convert to OKLCH), type family feel, corner radius, surface treatment (flat vs. cards vs. borders), light or dark default, and chrome (nav style, footer).
 - **Text**: extract explicit values (hex codes, font names, "rounded", "sharp", "dense") and resolve vague language into concrete decisions before writing.
 - **Existing page**: read `pages/<id>/index.tsx` (and `components/`) and pull any raw palette classes or hex values into token roles (the page's `bg-[#0b0b10]` root → `--background`; its CTA fill → `--primary`; its card border → `--border`), plus fonts and radius.
+- **`DESIGN.md`**: read it and map sections onto tokens — **Colors** gives `--background`/`--foreground`, `--primary`, `--secondary`, `--accent`, `--muted`, `--destructive` (primary = the brand's main action color, not its logo color, when they differ); **Typography** gives `--font-sans` / `--font-heading` and the type-scale feel; **Shapes** gives `--radius`; **Elevation** decides flat vs. card-with-shadow treatment in the component notes; **Layout** informs container widths and density in the demo; **Components** and **Do's and Don'ts** become the "Components in this theme" guidance. Colors may arrive as hex, `rgb()`, `hsl()`, `oklch()`, or CSS named colors — parse each by its own syntax, then convert to OKLCH. A single light palette is normal; derive the `.dark` block from it (invert lightness, keep hue and chroma) and say so in the `.md`.
 
 Every color ends up as `oklch(L C H)` — the same format as `styles/globals.css`. When inputs disagree (images use blue but the description says green), ask the user which to honor.
 

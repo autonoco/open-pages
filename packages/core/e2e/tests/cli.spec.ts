@@ -40,6 +40,7 @@ test.describe('open-pages cli', () => {
       'current-page',
       'page-authoring',
       'shadcn',
+      'web-design-guidelines',
     ];
     const agents = await fs.readdir(path.join(projectDir, '.agents', 'skills'));
     expect(agents.sort()).toEqual(expected);

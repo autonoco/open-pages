@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import { detectPackageManager, type PackageManager } from '../shared/update-package.ts';
 
-const PAGES_URL = 'https://pages.openpages.sh/quickstart';
+const DOCS_URL = 'https://docs.openpages.sh/quickstart';
 
 // Plugins core passes to Vite that import from `vite` themselves. Each one
 // resolves `vite` from its own install location, which is not necessarily
@@ -135,7 +135,7 @@ export function formatViteMismatch(
   const got = chalk.bold(`vite@${mismatch.consumerVite.version}`);
   const from = chalk.dim(rel(mismatch.consumerVite.dir));
   const command = (cmd: string) => ['', `  ${chalk.dim('$')} ${chalk.cyan(cmd)}`, ''];
-  const footer = `${chalk.dim('Pages')}  ${chalk.cyan.underline(PAGES_URL)}`;
+  const footer = `${chalk.dim('Docs')}  ${chalk.cyan.underline(DOCS_URL)}`;
 
   if (!declaration) {
     return [

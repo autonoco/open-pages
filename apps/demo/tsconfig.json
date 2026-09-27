@@ -12,7 +12,6 @@
     "strict": true,
     "skipLibCheck": true,
     "types": ["@autono/open-pages/env"],
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
     }

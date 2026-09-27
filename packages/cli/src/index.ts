@@ -188,7 +188,7 @@ async function runInit(dirArg: string | undefined, flags: InitCliFlags): Promise
   next.push(pm === 'npm' ? 'npm run dev' : `${pm} dev`);
   p.note(next.map((line) => chalk.cyan(line)).join('\n'), 'Next steps');
 
-  p.outro(`All set! ${chalk.dim('Pages: https://pages.openpages.sh')}`);
+  p.outro(`All set! ${chalk.dim('Docs: https://docs.openpages.sh')}`);
 }
 
 export async function run(argv: string[]): Promise<void> {
