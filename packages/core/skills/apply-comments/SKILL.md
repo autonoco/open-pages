@@ -56,6 +56,7 @@ Your job: read those markers, perform the described edits, and delete the marker
    - After all edits, re-read the file and confirm the only remaining markers are ones you reported as skipped.
    - Confirm the edited JSX is well-formed (balanced tags, no dangling attributes) and that changed `className` strings are literal Tailwind utilities. If the project's `package.json` has typecheck/lint scripts, run them with the project's package manager; scaffolded projects ship neither TypeScript nor a linter — there, rely on the running dev server (or the `build` script) to surface compile errors. Fix any errors you introduced.
    - For layout changes, mentally check the Mobile viewport (390px): did the edit introduce a fixed width or a grid with no stacking fallback?
+   - When a comment changed interactive elements, forms, motion, or layout, run the `web-design-guidelines` skill on the page and fix any regression it reports before you report.
 
 7. **Report.**
    - Summarise: `N applied, M skipped` plus a one-line description of each change (including the page id).

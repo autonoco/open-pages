@@ -6,9 +6,9 @@ icon: "bot"
 
 open-pages' agent integration is entirely file-based. There is no MCP server, no plugin, no SDK to wire up. A scaffolded workspace ships skills as markdown, instructions as `AGENTS.md`, and live state as a JSON file. Any agent that can read and write files works: Claude Code, Cursor, Codex, Gemini CLI, OpenCode, Windsurf, Zed, or anything else.
 
-## The six skills
+## The seven skills
 
-`npm create @autono/open-pages@latest` installs six skills into `.agents/skills/` and symlinks each into `.claude/skills/`, so Claude Code picks them up natively while other agents read them from the neutral `.agents/` location.
+`npm create @autono/open-pages@latest` installs seven skills into `.agents/skills/` and symlinks each into `.claude/skills/`, so Claude Code picks them up natively while other agents read them from the neutral `.agents/` location.
 
 | Skill | Owns |
 | --- | --- |
@@ -18,6 +18,7 @@ open-pages' agent integration is entirely file-based. There is no MCP server, no
 | `current-page` | Resolving deictic references. When the user says "this page" or "this element" without naming one, this skill reads the agent cursor to find what they mean. |
 | `create-theme` | Authoring a theme bundle under `themes/`: a `<id>.md` spec, a `<id>.css` with shadcn token overrides, and a runnable `<id>.demo.tsx`. |
 | `shadcn` | The official shadcn/ui skill, vendored: CLI (`search`, `view`, `docs`, `add`, `apply`), registries, presets, theming, and composition rules. The workspace's `components.json` is what activates it. |
+| `web-design-guidelines` | Vercel's review skill, vendored: fetches the current [Web Interface Guidelines](https://github.com/vercel-labs/web-interface-guidelines) and reports accessibility, focus, form, motion, and layout findings as `file:line`. `create-page` runs it before hand-off. |
 
 ## AGENTS.md and CLAUDE.md
 

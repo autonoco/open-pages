@@ -187,7 +187,10 @@ A theme is `themes/<id>.md` (direction and component notes) + `themes/<id>.css` 
 - [ ] One coherent type scale across the page; contrast holds on dark sections.
 - [ ] Designed repeats are explicit component instances; data lists are a `.map` over a typed const.
 - [ ] No `window`/`document` access at module top level; effects clean up.
+- [ ] One label per CTA intent across the page ("Get started" in the nav, hero, and footer — not "Get started" / "Sign up free" / "Try it"), and no primary button label wraps at desktop width.
+- [ ] Every animation is motivated: it shows hierarchy, sequence, feedback, or a state change. If you cannot say which in one sentence, remove it. `motion-safe:` / `motion-reduce:` variants respect the user's preference.
 - [ ] Nothing outside `pages/<id>/` was edited.
+- [ ] Ran the `web-design-guidelines` skill on the page and resolved or justified its findings.
 
 ## Anti-patterns
 

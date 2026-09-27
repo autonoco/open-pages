@@ -54,7 +54,7 @@ All 61 shadcn/ui components are already under `ui/`, imported as `@/ui/<name>`; 
 
 ## Built for agents
 
-A scaffolded workspace ships six agent skills alongside an `AGENTS.md` guide, so the agent knows the file contract before it writes a line:
+A scaffolded workspace ships seven agent skills alongside an `AGENTS.md` guide, so the agent knows the file contract before it writes a line:
 
 - `create-page` walks the agent through scoping, structure, and hand-off for a new page.
 - `page-authoring` is the technical reference: file contract, styling, layout and responsiveness, interactivity, assets and fonts.
@@ -62,6 +62,7 @@ A scaffolded workspace ships six agent skills alongside an `AGENTS.md` guide, so
 - `current-page` resolves "this page" and "this element" from the dev server's cursor file.
 - `create-theme` authors themes under `themes/`: direction as markdown plus shadcn token overrides as CSS.
 - `shadcn`, the official shadcn/ui skill, for the CLI, registries, presets, and component docs.
+- `web-design-guidelines`, Vercel's review skill, checks a finished page against the current Web Interface Guidelines.
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">

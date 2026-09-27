@@ -94,7 +94,11 @@ Read the **`page-authoring`** skill before writing — file contract, `@/ui/*` c
 
 ## Step 7 — Self-review
 
-Run the checklist in `page-authoring` ("Self-review before finishing"): every button/input/card/dialog/tab is a `@/ui` component, colors are tokens, nothing under `ui/` changed. Check all three viewports.
+Run the checklist in `page-authoring` ("Self-review before finishing"): every button/input/card/dialog/tab is a `@/ui` component, colors are tokens, nothing under `ui/` changed. Check all three viewports. Pay particular attention to the CTA and motion items: one label per intent, no wrapped button text at desktop, every animation answers "what does this communicate?".
+
+## Step 7b — Guidelines review
+
+Run the `web-design-guidelines` skill on `pages/<id>/` (it fetches Vercel's current Web Interface Guidelines and reports `file:line` findings). Fix what it finds in the page files, re-run until clean or until only findings you can justify remain, and mention any you left in the hand-off.
 
 ## Step 8 — Hand off to the user
 

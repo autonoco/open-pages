@@ -43,7 +43,7 @@ Requires Node.js 18+.
 - **Themes are tokens.** `themes/<id>.css` overrides the shadcn variables; a page sets `meta.theme` and every component restyles.
 - **Responsive by default.** Desktop, tablet (820px), and mobile (390px) viewport toggles in the viewer.
 - **Static export.** `open-pages export` builds each page into `export/<id>/` with hashed assets and relative URLs. Deploy the folder anywhere.
-- **Agent-native.** File-based skills (`create-page`, `page-authoring`, `apply-comments`, `create-theme`, `current-page`, plus the official `shadcn` skill) sync into the workspace. No MCP server. Works with Claude Code, Cursor, Codex, Gemini CLI, OpenCode, Windsurf, Zed, and anything else that reads `AGENTS.md`.
+- **Agent-native.** File-based skills (`create-page`, `page-authoring`, `apply-comments`, `create-theme`, `current-page`, plus the official `shadcn` and Vercel `web-design-guidelines` skills) sync into the workspace. No MCP server. Works with Claude Code, Cursor, Codex, Gemini CLI, OpenCode, Windsurf, Zed, and anything else that reads `AGENTS.md`.
 - **Nothing to configure.** Vite, React, and TypeScript live inside the runtime. A workspace is `pages/`, the shadcn set (`ui/`, `lib/`, `hooks/`, `styles/`, `components.json`), an optional `open-pages.config.ts`, and your agent skills.
 
 ## A page
