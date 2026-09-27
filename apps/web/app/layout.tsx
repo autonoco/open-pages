@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title,
   description,
   metadataBase: new URL('https://openpages.sh'),
-  icons: { icon: '/favicon.svg' },
+  icons: { icon: '/autono.svg' },
   openGraph: {
     title,
     description,
