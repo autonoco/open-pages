@@ -6,7 +6,7 @@ test.describe('page viewer', () => {
     await openPage(page, 'alpha', 'Alpha headline');
     await expect(page.getByRole('heading', { name: 'Alpha Page' })).toBeVisible();
     await expect(pageFrame(page).getByText('Opening content')).toBeVisible();
-    await expect(page).toHaveTitle('Alpha Page — open-pages');
+    await expect(page).toHaveTitle('Alpha Page — Autono');
   });
 
   test('viewport toggles resize the frame and persist across reloads', async ({ page }) => {
@@ -98,7 +98,7 @@ test.describe('page viewer', () => {
 
   test('back link returns to the page browser', async ({ page }) => {
     await openPage(page, 'alpha');
-    await page.getByRole('link', { name: 'Back to pages' }).click();
+    await page.getByRole('button', { name: 'Back to pages' }).click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.locator('li h3')).toHaveCount(6);
   });

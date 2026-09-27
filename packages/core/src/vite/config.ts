@@ -52,7 +52,14 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
       },
     },
     optimizeDeps: {
-      entries: [path.join(APP_ROOT, 'main.tsx'), path.join(APP_ROOT, 'frame', 'main.tsx')],
+      // Pages import the workspace's shadcn set, and its deps only surface when
+      // a page module first loads; scanning the pages up front keeps Vite from
+      // re-optimizing mid-session and force-reloading the viewer.
+      entries: [
+        path.join(APP_ROOT, 'main.tsx'),
+        path.join(APP_ROOT, 'frame', 'main.tsx'),
+        path.join(pagesAbs, '*', 'index.{tsx,jsx,ts,js}'),
+      ],
       include: [
         'react',
         'react-dom',
@@ -74,17 +81,14 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
       ],
       // The app source ships inside node_modules/@autono/open-pages/src/app, so
       // Vite's dep scanner traverses it as if it were a third-party dep and
-      // tries to bundle our virtual imports with esbuild. Mark them external.
-      esbuildOptions: {
-        target: 'es2022',
+      // tries to bundle our virtual imports. Mark them external.
+      rolldownOptions: {
+        transform: { target: 'es2022' },
         plugins: [
           {
             name: 'open-pages:virtual-externals',
-            setup(build) {
-              build.onResolve({ filter: /^virtual:open-pages\// }, (args) => ({
-                path: args.path,
-                external: true,
-              }));
+            resolveId(id) {
+              return id.startsWith('virtual:open-pages/') ? { id, external: true } : null;
             },
           },
         ],

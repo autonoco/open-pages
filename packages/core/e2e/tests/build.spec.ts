@@ -54,7 +54,7 @@ test.describe('static build and preview', () => {
 
     const html = await fs.readFile(path.join(dist, 'index.html'), 'utf8');
     expect(html).toContain('<div id="root"></div>');
-    expect(html).toContain('<title>open-pages</title>');
+    expect(html).toContain('<title>Autono</title>');
 
     // Each react page is lazily imported, so it code-splits into at least one
     // chunk per page plus the two entries. Chunk names depend on the bundler,
@@ -208,9 +208,36 @@ test.describe('export with shadcn', () => {
     const served = await serveStatic(dir);
     try {
       await page.goto(`${served.url}/`);
+      await page.evaluate(() => {
+        (window as unknown as { paintedRgb: (c: string) => number[] }).paintedRgb = (c) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = canvas.height = 1;
+          const ctx = canvas.getContext('2d', { colorSpace: 'srgb' });
+          if (!ctx) throw new Error('no 2d context');
+          ctx.fillStyle = c;
+          ctx.fillRect(0, 0, 1, 1);
+          return Array.from(ctx.getImageData(0, 0, 1, 1).data.slice(0, 3));
+        };
+      });
       const button = page.getByRole('button', { name: 'Create account' });
       await expect(button).toBeVisible();
-      await expect(button).toHaveCSS('background-color', 'oklch(0.6 0.2 30)');
+      // Vite's CSS pipeline may emit the theme colour as lab() or oklch();
+      // compare the painted sRGB pixel rather than the serialised string.
+      await expect
+        .poll(() =>
+          button.evaluate((el) =>
+            (window as unknown as { paintedRgb: (c: string) => number[] }).paintedRgb(
+              getComputedStyle(el).backgroundColor,
+            ),
+          ),
+        )
+        .toEqual(
+          await button.evaluate(() =>
+            (window as unknown as { paintedRgb: (c: string) => number[] }).paintedRgb(
+              'oklch(0.6 0.2 30)',
+            ),
+          ),
+        );
       await expect(button).toHaveCSS('border-radius', '0px');
       await page.getByRole('tab', { name: 'SSO' }).click();
       await expect(page.getByRole('button', { name: 'Continue with SSO' })).toBeVisible();

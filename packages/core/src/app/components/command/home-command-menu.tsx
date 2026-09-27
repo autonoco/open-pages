@@ -1,11 +1,11 @@
-import { Image as ImageIcon, Palette, Presentation } from 'lucide-react';
+import { Presentation } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLocale } from '~/lib/use-locale';
 import { usePageTitles } from '~/lib/use-page-titles';
 import { pageIds } from '../../lib/pages';
 import type { Folder } from '../../lib/sdk';
-import { FolderIconChip } from '../sidebar/folder-item';
+import { FolderIconChip, SystemViewIcon } from '../sidebar/folder-item';
 import { ALL_DOCS_ID, ASSETS_ID, DRAFT_ID, THEMES_ID } from '../sidebar/sidebar';
 import { type CommandGroupSpec, CommandMenu, type CommandSpec } from './command-menu';
 
@@ -39,14 +39,14 @@ export function HomeCommandMenu({
       {
         id: `view-${ALL_DOCS_ID}`,
         label: t.home.pages,
-        icon: <FolderIconChip icon={{ type: 'emoji', value: '🎞️' }} />,
+        icon: <SystemViewIcon kind="all" />,
         keywords: ['all', 'pages'],
         run: () => onSelectView(ALL_DOCS_ID),
       },
       {
         id: `view-${DRAFT_ID}`,
         label: t.home.draft,
-        icon: <FolderIconChip icon={{ type: 'emoji', value: '📝' }} />,
+        icon: <SystemViewIcon kind="draft" />,
         keywords: ['draft', 'unsorted'],
         run: () => onSelectView(DRAFT_ID),
       },
@@ -63,7 +63,7 @@ export function HomeCommandMenu({
       {
         id: `view-${THEMES_ID}`,
         label: t.home.themes,
-        icon: <Palette />,
+        icon: <SystemViewIcon kind="themes" />,
         keywords: ['themes', 'design'],
         run: () => onSelectView(THEMES_ID),
       },
@@ -72,7 +72,7 @@ export function HomeCommandMenu({
       navigation.push({
         id: `view-${ASSETS_ID}`,
         label: t.home.assets,
-        icon: <ImageIcon />,
+        icon: <SystemViewIcon kind="assets" />,
         keywords: ['assets', 'images', 'files'],
         run: () => onSelectView(ASSETS_ID),
       });

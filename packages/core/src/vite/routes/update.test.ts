@@ -44,6 +44,38 @@ describe('update routes helpers', () => {
     await expect(detectPackageManager(cwd)).resolves.toBe('npm');
   });
 
+  it('finds the lockfile in an ancestor workspace root', async () => {
+    const root = await tempProject();
+    delete process.env.npm_config_user_agent;
+    const cwd = path.join(root, 'packages', 'pages');
+    await fs.mkdir(cwd, { recursive: true });
+    await fs.writeFile(path.join(root, 'bun.lock'), '');
+
+    await expect(detectPackageManager(cwd)).resolves.toBe('bun');
+  });
+
+  it('does not look past the project root for a lockfile', async () => {
+    const root = await tempProject();
+    delete process.env.npm_config_user_agent;
+    await fs.writeFile(path.join(root, 'pnpm-lock.yaml'), '');
+    const cwd = path.join(root, 'project');
+    await fs.mkdir(path.join(cwd, '.git'), { recursive: true });
+
+    await expect(detectPackageManager(cwd)).resolves.toBe('npm');
+  });
+
+  it('honours a packageManager declaration over lockfiles', async () => {
+    const cwd = await tempProject();
+    delete process.env.npm_config_user_agent;
+    await fs.writeFile(path.join(cwd, 'pnpm-lock.yaml'), '');
+    await fs.writeFile(
+      path.join(cwd, 'package.json'),
+      JSON.stringify({ packageManager: 'bun@1.2.0' }),
+    );
+
+    await expect(detectPackageManager(cwd)).resolves.toBe('bun');
+  });
+
   it('falls back to the npm user agent without a lockfile', async () => {
     const cwd = await tempProject();
 

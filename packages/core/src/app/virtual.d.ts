@@ -53,4 +53,5 @@ declare module 'virtual:open-pages/themes' {
     default: PageComponent;
     design?: DesignSystem;
   }>;
+  export function demoImportUrl(id: string): string;
 }

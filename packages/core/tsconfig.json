@@ -15,7 +15,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
     "paths": {
       "~/*": ["./src/app/*"],
       // react-router/lucide types resolve `react` through whichever @types/react pnpm

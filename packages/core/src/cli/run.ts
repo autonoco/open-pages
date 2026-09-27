@@ -1,18 +1,11 @@
-import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import * as readline from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import { Command, Option } from 'commander';
+import { assertViteResolvesToCore } from './preflight.ts';
 import { detectSkillsDrift, syncSkills } from './sync.ts';
-
-async function readVersion(): Promise<string> {
-  const here = path.dirname(fileURLToPath(import.meta.url));
-  // dist/cli/bin.js → ../../package.json
-  const pkgPath = path.resolve(here, '..', '..', 'package.json');
-  const raw = await readFile(pkgPath, 'utf8');
-  return (JSON.parse(raw) as { version: string }).version;
-}
+import { glyph, readVersion } from './ui.ts';
 
 export function parsePort(value: string): number {
   const n = Number(value);
@@ -46,27 +39,27 @@ async function runSkillsDriftCheck(skillsDir: string): Promise<void> {
 
   const names = stale.map((d) => d.name).join(', ');
   const interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY);
+  const notice = `${chalk.yellow(glyph.warn)} Built-in skills are out of date: ${chalk.bold(names)}`;
 
   if (!interactive) {
     process.stderr.write(
-      `${chalk.yellow('!')} Skills out of date (${names}). Run \`open-pages sync:skills\` to update.\n`,
+      `\n  ${notice}\n    ${chalk.dim('Run `open-pages sync:skills` to update.')}\n`,
     );
     return;
   }
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   try {
-    const answer = (
-      await rl.question(
-        `${chalk.yellow('!')} Skills out of date: ${chalk.bold(names)}. Sync now? ${chalk.dim('(Y/n) ')}`,
-      )
-    )
+    const answer = (await rl.question(`\n  ${notice}\n    Sync now? ${chalk.dim('(Y/n)')} `))
       .trim()
       .toLowerCase();
     if (answer === '' || answer === 'y' || answer === 'yes') {
+      process.stdout.write('\n');
       await syncSkills(skillsDir);
     } else {
-      process.stdout.write(chalk.dim('Skipped. Run `open-pages sync:skills` later to update.\n'));
+      process.stdout.write(
+        chalk.dim('    Skipped. Run `open-pages sync:skills` later to update.\n'),
+      );
     }
   } finally {
     rl.close();
@@ -94,12 +87,12 @@ function resolveBuiltinSkillsDir(): string {
 }
 
 export async function run(argv: string[]): Promise<void> {
-  const version = await readVersion();
+  const version = readVersion();
 
   const program = new Command();
   program
     .name('open-pages')
-    .description('Author web pages — we handle the Vite/React stack.')
+    .description('Author web pages in React — open-pages runs the rest.')
     .version(version, '-v, --version', 'print version')
     .helpOption('-h, --help', 'show help')
     .showHelpAfterError(chalk.dim('(run `open-pages --help` for usage)'));
@@ -115,6 +108,7 @@ export async function run(argv: string[]): Promise<void> {
       if (flags.skillsCheck !== false) {
         await runSkillsDriftCheck(resolveBuiltinSkillsDir());
       }
+      await assertViteResolvesToCore();
       const { dev } = await import('./dev.ts');
       await dev(flags);
     });
@@ -124,6 +118,7 @@ export async function run(argv: string[]): Promise<void> {
     .description('Build the workspace as a static site')
     .option('--out-dir <dir>', 'output directory (defaults to `dist`)')
     .action(async (flags: BuildFlags) => {
+      await assertViteResolvesToCore();
       const { build } = await import('./build.ts');
       await build(flags);
     });
@@ -135,6 +130,7 @@ export async function run(argv: string[]): Promise<void> {
     .addOption(new Option('--host [host]', 'expose on the network (optional host)'))
     .option('--open', 'open the browser on start')
     .action(async (flags: ServerFlags) => {
+      await assertViteResolvesToCore();
       const { preview } = await import('./preview.ts');
       await preview(flags);
     });
@@ -145,6 +141,7 @@ export async function run(argv: string[]): Promise<void> {
     .argument('[pages...]', 'page ids to export (default: all)')
     .option('--out-dir <dir>', 'output directory (defaults to `export`)')
     .action(async (pages: string[], flags: { outDir?: string }) => {
+      await assertViteResolvesToCore();
       const { exportPages } = await import('./export.ts');
       await exportPages({ pages, outDir: flags.outDir });
     });
@@ -154,7 +151,6 @@ export async function run(argv: string[]): Promise<void> {
     .description('Sync built-in skills from @autono/open-pages into this workspace')
     .option('--dry-run', 'show what would change without writing')
     .action(async (flags: SyncFlags) => {
-      const { syncSkills } = await import('./sync.ts');
       await syncSkills(resolveBuiltinSkillsDir(), flags);
     });
 
