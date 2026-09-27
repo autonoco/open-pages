@@ -137,8 +137,8 @@ export async function run(argv: string[]): Promise<void> {
 
   program
     .command('export')
-    .description('Build pages into self-contained static folders (one per page)')
-    .argument('[pages...]', 'page ids to export (default: all)')
+    .description('Build pages and emails into static folders (one per id)')
+    .argument('[pages...]', 'page or email ids to export (default: all)')
     .option('--out-dir <dir>', 'output directory (defaults to `export`)')
     .action(async (pages: string[], flags: { outDir?: string }) => {
       await assertViteResolvesToCore();

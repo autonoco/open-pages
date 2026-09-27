@@ -4,6 +4,8 @@ import { Toaster } from './components/ui/sonner';
 import { TooltipProvider } from './components/ui/tooltip';
 import { useLocale } from './lib/use-locale';
 import { AssetsPage } from './routes/assets';
+import { EmailView } from './routes/email';
+import { EmailsGalleryPage } from './routes/emails';
 import { Home } from './routes/home';
 import { HomeShell } from './routes/home-shell';
 import { PageView } from './routes/page';
@@ -22,11 +24,13 @@ export function App() {
               <Route path="/themes" element={<ThemesGalleryPage />} />
               <Route path="/themes/:themeId" element={<ThemeDetailPage />} />
               <Route path="/assets" element={<AssetsPage />} />
+              <Route path="/emails" element={<EmailsGalleryPage />} />
             </Route>
           ) : (
             <Route path="/" element={<NotFound />} />
           )}
           <Route path="/p/:pageId" element={<PageView />} />
+          <Route path="/e/:emailId" element={<EmailView />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>

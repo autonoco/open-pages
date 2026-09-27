@@ -19,7 +19,7 @@ test.describe('open-pages cli', () => {
     expect(res.stdout).toContain('Start the dev server');
     expect(res.stdout).toContain('Build the workspace as a static site');
     expect(res.stdout).toContain('Preview the production build');
-    expect(res.stdout).toContain('Build pages into self-contained static folders');
+    expect(res.stdout).toContain('Build pages and emails into static folders');
     expect(res.stdout).toContain('sync:skills');
   });
 
@@ -35,6 +35,7 @@ test.describe('open-pages cli', () => {
     expect(res.code, res.stderr).toBe(0);
     const expected = [
       'apply-comments',
+      'create-email',
       'create-page',
       'create-theme',
       'current-page',

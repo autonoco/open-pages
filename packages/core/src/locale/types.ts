@@ -23,6 +23,7 @@ export type Locale = {
     duplicate: string;
     themes: string;
     assets: string;
+    emails: string;
     folders: string;
     pages: string;
     menu: string;
@@ -192,6 +193,7 @@ export type Locale = {
     placeholder: string;
     empty: string;
     groupDocs: string;
+    groupEmails: string;
     groupFolders: string;
     groupNavigation: string;
     groupAppearance: string;
@@ -210,6 +212,28 @@ export type Locale = {
     system: string;
   };
 
+  emails: {
+    title: string;
+    noEmailsTitle: string;
+    noEmailsHintPrefix: string;
+    noEmailsHintSuffix: string;
+    subjectLabel: string;
+    noSubject: string;
+    openEmailAria: string;
+    backToEmails: string;
+    viewHtml: string;
+    viewText: string;
+    viewportDesktop: string;
+    viewportMobile: string;
+    copyHtml: string;
+    copiedHtml: string;
+    copyHtmlFailed: string;
+    reload: string;
+    openInTab: string;
+    notFound: string;
+    unresolvedCount: string;
+    unresolvedTitle: string;
+  };
   themes: {
     title: string;
     noThemesTitle: string;

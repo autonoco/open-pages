@@ -1,6 +1,6 @@
 # open-pages — Agent Guide
 
-You are authoring **web pages** in this repo. Every page is a React component rendered as a real web page — composed from the shadcn/ui components under `ui/`, styled with Tailwind via `className`, with hooks, state, and browser APIs available. A page folder can hold an `index.html` instead when plain HTML is the better fit.
+You are authoring **web pages** and **email templates** in this repo. Every page is a React component rendered as a real web page — composed from the shadcn/ui components under `ui/`, styled with Tailwind via `className`, with hooks, state, and browser APIs available. A page folder can hold an `index.html` instead when plain HTML is the better fit. An email is a [react-email](https://react.email) component under `emails/<id>/`, rendered on the server to inlined HTML plus plain text; it never runs in a browser.
 
 ## Hard rules
 
@@ -8,14 +8,16 @@ You are authoring **web pages** in this repo. Every page is a React component re
 - The entry is `pages/<id>/index.tsx` (or `pages/<id>/index.html`).
 - A page is its entry plus optional `components/`, `styles.css`, and `assets/` (images, fonts) inside its folder. Shared assets live in the root `assets/` folder (import via `@assets/...`).
 - Use the shadcn components first: `import { Button } from '@/ui/button'`, `cn` from `@/lib/utils`. Use the semantic token classes (`bg-background`, `text-muted-foreground`, `bg-primary`) so themes apply.
-- Do **not** edit files under `ui/`, `lib/`, or `hooks/` for one page. They are shared by every page; wrap or extend a component inside the page instead.
-- Do **not** touch `package.json`, `open-pages.config.ts`, `components.json`, `styles/globals.css`, or other pages.
-- Do not add dependencies beyond what is installed. `npx shadcn@latest add` is fine for blocks and registry items.
+- Put an email under `emails/<kebab-case-id>/index.tsx`. Emails import from `react-email` and `@/components/email/*` only — never `@/ui`, hooks, or browser APIs.
+- Do **not** edit files under `ui/`, `lib/`, `hooks/`, or `components/email/` for one page or email. They are shared; wrap or extend a component inside the page or email instead.
+- Do **not** touch `package.json`, `open-pages.config.ts`, `components.json`, `styles/globals.css`, or other pages and emails.
+- Do not add dependencies beyond what is installed. `npx shadcn@latest add` is fine for blocks and registry items, including `@emailcn/react-email/*` email sections, themes, and blocks.
 
 ## Which skill to use
 
 - **Drafting a new page** — use the `create-page` skill. It walks through scoping questions, structure, and hand-off.
-- **Applying inspector comments** (`@page-comment` markers in a page) — use the `apply-comments` skill.
+- **Drafting or editing an email template** — use the `create-email` skill. It owns both the workflow and the technical reference for `emails/<id>/` (react-email components, the emailcn registry, email-safe styling, plain-text output).
+- **Applying inspector comments** (`@page-comment` markers in a page or email) — use the `apply-comments` skill.
 - **Creating or extracting a theme** — use the `create-theme` skill. A theme is `themes/<id>.md` plus `themes/<id>.css` (shadcn token overrides) and a `<id>.demo.tsx` preview; `create-page` reads it before authoring and a page opts in with `meta.theme`.
 - **shadcn CLI, registries, presets, component docs** — the bundled `shadcn` skill (the official one) covers `npx shadcn@latest search / view / docs / add / apply`.
 - **Reviewing a page for accessibility and interaction quality** — the bundled `web-design-guidelines` skill (Vercel's, vendored) checks a page against the current Web Interface Guidelines. `create-page` runs it before hand-off; run it on its own when asked to "review my page" or "check accessibility".

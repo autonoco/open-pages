@@ -29,6 +29,8 @@ A theme can be derived from any combination of:
 
 If the user's original message already specifies the inputs unambiguously, skip the question and proceed. Otherwise call `AskUserQuestion` (multi-select) so they can pick one or more sources, and ask follow-ups (paths, preset code, page id, prose) only as needed.
 
+Themes style **pages**. Emails cannot read `themes/<id>.css` (mail clients have no CSS variables or `oklch()`); when the user also wants emails to match, derive `components/email/theme-<id>.ts` from the finished theme by the token-to-field table in the `create-email` skill (Step 3b), and say so in the hand-off.
+
 ## Step 2 — Gather raw inputs
 
 - **Preset**: take its tokens as the baseline; adjust only what the user asked to change.

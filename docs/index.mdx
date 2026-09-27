@@ -54,10 +54,11 @@ All 61 shadcn/ui components are already under `ui/`, imported as `@/ui/<name>`; 
 
 ## Built for agents
 
-A scaffolded workspace ships seven agent skills alongside an `AGENTS.md` guide, so the agent knows the file contract before it writes a line:
+A scaffolded workspace ships eight agent skills alongside an `AGENTS.md` guide, so the agent knows the file contract before it writes a line:
 
 - `create-page` walks the agent through scoping, structure, and hand-off for a new page.
 - `page-authoring` is the technical reference: file contract, styling, layout and responsiveness, interactivity, assets and fonts.
+- `create-email` does the same for [email templates](/authoring/emails): react-email components rendered to inlined HTML and plain text, with the emailcn registry for sections and themes.
 - `apply-comments` turns inspector comments into edits.
 - `current-page` resolves "this page" and "this element" from the dev server's cursor file.
 - `create-theme` authors themes under `themes/`: direction as markdown plus shadcn token overrides as CSS.

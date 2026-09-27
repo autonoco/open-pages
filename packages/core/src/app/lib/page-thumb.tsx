@@ -8,7 +8,15 @@ const THUMB_VIEWPORT = 1280;
  * desktop width and scaled down to fit. Inert — pointer events go to the
  * card, and the frame never takes focus.
  */
-export function PageThumb({ source, title }: { source: FrameSource; title: string }) {
+export function PageThumb({
+  source,
+  title,
+  viewport = THUMB_VIEWPORT,
+}: {
+  source: FrameSource;
+  title: string;
+  viewport?: number;
+}) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
 
@@ -22,7 +30,7 @@ export function PageThumb({ source, title }: { source: FrameSource; title: strin
     return () => ro.disconnect();
   }, []);
 
-  const scale = size.width > 0 ? size.width / THUMB_VIEWPORT : 0;
+  const scale = size.width > 0 ? size.width / viewport : 0;
 
   return (
     <div ref={ref} className="h-full w-full overflow-hidden bg-white">
@@ -35,7 +43,7 @@ export function PageThumb({ source, title }: { source: FrameSource; title: strin
           aria-hidden
           className="pointer-events-none origin-top-left border-0"
           style={{
-            width: THUMB_VIEWPORT,
+            width: viewport,
             height: size.height / scale,
             transform: `scale(${scale})`,
           }}

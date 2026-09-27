@@ -7,6 +7,15 @@ declare module 'virtual:open-pages/pages' {
   export function loadPage(id: string): Promise<PageModule>;
 }
 
+declare module 'virtual:open-pages/emails' {
+  export const emailIds: string[];
+  export const emailMeta: Record<
+    string,
+    { title: string; subject: string | null; description: string | null }
+  >;
+  export const emailCreatedAt: Record<string, number>;
+}
+
 declare module 'virtual:open-pages/pages.css' {}
 
 declare module 'virtual:open-pages/config' {
@@ -15,6 +24,7 @@ declare module 'virtual:open-pages/config' {
   const config: {
     base?: string;
     pagesDir?: string;
+    emailsDir?: string;
     port?: number;
     locale?: Locale;
     version: string;

@@ -9,6 +9,7 @@ const TEXT_SNIPPET_MAX = 120;
 export type CurrentPluginOptions = {
   userCwd: string;
   pagesDir?: string;
+  emailsDir?: string;
 };
 
 type IncomingPayload = {
@@ -35,7 +36,7 @@ type Selection = {
 type Cached = {
   pageId: string;
   pageTitle: string;
-  view: 'pages' | 'assets';
+  view: 'pages' | 'assets' | 'emails';
   pagePath: string;
   selection: Selection | null;
 };
@@ -62,6 +63,7 @@ function parseSelection(raw: unknown): Selection | null {
 export function currentPlugin(opts: CurrentPluginOptions): Plugin {
   const userCwd = opts.userCwd;
   const pagesDir = opts.pagesDir ?? 'pages';
+  const emailsDir = opts.emailsDir ?? 'emails';
   const outDir = path.join(userCwd, 'node_modules', '.open-pages');
   const outFile = path.join(outDir, 'current.json');
   const tmpFile = `${outFile}.tmp`;
@@ -80,13 +82,16 @@ export function currentPlugin(opts: CurrentPluginOptions): Plugin {
         if (typeof raw?.pageId === 'string') {
           if (!PAGE_ID_RE.test(raw.pageId)) return;
           const pageTitle = typeof raw.pageTitle === 'string' ? raw.pageTitle : raw.pageId;
-          const view = raw.view === 'assets' ? 'assets' : 'pages';
-          const entry = existsSync(path.join(userCwd, pagesDir, raw.pageId, 'index.tsx'))
-            ? 'index.tsx'
-            : 'index.html';
-          const pagePath = path.join(pagesDir, raw.pageId, entry).split(path.sep).join('/');
+          const view =
+            raw.view === 'assets' ? 'assets' : raw.view === 'emails' ? 'emails' : 'pages';
+          const dir = view === 'emails' ? emailsDir : pagesDir;
+          const entry =
+            view === 'emails' || existsSync(path.join(userCwd, pagesDir, raw.pageId, 'index.tsx'))
+              ? 'index.tsx'
+              : 'index.html';
+          const pagePath = path.join(dir, raw.pageId, entry).split(path.sep).join('/');
 
-          if (cached?.pageId !== raw.pageId) next.selection = null;
+          if (cached?.pageId !== raw.pageId || cached?.view !== view) next.selection = null;
 
           next.pageId = raw.pageId;
           next.pageTitle = pageTitle;

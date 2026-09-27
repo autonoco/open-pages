@@ -1,9 +1,10 @@
 import path from 'node:path';
 import { mergeConfig, build as viteBuild } from 'vite';
 import { createViteConfig } from '../vite/config.ts';
+import { findEmails } from '../vite/emails-plugin.ts';
 import { findPages, loadUserConfig } from '../vite/open-pages-plugin.ts';
 import { readCoreVersion } from '../vite/version.ts';
-import { buildPage } from './export.ts';
+import { buildPage, exportEmails } from './export.ts';
 import { createCliLogger, printHeader } from './ui.ts';
 
 export interface BuildOptions {
@@ -35,4 +36,9 @@ export async function build(opts: BuildOptions = {}): Promise<void> {
       base: `${siteBase.replace(/\/$/, '')}/__page/${entry.id}/`,
     });
   }
+
+  // Emails are rendered on the server in dev; the static site ships each one
+  // pre-rendered where the viewer's frame URL points.
+  const emails = await findEmails(userCwd, config.emailsDir ?? 'emails');
+  await exportEmails({ userCwd, config, entries: emails, outDir: path.join(outDir, '__email') });
 }

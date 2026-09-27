@@ -1,0 +1,109 @@
+---
+title: "Emails"
+description: "Author email templates next to your pages: react-email components rendered on the server to inlined HTML and plain text."
+icon: "mail"
+---
+
+An email is one folder under `emails/` with an `index.tsx` that default-exports a [react-email](https://react.email) component:
+
+```
+emails/<kebab-case-id>/
+  index.tsx        # the email: one default-exported react-email component
+  components/      # optional: sections this email splits out
+components/email/  # shared: emailcn sections, blocks, and themes (installed via shadcn)
+```
+
+The workspace renders it on the server with the `react-email` package installed in the workspace. Every component becomes nested tables with inline styles, the way mail clients need them, and a plain-text alternative is derived from the same render. Nothing in an email runs in a browser: no hooks with effects, no state, no event handlers, no browser APIs.
+
+Emails and pages are separate namespaces. `emails/welcome/` and `pages/welcome/` can coexist; the viewer keeps them apart at `/e/<id>` and `/p/<id>`.
+
+## The file contract
+
+```tsx emails/welcome/index.tsx
+import type { EmailMeta } from '@autono/open-pages';
+import { Body, Button, Container, Head, Heading, Html, Preview, Section, Tailwind, Text } from 'react-email';
+
+export const meta: EmailMeta = {
+  title: 'Welcome',
+  subject: 'Welcome to Acme',
+  description: 'Sent right after signup.',
+  createdAt: '2026-09-27T20:00:00.000Z',
+};
+
+export default function Welcome() {
+  return (
+    <Html lang="en">
+      <Head />
+      <Preview>Your workspace is ready. Here is how to get started.</Preview>
+      <Tailwind>
+        <Body className="bg-[#f4f4f2] font-sans">
+          <Container className="mx-auto max-w-[600px] bg-white p-8">
+            <Heading className="text-[24px] text-[#111111]">Welcome to Acme</Heading>
+            <Text className="text-[16px] leading-6 text-[#444444]">Your workspace is ready.</Text>
+            <Section className="my-6">
+              <Button href="https://acme.example/app" className="rounded-md bg-[#111111] px-5 py-3 text-white">
+                Open Acme
+              </Button>
+            </Section>
+          </Container>
+        </Body>
+      </Tailwind>
+    </Html>
+  );
+}
+```
+
+### `meta`
+
+- `title` (optional) names the email in the workspace. Defaults to the folder name.
+- `subject` (optional) is the subject line the email is meant to ship with. The viewer shows it beside the title.
+- `description` (optional) says what the email is for.
+- `createdAt` (optional) is an ISO 8601 string literal, set once at scaffold time and used to sort the list. Keep every `meta` value a plain string literal: the framework reads them with a regex and never evaluates the module to list emails.
+
+### The default export
+
+One zero-prop component containing the whole email, always shaped `Html > Head + Preview + Tailwind > Body > Container`. `Preview` is the preheader mail clients show next to the subject. Sections can live in the same file or under `components/`.
+
+## Styling
+
+`Tailwind` from `react-email` compiles the utilities in `className` to inline styles at render time. Only literal class names compile, and only properties mail clients support survive: spacing, colors, typography, borders, widths, alignment. Flexbox, grid, positioning, transforms, transitions, `hover:` and `dark:` variants, and CSS variables are not email-safe; use `Row` and `Column` for side-by-side layout and `Section` padding for spacing.
+
+A utility the compiler cannot resolve stays behind as a `class` attribute and does nothing in a mail client. The viewer shows an amber "classes did not compile" chip listing them, and the dev server logs the same, so a shipped email can be checked down to zero.
+
+The workspace's page themes (`themes/<id>.css`) do not apply to emails: mail clients have no CSS variables and no `oklch()`. Email themes are plain objects of hex colors and pixel sizes, installed from the emailcn registry (below) or derived from a workspace theme by the `create-email` skill.
+
+## emailcn components
+
+The scaffolded `components.json` registers the [emailcn](https://www.emailcn.run) registry, a shadcn-style catalog of email sections, themes, fonts, and whole emails for react-email. Items install with the shadcn CLI into `components/email/`:
+
+```bash
+# a full email (installs its theme and sections too)
+npx shadcn@latest add @emailcn/react-email/block-onboarding-default
+
+# individual sections and a theme
+npx shadcn@latest add @emailcn/react-email/theme-linear @emailcn/react-email/split-hero @emailcn/react-email/navigation-footer
+```
+
+Use the `react-email/` variants; emailcn's `mjml-react/` and `jsx-email/` variants need packages the workspace does not install. The installed files are shared by every email, like `ui/` is for pages: read them, compose them, wrap them inside an email's own `components/` when one email needs a different look.
+
+<Note>
+The registry's react-email blocks currently reference a few theme class names (`bg-background`, `text-foreground`, `bg-primary`, `max-w-container`, and friends) that its `email-theme.ts` does not define, so a freshly installed block renders without its colors. The `create-email` skill knows the fix: a one-time set of aliases in `components/email/email-theme.ts`. The viewer's chip tells you when it is needed.
+</Note>
+
+## The viewer
+
+`/e/<id>` shows the rendered email in a frame with **HTML** and **Text** views, a **Mobile** (375px) toggle, **Reload**, **Copy HTML**, and **Open**, which loads the shippable document by itself in a new tab. The frame re-renders on every save of the email or of anything it imports.
+
+[Inspect](/inspector) works on emails too: press `i`, click any element, and the comment lands in `emails/<id>/index.tsx` for the `apply-comments` skill, the same as a page. The agent cursor reports `"view": "emails"` and a `pagePath` under `emails/` while an email is open.
+
+## Export
+
+```bash
+npx open-pages export welcome
+```
+
+writes `export/emails/welcome/index.html` and `export/emails/welcome/index.txt`. The HTML is the same document the viewer's **Copy HTML** produces: inlined styles, no inspector instrumentation. Paste it into Resend, SendGrid, Postmark, Mailchimp, Customer.io, or any sender that accepts raw HTML, and send the `.txt` as the plain-text part. `open-pages export` with no ids exports every page and every email; `open-pages build` pre-renders each email into the static workspace site so the viewer works there as well.
+
+## Writing emails with an agent
+
+Ask for "a welcome email", "a receipt", "a password reset", or "a newsletter" and the `create-email` skill takes over: it asks for the subject, preheader, and call to action, picks an emailcn block or composes sections, installs what it needs, writes `emails/<id>/index.tsx`, and checks both views before handing off. Its self-review covers the constraints mail clients impose: one 600px column, absolute image URLs with dimensions and alt text, 14px+ body text, a footer with address and unsubscribe for marketing mail, and plain text that reads as complete prose.

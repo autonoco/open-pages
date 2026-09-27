@@ -1,12 +1,13 @@
-import { Presentation } from 'lucide-react';
+import { Mail, Presentation } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLocale } from '~/lib/use-locale';
 import { usePageTitles } from '~/lib/use-page-titles';
+import { emailIds, emailMeta } from '../../lib/emails';
 import { pageIds } from '../../lib/pages';
 import type { Folder } from '../../lib/sdk';
 import { FolderIconChip, SystemViewIcon } from '../sidebar/folder-item';
-import { ALL_DOCS_ID, ASSETS_ID, DRAFT_ID, THEMES_ID } from '../sidebar/sidebar';
+import { ALL_DOCS_ID, ASSETS_ID, DRAFT_ID, EMAILS_ID, THEMES_ID } from '../sidebar/sidebar';
 import { type CommandGroupSpec, CommandMenu, type CommandSpec } from './command-menu';
 
 export function HomeCommandMenu({
@@ -33,6 +34,14 @@ export function HomeCommandMenu({
       icon: <Presentation />,
       keywords: [id],
       run: () => navigate(`/p/${id}`),
+    }));
+
+    const emails: CommandSpec[] = emailIds.map((id) => ({
+      id: `email-${id}`,
+      label: emailMeta[id]?.title ?? id,
+      icon: <Mail />,
+      keywords: [id, 'email', emailMeta[id]?.subject ?? ''],
+      run: () => navigate(`/e/${id}`),
     }));
 
     const folderItems: CommandSpec[] = [
@@ -67,6 +76,13 @@ export function HomeCommandMenu({
         keywords: ['themes', 'design'],
         run: () => onSelectView(THEMES_ID),
       },
+      {
+        id: `view-${EMAILS_ID}`,
+        label: t.home.emails,
+        icon: <SystemViewIcon kind="emails" />,
+        keywords: ['emails', 'mail', 'templates'],
+        run: () => onSelectView(EMAILS_ID),
+      },
     ];
     if (import.meta.env.DEV) {
       navigation.push({
@@ -80,6 +96,7 @@ export function HomeCommandMenu({
 
     return [
       { id: 'pages', heading: t.commandMenu.groupDocs, items: pages },
+      { id: 'emails', heading: t.commandMenu.groupEmails, items: emails },
       { id: 'folders', heading: t.commandMenu.groupFolders, items: folderItems },
       { id: 'navigation', heading: t.commandMenu.groupNavigation, items: navigation },
     ];

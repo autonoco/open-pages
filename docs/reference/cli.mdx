@@ -36,7 +36,7 @@ npm create @autono/open-pages@latest [dir]
 
 What init does:
 
-1. Copies the workspace template into the target directory: `pages/`, the shadcn set (`ui/`, `lib/`, `hooks/`, `styles/globals.css`, `components.json`), `assets/`, `themes/`, `open-pages.config.ts`, an `AGENTS.md` agent guide (linked as `CLAUDE.md`), and the six bundled agent skills under `.agents/skills/` (symlinked into `.claude/skills/`).
+1. Copies the workspace template into the target directory: `pages/`, the shadcn set (`ui/`, `lib/`, `hooks/`, `styles/globals.css`, `components.json`), `assets/`, `themes/`, `open-pages.config.ts`, an `AGENTS.md` agent guide (linked as `CLAUDE.md`), and the eight bundled agent skills under `.agents/skills/` (symlinked into `.claude/skills/`).
 2. Sets the package name, marks the package private, and sets `@autono/open-pages` to a caret range on the version the CLI was built against (`^x.y.z`).
 3. Writes a `.gitignore` covering `node_modules`, `dist`, `export`, and `.DS_Store`.
 4. Installs dependencies (unless `--no-install`) and creates a git repository with a first commit (unless `--no-git`). Git setup is skipped automatically when the target sits inside an existing repository.
@@ -109,24 +109,25 @@ open-pages preview
 
 ## export
 
-Build pages into self-contained static folders, without a running dev server. See [Export](/export).
+Build pages and emails into self-contained static folders, without a running dev server. See [Export](/export).
 
 ```bash
-open-pages export [pages...]
+open-pages export [ids...]
 ```
 
 | Flag | Description |
 | --- | --- |
-| `[pages...]` | Page ids to export (the folder names under `pages/`). Omit to export every page. Unknown ids error and list the available ids. |
+| `[ids...]` | Page or email ids to export (the folder names under `pages/` and `emails/`). Omit to export everything. Unknown ids error and list the available ids. |
 | `--out-dir <dir>` | Output directory. Defaults to `export`. |
 
-Each page is written to `<out-dir>/<id>/` as `index.html` plus hashed assets with relative URLs, with a per-page line reporting the page kind and build time:
+Each page is written to `<out-dir>/<id>/` as `index.html` plus hashed assets with relative URLs; each email to `<out-dir>/emails/<id>/` as `index.html` plus `index.txt`. A line per item reports its kind and build time:
 
 ```
 ok  export/launch/  react · 1240ms
+ok  export/emails/welcome/  email · 310ms
 ```
 
-React pages get a generated entry that mounts the component, with `meta.title` and `meta.description` written into the HTML head. HTML pages build straight from their folder.
+React pages get a generated entry that mounts the component, with `meta.title` and `meta.description` written into the HTML head. HTML pages build straight from their folder. Emails are rendered with the workspace's `react-email`, see [Emails](/authoring/emails).
 
 ```bash
 # Export one page

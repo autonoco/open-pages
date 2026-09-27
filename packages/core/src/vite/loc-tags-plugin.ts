@@ -62,6 +62,7 @@ export function injectLocTags(code: string): string | null {
 export type LocTagsPluginOptions = {
   userCwd: string;
   pagesDir?: string;
+  emailsDir?: string;
   apply?: 'serve' | 'build';
 };
 
@@ -79,7 +80,9 @@ function isPageSourceFile(id: string, docsRootPosix: string): boolean {
 }
 
 export function locTagsPlugin(opts: LocTagsPluginOptions): Plugin {
-  const pagesRoot = path.resolve(opts.userCwd, opts.pagesDir ?? 'pages').replace(/\\/g, '/');
+  const roots = [opts.pagesDir ?? 'pages', opts.emailsDir ?? 'emails'].map((dir) =>
+    path.resolve(opts.userCwd, dir).replace(/\\/g, '/'),
+  );
   return {
     name: 'open-pages:loc-tags',
     apply: opts.apply ?? 'serve',
@@ -87,7 +90,7 @@ export function locTagsPlugin(opts: LocTagsPluginOptions): Plugin {
     // sees our injected attributes.
     enforce: 'pre',
     transform(code, id) {
-      if (!isPageSourceFile(id, pagesRoot)) return null;
+      if (!roots.some((root) => isPageSourceFile(id, root))) return null;
       const next = injectLocTags(code);
       if (next === null) return null;
       return { code: next, map: null };
