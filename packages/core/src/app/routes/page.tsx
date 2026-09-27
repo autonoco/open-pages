@@ -14,7 +14,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Button } from '~/components/ui/button';
+import { Button, buttonVariants } from '~/components/ui/button';
 import { readLastHomeLocation } from '~/lib/last-home-location';
 import { cn } from '~/lib/utils';
 import { type FrameMessage, frameUrl, isFrameMessage, type WorkspaceMessage } from '../lib/frame';
@@ -253,17 +253,21 @@ export function PageView() {
                 Inspect
               </Button>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!known}
-              render={<a href={src} target="_blank" rel="noreferrer" />}
+            <a
+              href={src}
+              target="_blank"
+              rel="noreferrer"
               aria-label="Open page in a new tab"
+              aria-disabled={!known || undefined}
               title="Open the page by itself in a new tab"
+              className={cn(
+                buttonVariants({ variant: 'outline', size: 'sm' }),
+                !known && 'pointer-events-none opacity-50',
+              )}
             >
               <ExternalLink className="size-4" />
               Open
-            </Button>
+            </a>
           </div>
         </header>
       )}
