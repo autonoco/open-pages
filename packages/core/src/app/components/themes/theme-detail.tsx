@@ -48,7 +48,7 @@ export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () =
       </div>
 
       <header className="flex flex-wrap items-baseline gap-3">
-        <h2 className="font-heading text-[26px] font-semibold leading-[1.05] tracking-[-0.025em] md:text-[32px]">
+        <h2 className="font-heading text-[19px] font-semibold leading-none tracking-[-0.015em] md:text-[21px]">
           {theme.name}
         </h2>
         {theme.description ? (
@@ -156,8 +156,11 @@ function ThemeDocCard({ id }: { id: string }) {
   const displayTitle = page?.meta?.title ?? id;
 
   return (
-    <Link to={`/p/${id}`} className="group block focus-visible:outline-none">
-      <div className="relative aspect-video overflow-hidden rounded-[6px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04] group-hover:shadow-floating group-hover:ring-foreground/20 motion-safe:transition-[box-shadow,--tw-ring-color] motion-safe:duration-200">
+    <Link
+      to={`/p/${id}`}
+      className="group block rounded-[6px] outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+    >
+      <div className="relative aspect-video overflow-hidden rounded-[6px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04] group-hover:shadow-floating group-hover:ring-foreground/20 group-active:scale-[0.99] motion-safe:transition-[box-shadow,--tw-ring-color,scale] motion-safe:duration-200">
         <div className="h-full w-full motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]">
           <PageThumb source={{ pageId: id, kind: pageKinds[id] }} title={displayTitle} />
         </div>

@@ -94,15 +94,26 @@ function generateThemesModule(themes: ParsedTheme[], isDev: boolean): string {
     hasCss: t.cssAbs !== null,
   }));
 
-  const cases = themes
-    .flatMap((t) => {
-      const abs = t.demoAbs;
-      if (!abs) return [];
-      const importPath = isDev ? `@fs/${normalizePath(abs).replace(/^\/+/, '')}` : abs;
+  const withDemo = themes.filter((t): t is ParsedTheme & { demoAbs: string } => t.demoAbs !== null);
+
+  const cases = withDemo
+    .map((t) => {
+      const importPath = isDev ? `@fs/${normalizePath(t.demoAbs).replace(/^\/+/, '')}` : t.demoAbs;
       const importExpr = isDev
         ? `import(/* @vite-ignore */ import.meta.env.BASE_URL + ${JSON.stringify(importPath)})`
         : `import(${JSON.stringify(importPath)})`;
-      return [`    case ${JSON.stringify(t.id)}: return ${importExpr};`];
+      return `    case ${JSON.stringify(t.id)}: return ${importExpr};`;
+    })
+    .join('\n');
+
+  const urlCases = withDemo
+    .map((t) => {
+      // Static builds must not leak build-host paths; the worker loads by
+      // themeId through loadThemeDemo and ignores the URL there.
+      const urlExpr = isDev
+        ? `import.meta.env.BASE_URL + ${JSON.stringify(`@fs/${normalizePath(t.demoAbs).replace(/^\/+/, '')}`)}`
+        : "''";
+      return `    case ${JSON.stringify(t.id)}: return ${urlExpr};`;
     })
     .join('\n');
 
@@ -133,6 +144,15 @@ ${cssCases}
 export async function loadThemeDemo(id) {
   switch (id) {
 ${cases}
+    default: throw new Error('Theme demo not found: ' + id);
+  }
+}
+
+// Dev-server module URL so the render worker can import the same demo the
+// main thread just loaded. A static build imports through loadThemeDemo.
+export function demoImportUrl(id) {
+  switch (id) {
+${urlCases}
     default: throw new Error('Theme demo not found: ' + id);
   }
 }

@@ -4,17 +4,19 @@ import { createViteConfig } from '../vite/config.ts';
 import { findPages, loadUserConfig } from '../vite/open-pages-plugin.ts';
 import { readCoreVersion } from '../vite/version.ts';
 import { buildPage } from './export.ts';
+import { createCliLogger, printHeader } from './ui.ts';
 
 export interface BuildOptions {
   outDir?: string;
 }
 
 export async function build(opts: BuildOptions = {}): Promise<void> {
+  printHeader('building for production');
   const userCwd = process.cwd();
   const config = await loadUserConfig(userCwd);
   const outDir = path.resolve(userCwd, opts.outDir ?? 'dist');
   const base = await createViteConfig({ userCwd, config, mode: 'build' });
-  await viteBuild(mergeConfig(base, { build: { outDir } }));
+  await viteBuild(mergeConfig(base, { customLogger: createCliLogger(), build: { outDir } }));
 
   // HTML pages are served verbatim in dev; a static build gets each one
   // built into the spot the viewer's frame URL points at.

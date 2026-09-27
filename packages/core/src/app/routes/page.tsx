@@ -12,9 +12,10 @@ import {
   X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
+import { readLastHomeLocation } from '~/lib/last-home-location';
 import { cn } from '~/lib/utils';
 import { type FrameMessage, frameUrl, isFrameMessage, type WorkspaceMessage } from '../lib/frame';
 import { pageChangeIncludes, pageIds, pageKinds } from '../lib/pages';
@@ -53,8 +54,22 @@ export function PageView() {
 
   const title = pageModule?.meta?.title ?? pageId;
   useEffect(() => {
-    document.title = `${title} — open-pages`;
+    document.title = `${title} — Autono`;
+    return () => {
+      document.title = 'Autono';
+    };
   }, [title]);
+  const navigate = useNavigate();
+  // react-router records its entry index in history.state; going back is only
+  // safe when we actually pushed an entry, otherwise land on the last home view.
+  const goBack = useCallback(() => {
+    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
+    if (idx > 0) {
+      navigate(-1);
+    } else {
+      navigate(readLastHomeLocation(), { replace: true });
+    }
+  }, [navigate]);
 
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [frameKey, setFrameKey] = useState(0);
@@ -178,7 +193,7 @@ export function PageView() {
       {showPageUi && (
         <header className="flex h-12 shrink-0 items-center gap-2 border-b bg-background px-3">
           {showPageBrowser && (
-            <Button variant="ghost" size="icon" aria-label="Back to pages" render={<Link to="/" />}>
+            <Button variant="ghost" size="icon" aria-label="Back to pages" onClick={goBack}>
               <ChevronLeft className="size-4" />
             </Button>
           )}
