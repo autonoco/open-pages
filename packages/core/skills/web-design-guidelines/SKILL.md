@@ -30,7 +30,7 @@ Use WebFetch to retrieve the latest rules. The fetched content contains all the 
 
 ## What to review
 
-- Given a page id, review `pages/<id>/index.tsx` and everything under `pages/<id>/components/`.
+- Given a page id, review the page's entry (`pages/<id>/index.tsx` or `pages/<id>/index.html`), everything under `pages/<id>/components/`, and any `styles.css`, `style.css`, or `main.js` beside the entry.
 - Given a file or glob, review those files.
 - Given nothing, resolve the current page with the `current-page` skill; if that yields nothing, ask which page to review.
 
