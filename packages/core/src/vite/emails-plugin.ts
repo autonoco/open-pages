@@ -204,6 +204,58 @@ export function stripLocTags(html: string): string {
   return html.replace(EMAIL_LOC_ATTR_RE, '');
 }
 
+// emailcn's react-email sections and blocks style themselves with
+// `bg-background`, `text-foreground`, `bg-primary`, `max-w-container`, and
+// friends, but the `email-theme.ts` the same registry installs only defines
+// `bg`, `fg`, `brand`, and `email`, so a freshly installed block renders
+// without its colors. Until the registry agrees with itself, the theme
+// module is patched at load time: every alias is added only when the theme
+// config does not define it, so an upstream fix makes this a no-op.
+const EMAIL_THEME_FILE_RE = /(^|\/)components\/email\/email-theme\.(ts|tsx|js|jsx|mjs)$/;
+const CREATE_CONFIG_RE = /export\s+const\s+createEmailTailwindConfig\s*=/;
+
+const EMAIL_THEME_ALIASES = `
+export const createEmailTailwindConfig = (theme) =>
+  __openPagesAliasEmailTheme(__openPagesCreateEmailTailwindConfig(theme), theme);
+
+function __openPagesAliasEmailTheme(config, theme) {
+  if (!config || typeof config !== 'object' || !theme || typeof theme !== 'object') return config;
+  const extend = (config.theme ??= {}).extend ??= {};
+  const colors = (extend.colors ??= {});
+  const aliases = {
+    background: theme.colorBackground,
+    'background-muted': theme.colorBackgroundMuted,
+    foreground: theme.colorText,
+    'foreground-muted': theme.colorTextMuted,
+    primary: theme.colorPrimary,
+    'primary-fg': theme.colorPrimaryForeground,
+    border: theme.colorBorder,
+  };
+  for (const [name, value] of Object.entries(aliases)) {
+    if (!(name in colors) && typeof value === 'string') colors[name] = value;
+  }
+  const maxWidth = (extend.maxWidth ??= {});
+  if (!('container' in maxWidth) && typeof theme.containerWidth === 'string') {
+    maxWidth.container = theme.containerWidth;
+  }
+  return config;
+}
+`;
+
+export function isEmailThemeModule(id: string, userCwd: string): boolean {
+  const file = id.split(/[?#]/)[0].replace(/\\/g, '/');
+  const root = userCwd.replace(/\\/g, '/');
+  return file.startsWith(`${root}/`) && EMAIL_THEME_FILE_RE.test(file.slice(root.length + 1));
+}
+
+export function aliasEmailThemeModule(code: string): string | null {
+  if (!CREATE_CONFIG_RE.test(code)) return null;
+  return (
+    code.replace(CREATE_CONFIG_RE, 'const __openPagesCreateEmailTailwindConfig =') +
+    EMAIL_THEME_ALIASES
+  );
+}
+
 function injectBeforeBodyEnd(html: string, snippet: string): string {
   const idx = html.lastIndexOf('</body>');
   return idx === -1 ? html + snippet : html.slice(0, idx) + snippet + html.slice(idx);
@@ -276,6 +328,11 @@ export function emailsPlugin(opts: EmailsPluginOptions): Plugin {
       const entries = await findEmails(userCwd, emailsDir);
       generatedSignature = emailsSignature(entries);
       return generateEmailsModule(entries);
+    },
+    transform(code, id) {
+      if (!isEmailThemeModule(id, userCwd)) return null;
+      const next = aliasEmailThemeModule(code);
+      return next === null ? null : { code: next, map: null };
     },
     hotUpdate({ file, modules, server }) {
       if (this.environment.name !== 'ssr') return;

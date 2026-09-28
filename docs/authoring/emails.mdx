@@ -87,7 +87,7 @@ npx shadcn@latest add @emailcn/react-email/theme-linear @emailcn/react-email/spl
 Use the `react-email/` variants; emailcn's `mjml-react/` and `jsx-email/` variants need packages the workspace does not install. The installed files are shared by every email, like `ui/` is for pages: read them, compose them, wrap them inside an email's own `components/` when one email needs a different look.
 
 <Note>
-The registry's react-email blocks currently reference a few theme class names (`bg-background`, `text-foreground`, `bg-primary`, `max-w-container`, and friends) that its `email-theme.ts` does not define, so a freshly installed block renders without its colors. The `create-email` skill knows the fix: a one-time set of aliases in `components/email/email-theme.ts`. The viewer's chip tells you when it is needed.
+The registry's react-email blocks reference theme class names (`bg-background`, `text-foreground`, `bg-primary`, `max-w-container`, and friends) that its own `email-theme.ts` does not define. open-pages patches that module as it loads so the names resolve to the matching theme fields, in dev, export, and build alike. Each alias is only added when the theme does not already define it, so an upstream fix makes the patch a no-op.
 </Note>
 
 ## The viewer

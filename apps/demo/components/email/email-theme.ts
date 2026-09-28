@@ -131,13 +131,6 @@ export const createEmailTailwindConfig = (theme: EmailTheme): TailwindConfig => 
         'stroke-strong': theme.colorBorderSubtle,
         success: theme.colorSuccess,
         warning: theme.colorWarning,
-        background: theme.colorBackground,
-        'background-muted': theme.colorBackgroundMuted,
-        foreground: theme.colorText,
-        'foreground-muted': theme.colorTextMuted,
-        primary: theme.colorPrimary,
-        'primary-fg': theme.colorPrimaryForeground,
-        border: theme.colorBorder,
       },
       fontFamily: {
         mono: [theme.fontFamilyMono],
@@ -160,7 +153,6 @@ export const createEmailTailwindConfig = (theme: EmailTheme): TailwindConfig => 
       },
       maxWidth: {
         email: theme.containerWidth,
-        container: theme.containerWidth,
       },
       spacing: {
         base: theme.spacingBase,

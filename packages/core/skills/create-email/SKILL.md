@@ -116,7 +116,7 @@ export default function Welcome() {
 
 The emailcn theme config (`components/email/email-theme.ts`) adds semantic names on top of Tailwind: colors `bg`, `bg-2`, `bg-3`, `fg`, `fg-2`, `fg-3`, `brand`, `brand-fg`, `brand-hover`, `stroke`, `danger`, `success`, `warning` (so `bg-bg`, `text-fg-2`, `bg-brand text-brand-fg`, `border-stroke`), `max-w-email` for the 600px column, `rounded` / `rounded-lg` from the theme radii, `font-11` … `font-28` type steps, and a `mobile:` variant. Read that file for the current list before inventing names. Prefer these over raw hex so swapping the theme file restyles the email.
 
-**Known registry gap.** emailcn's react-email blocks and sections currently use `bg-background`, `text-foreground`, `text-foreground-muted`, `bg-primary`, `text-primary-fg`, `border-border`, and `max-w-container`, which the installed `email-theme.ts` does not define, so a freshly installed block renders without its colors and the viewer reports them as uncompiled. The fix is one edit to the shared theme file, made once per workspace: add aliases under `theme.extend.colors` (`background: theme.colorBackground`, `"background-muted": theme.colorBackgroundMuted`, `foreground: theme.colorText`, `"foreground-muted": theme.colorTextMuted`, `primary: theme.colorPrimary`, `"primary-fg": theme.colorPrimaryForeground`, `border: theme.colorBorder`) and `container: theme.containerWidth` under `maxWidth`. This is the one case where editing `components/email/email-theme.ts` is expected; re-apply it if a later `shadcn add` overwrites the file, and check the chip reads zero afterwards.
+**Registry quirk, handled for you.** emailcn's react-email blocks and sections use `bg-background`, `text-foreground`, `text-foreground-muted`, `bg-primary`, `text-primary-fg`, `border-border`, and `max-w-container`, which the `email-theme.ts` the same registry installs does not define. open-pages patches that module at load time so those names resolve to the matching theme fields (`colorBackground`, `colorText`, `colorPrimary`, `containerWidth`, …) in dev, export, and build. Both vocabularies work in your own emails; do not edit `components/email/email-theme.ts` to add them by hand.
 
 ### Email constraints that differ from pages
 
@@ -132,7 +132,7 @@ The emailcn theme config (`components/email/email-theme.ts`) adds semantic names
 
 The dev server renders the email at `http://localhost:5173/e/<id>` with **HTML** and **Text** views, a **Mobile** (375px) toggle, **Copy HTML**, and **Open** (the raw document by itself). The frame re-renders on every save of the email or of anything it imports. An error banner in the frame means the module threw on the server; the dev server output has the stack.
 
-Check both views. In Text, every link should read as `label URL`, and nothing important should be missing. If the header shows an amber "classes did not compile" chip, resolve every name it lists (see the registry gap above) before handing off; a shipped email must have zero.
+Check both views. In Text, every link should read as `label URL`, and nothing important should be missing. If the header shows an amber "classes did not compile" chip, resolve every name it lists before handing off; a shipped email must have zero.
 
 ## Step 6 — Self-review
 

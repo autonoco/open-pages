@@ -3,10 +3,12 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  aliasEmailThemeModule,
   emailsSignature,
   extractEmailMeta,
   findEmails,
   generateEmailsModule,
+  isEmailThemeModule,
   stripLocTags,
   unresolvedClasses,
 } from './emails-plugin.ts';
@@ -127,5 +129,76 @@ describe('unresolvedClasses', () => {
 
   it('is empty when every utility was inlined', () => {
     expect(unresolvedClasses('<td style="padding:8px">x</td>')).toEqual([]);
+  });
+});
+
+describe('email theme aliases', () => {
+  const emailcnModule = `
+export const createEmailTailwindConfig = (theme) => ({
+  presets: [],
+  theme: {
+    extend: {
+      colors: { bg: theme.colorBackground, fg: theme.colorText, brand: theme.colorPrimary },
+      maxWidth: { email: theme.containerWidth },
+    },
+  },
+});
+`;
+  const theme = {
+    colorBackground: '#ffffff',
+    colorBackgroundMuted: '#f9fafb',
+    colorText: '#111827',
+    colorTextMuted: '#6b7280',
+    colorPrimary: '#111827',
+    colorPrimaryForeground: '#ffffff',
+    colorBorder: '#e5e7eb',
+    containerWidth: '600px',
+  };
+
+  async function load(code: string) {
+    const url = `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`;
+    return (await import(url)) as {
+      createEmailTailwindConfig: (t: typeof theme) => {
+        theme: { extend: { colors: Record<string, string>; maxWidth: Record<string, string> } };
+      };
+    };
+  }
+
+  it('matches only the workspace email-theme module', () => {
+    expect(isEmailThemeModule('/w/components/email/email-theme.ts', '/w')).toBe(true);
+    expect(isEmailThemeModule('/w/components/email/email-theme.ts?v=1', '/w')).toBe(true);
+    expect(isEmailThemeModule('/w/components/email/theme-default.ts', '/w')).toBe(false);
+    expect(isEmailThemeModule('/elsewhere/components/email/email-theme.ts', '/w')).toBe(false);
+  });
+
+  it('adds the block class names the registry theme leaves out', async () => {
+    const patched = aliasEmailThemeModule(emailcnModule);
+    expect(patched).not.toBeNull();
+    const mod = await load(patched as string);
+    const { colors, maxWidth } = mod.createEmailTailwindConfig(theme).theme.extend;
+    expect(colors).toMatchObject({
+      bg: '#ffffff',
+      background: '#ffffff',
+      'background-muted': '#f9fafb',
+      foreground: '#111827',
+      'foreground-muted': '#6b7280',
+      primary: '#111827',
+      'primary-fg': '#ffffff',
+      border: '#e5e7eb',
+    });
+    expect(maxWidth).toEqual({ email: '600px', container: '600px' });
+  });
+
+  it('keeps names the theme already defines', async () => {
+    const own = emailcnModule.replace(
+      'brand: theme.colorPrimary }',
+      "brand: theme.colorPrimary, background: '#123456' }",
+    );
+    const mod = await load(aliasEmailThemeModule(own) as string);
+    expect(mod.createEmailTailwindConfig(theme).theme.extend.colors.background).toBe('#123456');
+  });
+
+  it('leaves modules without the factory alone', () => {
+    expect(aliasEmailThemeModule('export const x = 1;')).toBeNull();
   });
 });
