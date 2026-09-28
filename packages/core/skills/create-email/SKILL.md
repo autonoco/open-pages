@@ -19,7 +19,7 @@ Lock in the decisions below with `AskUserQuestion` before writing. Skip a questi
 
 2. **Starting point** — offer: an emailcn block (Recommended when one matches: `block-onboarding-*`, `block-receipt-*`, `block-auth-*`, `block-invite-*`, `block-newsletter-*`, `block-notification-*`), emailcn components composed by you (headers, heroes, CTAs, footers, stats, pricing tables), or react-email primitives from scratch. The block route is fastest and already email-client-safe.
 
-3. **Look** — offer the emailcn themes that fit the brand: `theme-default` (neutral), `theme-linear`, `theme-vercel`, `theme-stripe`, `theme-notion`, `theme-slack`, `theme-github`, `theme-raycast`, `theme-apple`, `theme-airbnb`, `theme-dropbox`, `theme-nike`, `theme-twitch`, `theme-stack-overflow`. If a workspace theme exists under `themes/<id>.md` and the user wants the emails to match it, say you will derive an email theme from it (Step 3b).
+3. **Look** — list every `components/email/theme-<id>.ts` that pairs with a `themes/<id>.md` first (Recommended when one exists: the email will match the workspace's pages), then the emailcn themes that fit the brand: `theme-default` (neutral), `theme-linear`, `theme-vercel`, `theme-stripe`, `theme-notion`, `theme-slack`, `theme-github`, `theme-raycast`, `theme-apple`, `theme-airbnb`, `theme-dropbox`, `theme-nike`, `theme-twitch`, `theme-stack-overflow`. Step 3b covers applying a workspace theme.
 
 4. **Content** — the subject line, the preheader (the preview text mail clients show next to the subject), the sender name or product name, the one thing the reader should do (CTA label + URL), and any real copy, prices, or names. Real emails live on real content; ask rather than invent.
 
@@ -46,21 +46,26 @@ curl -s https://emailcn.run/r/registry.json | node -e 'let s="";process.stdin.on
 
 Files land under `components/email/` (`email-theme.ts`, `theme-<id>.ts`, `email-assets.ts`, one file per section or block). They are the email equivalent of `ui/`: shared by every email, read but not edited per email. Wrap or extend a section inside `emails/<id>/components/` when one email needs a different look. Always use the `react-email/` variants of registry items; the `mjml-react/` and `jsx-email/` variants need packages this workspace does not install.
 
-### Step 3b — Deriving an email theme from a workspace theme
+### Step 3b — Using a workspace theme
 
-Email clients do not support CSS variables, `oklch()`, or the shadcn token system, so `themes/<id>.css` cannot be reused. When the user wants emails to match a workspace theme, write `components/email/theme-<id>.ts` in the same shape as `theme-default.ts` (an `EmailTheme` object: hex colors, px sizes, font stacks), converting the theme's OKLCH tokens to hex:
+Every workspace theme authored by `create-theme` ships `components/email/theme-<id>.ts`, the same palette as an `EmailTheme` object (mail clients cannot read `themes/<id>.css`). To put an email on that theme:
 
-| Workspace token | Email theme field |
-| --- | --- |
-| `--background` / `--foreground` | `colorBackground` / `colorText` |
-| `--muted` / `--muted-foreground` | `colorBackgroundMuted` / `colorTextMuted` |
-| `--primary` / `--primary-foreground` | `colorPrimary`, `button.primary.backgroundColor` / `colorPrimaryForeground`, `button.primary.color` |
-| `--border` | `colorBorder`, `button.secondary.border` |
-| `--destructive` | `colorDanger` |
-| `--radius` | `borderRadius` (and `button.*.borderRadius`) |
-| `--font-sans` | `fontFamily` (web-safe fallbacks appended: `Arial, sans-serif`) |
+```tsx
+import { createEmailTailwindConfig } from '@/components/email/email-theme';
+import { autonoTheme } from '@/components/email/theme-autono';
 
-Keep `containerWidth: "600px"`. Then import that theme instead of `defaultTheme` in the email.
+<Tailwind config={createEmailTailwindConfig(autonoTheme)}>…</Tailwind>
+```
+
+emailcn **sections** (`split-hero`, `call-to-action`, `navigation-footer`, `button`, …) take a `theme` prop and default to `defaultTheme`, so pass the workspace theme to each one you compose. emailcn **blocks** (`block-*`) pin `defaultTheme` (or their named theme) inside the file; to put a block on a workspace theme, copy it into `emails/<id>/components/` and swap the theme import there rather than editing the shared copy.
+
+If `themes/<id>.css` exists but `components/email/theme-<id>.ts` does not, generate it the way `create-theme` does instead of converting colors by hand:
+
+```bash
+node .agents/skills/create-theme/references/email-theme-from-css.mjs themes/<id>.css <id> > components/email/theme-<id>.ts
+```
+
+(`components/email/email-theme.ts` must exist first: `npx shadcn@latest add @emailcn/react-email/theme-default` installs it.)
 
 ## Step 4 — Write `emails/<id>/index.tsx`
 

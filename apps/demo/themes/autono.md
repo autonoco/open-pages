@@ -44,6 +44,12 @@ The full set lives in `themes/autono.css`; this table is the reference for what 
 - Feedback: `<Alert>` with `variant="default"` for notes; `sonner` toasts. Errors use `text-destructive`, which is the seal, so pair them with an icon.
 - Avoid: gradients, drop shadows, glows, a second accent hue, pill shapes, oversized rounded corners, and sans-serif display headings.
 
+## Email
+
+- `components/email/theme-autono.ts` exports `autonoTheme`, generated from this CSS. Emails pass it to `createEmailTailwindConfig` or to an emailcn section's `theme` prop; the seal becomes the CTA fill and the paper the body.
+- Headings in email keep the serif: wrap the document's `<Head>` with a `<Font fontFamily="Source Serif 4" fallbackFontFamily="Georgia">` and set `font-serif` (or an explicit `fontFamily` style) on `<Heading>`; Gmail will show Georgia, which still reads as the brand.
+- Footer: Miami plus `bobak@autono.co` in the mono face, and an unsubscribe link on anything that is not transactional.
+
 ## Aesthetic
 
 A printed sheet on a dark desk. Warm off-white paper, ink-black type, hairline rules instead of shadows, and a single seal-red mark where the eye should land. Serif headings carry the editorial, hand-set feel of the Autono site and docs; Inter body and JetBrains Mono details keep it a tool, not a magazine. Generous whitespace, tight corners, nothing decorative. When in doubt, remove colour rather than add it: one seal per screen.

@@ -8,13 +8,15 @@ A theme is a reusable visual identity for your pages. Because every component un
 
 ## The bundle
 
-A theme is three files under `themes/` sharing one stem:
+A theme is three files under `themes/` sharing one stem, plus an email counterpart:
 
 ```
 themes/
   midnight-saas.md         # direction for the agent
   midnight-saas.css        # token overrides the runtime applies
   midnight-saas.demo.tsx   # a demo page composed from ui/*
+components/email/
+  theme-midnight-saas.ts   # the same palette as an emailcn EmailTheme, for emails
 ```
 
 **`<id>.css`** holds `:root { … }` and `.dark { … }` blocks overriding the shadcn tokens (`--background`, `--foreground`, `--primary`, `--muted`, `--border`, `--radius`, `--chart-1..5`, the `--sidebar-*` set), optionally a Google Fonts `@import` and `--font-sans` / `--font-heading` values. No Tailwind import and no `@theme` block: `styles/globals.css` already maps the variables to utilities.
@@ -37,6 +39,8 @@ themes/
 **`<id>.md`** is what the agent reads before authoring: the aesthetic, fonts, a palette table mapping each token to its value, and notes on which components and layouts the theme favors.
 
 **`<id>.demo.tsx`** is a page module (one default-exported component) composed from `@/ui/*`, so the workspace's **Themes** panel shows the tokens on real parts. The runtime injects `<id>.css` into the demo automatically.
+
+**`components/email/theme-<id>.ts`** carries the same palette for [emails](/authoring/emails), which mail clients render without CSS variables or `oklch()`. The `create-theme` skill generates it from the CSS with a bundled script (`references/email-theme-from-css.mjs`): `:root` colors become hex, `--radius` becomes pixels, the font stacks are kept, and emailcn's defaults fill what the CSS does not decide. Emails pass the exported object to `createEmailTailwindConfig` or to an emailcn section's `theme` prop.
 
 ## Applying a theme
 

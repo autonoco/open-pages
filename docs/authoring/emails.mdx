@@ -70,7 +70,7 @@ One zero-prop component containing the whole email, always shaped `Html > Head +
 
 A utility the compiler cannot resolve stays behind as a `class` attribute and does nothing in a mail client. The viewer shows an amber "classes did not compile" chip listing them, and the dev server logs the same, so a shipped email can be checked down to zero.
 
-The workspace's page themes (`themes/<id>.css`) do not apply to emails: mail clients have no CSS variables and no `oklch()`. Email themes are plain objects of hex colors and pixel sizes, installed from the emailcn registry (below) or derived from a workspace theme by the `create-email` skill.
+The workspace's page themes (`themes/<id>.css`) cannot be read by mail clients (no CSS variables, no `oklch()`), so each theme also ships `components/email/theme-<id>.ts`: the same palette as a plain object of hex colors and pixel sizes, generated from the CSS by the `create-theme` skill. Pass it to `createEmailTailwindConfig` or to an emailcn section's `theme` prop and the email matches the pages. emailcn's own themes (`theme-linear`, `theme-stripe`, …) install the same way from the registry below.
 
 ## emailcn components
 
