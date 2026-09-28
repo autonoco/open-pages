@@ -1,15 +1,17 @@
 ---
 name: apply-comments
-description: Apply pending @page-comment markers written by the open-pages inspector tool. Use when the user asks to "apply comments", "process page comments", "apply the inspector comments", or references markers left inside `pages/<id>/index.tsx` (or its `components/*.tsx`).
+description: Apply pending @page-comment markers written by the open-pages inspector tool. Use when the user asks to "apply comments", "process page comments", "apply the inspector comments", or references markers left inside `pages/<id>/index.tsx`, `emails/<id>/index.tsx`, or their `components/*.tsx`.
 ---
 
 # Apply page comments
 
-The open-pages viewer has an inspector that lets the user click any element on the live page and attach a textual comment (e.g. *"make this red"*, *"change to 'Open Pages Rocks'"*). Each comment is persisted as an in-source JSX marker inside the page's source — usually `pages/<pageId>/index.tsx`, occasionally a file under `pages/<pageId>/components/`.
+The open-pages viewer has an inspector that lets the user click any element on the live page (or rendered email) and attach a textual comment (e.g. *"make this red"*, *"change to 'Open Pages Rocks'"*). Each comment is persisted as an in-source JSX marker inside the source — usually `pages/<pageId>/index.tsx`, occasionally a file under `pages/<pageId>/components/`; for emails, `emails/<id>/index.tsx` and `emails/<id>/components/`.
 
 Your job: read those markers, perform the described edits, and delete the markers.
 
 > **Before making any page edit**, consult the **`page-authoring`** skill (and the **`shadcn`** skill for component props and variants) — it is the technical reference for how a page is structured (file contract, `className` styling, layout and responsive rules, type scale, interactivity). A comment like *"make this bigger"* or *"change the accent colour"* should be applied in a way that stays consistent with those rules and still works on mobile.
+>
+> **For a marker under `emails/`**, consult the **`create-email`** skill instead: emails are react-email components with email-safe Tailwind only (no flex/grid, no `ui/` components, no hooks), and the edit must keep both the HTML and the derived plain text sensible.
 
 ## Marker format
 
@@ -29,7 +31,7 @@ Your job: read those markers, perform the described edits, and delete the marker
 
 1. **Identify the target page(s).**
    - If the user names one (`launch`, `pricing`, etc.), work on that single page's source files.
-   - If they say "all" or don't specify, scan every `pages/*/index.tsx` and `pages/*/components/*.tsx`. Process each page one at a time.
+   - If they say "all" or don't specify, scan every `pages/*/index.tsx`, `pages/*/components/*.tsx`, `emails/*/index.tsx`, and `emails/*/components/*.tsx`. Process each page or email one at a time.
 
 2. **Read the file and find all markers.**
    - Run the regex above against the whole file.
@@ -56,7 +58,7 @@ Your job: read those markers, perform the described edits, and delete the marker
    - After all edits, re-read the file and confirm the only remaining markers are ones you reported as skipped.
    - Confirm the edited JSX is well-formed (balanced tags, no dangling attributes) and that changed `className` strings are literal Tailwind utilities. If the project's `package.json` has typecheck/lint scripts, run them with the project's package manager; scaffolded projects ship neither TypeScript nor a linter — there, rely on the running dev server (or the `build` script) to surface compile errors. Fix any errors you introduced.
    - For layout changes, mentally check the Mobile viewport (390px): did the edit introduce a fixed width or a grid with no stacking fallback?
-   - When a comment changed interactive elements, forms, motion, or layout, run the `web-design-guidelines` skill on the page and fix any regression it reports before you report.
+   - When a comment changed interactive elements, forms, motion, or layout, run the `web-design-guidelines` skill on the page and fix any regression it reports before you report. (Not for emails: check the email's HTML and Text views in the viewer instead.)
 
 7. **Report.**
    - Summarise: `N applied, M skipped` plus a one-line description of each change (including the page id).

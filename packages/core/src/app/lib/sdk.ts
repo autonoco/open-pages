@@ -29,6 +29,28 @@ export type PageModule = {
   design?: DesignSystem;
 };
 
+export type EmailMeta = {
+  /** Display name in the workspace. Default: the folder name. */
+  title?: string;
+  /** Subject line the email is meant to be sent with. */
+  subject?: string;
+  /** What the email is for; shown on the workspace card. */
+  description?: string;
+  /** ISO 8601 timestamp. Set once at scaffold time; used to sort the email list. */
+  createdAt?: string;
+};
+
+/**
+ * An email is one react-email component rendered on the server to a single
+ * HTML document with inlined styles, plus a plain-text alternative derived
+ * from it. It never runs in a browser: no hooks with effects, no state, no
+ * browser APIs.
+ */
+export type EmailModule = {
+  default: ComponentType;
+  meta?: EmailMeta;
+};
+
 export type FolderIcon = { type: 'emoji'; value: string } | { type: 'color'; value: string };
 
 export type Folder = {

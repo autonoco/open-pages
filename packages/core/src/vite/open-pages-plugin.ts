@@ -99,13 +99,14 @@ type ExtractedMeta = { title: string | null; theme: string | null; createdAt: st
 
 const EMPTY_META: ExtractedMeta = { title: null, theme: null, createdAt: null };
 
-export function extractMeta(src: string): ExtractedMeta {
+/** The text between the braces of `export const meta = { … }`, or null. */
+export function metaObjectBody(src: string): string | null {
   const metaStart = src.search(/export\s+const\s+meta\b/);
-  if (metaStart === -1) return EMPTY_META;
+  if (metaStart === -1) return null;
   const eqIdx = src.indexOf('=', metaStart);
-  if (eqIdx === -1) return EMPTY_META;
+  if (eqIdx === -1) return null;
   const openBrace = src.indexOf('{', eqIdx);
-  if (openBrace === -1) return EMPTY_META;
+  if (openBrace === -1) return null;
   let depth = 0;
   let closeBrace = -1;
   for (let i = openBrace; i < src.length; i++) {
@@ -119,8 +120,13 @@ export function extractMeta(src: string): ExtractedMeta {
       }
     }
   }
-  if (closeBrace === -1) return EMPTY_META;
-  const body = src.slice(openBrace + 1, closeBrace);
+  if (closeBrace === -1) return null;
+  return src.slice(openBrace + 1, closeBrace);
+}
+
+export function extractMeta(src: string): ExtractedMeta {
+  const body = metaObjectBody(src);
+  if (body === null) return EMPTY_META;
   return {
     title: body.match(META_TITLE_RE)?.[1] ?? null,
     theme: body.match(META_THEME_RE)?.[1] ?? null,

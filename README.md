@@ -42,8 +42,9 @@ Requires Node.js 18+.
 - **shadcn/ui, already installed.** All 61 components live under `ui/` with `lib/utils.ts`, `hooks/`, and a `styles/globals.css` token theme. `import { Button } from '@/ui/button'` and go; no `add` step. `components.json` is in place for blocks and other registries.
 - **Themes are tokens.** `themes/<id>.css` overrides the shadcn variables; a page sets `meta.theme` and every component restyles.
 - **Responsive by default.** Desktop, tablet (820px), and mobile (390px) viewport toggles in the viewer.
-- **Static export.** `open-pages export` builds each page into `export/<id>/` with hashed assets and relative URLs. Deploy the folder anywhere.
-- **Agent-native.** File-based skills (`create-page`, `page-authoring`, `apply-comments`, `create-theme`, `current-page`, plus the official `shadcn` and Vercel `web-design-guidelines` skills) sync into the workspace. No MCP server. Works with Claude Code, Cursor, Codex, Gemini CLI, OpenCode, Windsurf, Zed, and anything else that reads `AGENTS.md`.
+- **Email templates too.** `emails/<id>/index.tsx` is a [react-email](https://react.email) component, rendered on the server to inlined HTML plus plain text, previewed with HTML/Text and mobile toggles, and exported ready to paste into any sender. The [emailcn](https://www.emailcn.run) registry is pre-configured for sections, themes, and whole emails.
+- **Static export.** `open-pages export` builds each page into `export/<id>/` with hashed assets and relative URLs, and each email into `export/emails/<id>/`. Deploy the folder anywhere.
+- **Agent-native.** File-based skills (`create-page`, `page-authoring`, `create-email`, `apply-comments`, `create-theme`, `current-page`, plus the official `shadcn` and Vercel `web-design-guidelines` skills) sync into the workspace. No MCP server. Works with Claude Code, Cursor, Codex, Gemini CLI, OpenCode, Windsurf, Zed, and anything else that reads `AGENTS.md`.
 - **Nothing to configure.** Vite, React, and TypeScript live inside the runtime. A workspace is `pages/`, the shadcn set (`ui/`, `lib/`, `hooks/`, `styles/`, `components.json`), an optional `open-pages.config.ts`, and your agent skills.
 
 ## A page
@@ -89,7 +90,7 @@ Compose from `@/ui/*` and the semantic token classes (`bg-background`, `text-mut
 | `open-pages dev` | Dev server with live preview, viewport toggles, and inspector. |
 | `open-pages build` | Static site of the whole workspace viewer, pages included. |
 | `open-pages preview` | Serve the production build. |
-| `open-pages export [pages...]` | Build pages into `export/<id>/`, one deployable folder per page. |
+| `open-pages export [ids...]` | Build pages into `export/<id>/` and emails into `export/emails/<id>/`, one folder per id. |
 | `open-pages sync:skills` | Sync the built-in agent skills into the workspace. |
 | `open-pages sync:ui` | Update `ui/`, `lib/`, and `hooks/` from the installed runtime; your edited files are kept. |
 | `open-pages update` | Update `@autono/open-pages` to the latest version and sync skills and UI. |

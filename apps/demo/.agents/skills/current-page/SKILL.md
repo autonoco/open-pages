@@ -43,10 +43,10 @@ Path is relative to the project root (the user's `cwd`, the directory that conta
 }
 ```
 
-- `pageId` — folder name under `pages/`. Use as-is for any `/__pages/<id>/...` API or as the URL segment (`/p/<id>`).
+- `pageId` — folder name under `pages/` (or under `emails/` when `view` is `"emails"`). Use as-is for any `/__pages/<id>/...` API or as the URL segment (`/p/<id>`, `/e/<id>` for an email).
 - `pageTitle` — the page's `meta.title` (or `<title>` for an HTML page), falling back to the id.
-- `pagePath` — page entry path **relative to the project root**: `pages/<id>/index.tsx`, or `pages/<id>/index.html` for a plain HTML page. Prefix it with the project root before handing it to `Read` / `Edit`. Note the selection may point into a file under `pages/<id>/components/` if the page is split — match the line against the file whose JSX contains that tag and text.
-- `view` — `"pages"` when the user is viewing the page, `"assets"` when they are browsing that page's files in the asset manager rather than the page itself.
+- `pagePath` — entry path **relative to the project root**: `pages/<id>/index.tsx`, `pages/<id>/index.html` for a plain HTML page, or `emails/<id>/index.tsx` for an email. Prefix it with the project root before handing it to `Read` / `Edit`. Note the selection may point into a file under `pages/<id>/components/` (or `emails/<id>/components/`) if the entry is split — match the line against the file whose JSX contains that tag and text.
+- `view` — `"pages"` when the user is viewing a page, `"assets"` when they are browsing that page's files in the asset manager, `"emails"` when they are viewing an email template. An email means the `create-email` skill's rules apply (react-email components, no `ui/`), not `page-authoring`.
 - `selection` — `null` if nothing is selected. Otherwise, the JSX element the user picked in the inspector:
   - `line` (1-indexed) and `column` (0-indexed) point to the JSX opening tag in the page source. This is the canonical handle — match against the source line.
   - `tagName` is the rendered HTML tag, lowercased (`"h1"`, `"div"`, `"button"`). The source line it points at may be a shadcn component rather than that tag — a `"button"` selection usually lands on a `<Button>` line in the page, because `ui/` components spread the inspector tag onto their root. Edit the page line; never follow it into `ui/*.tsx`.

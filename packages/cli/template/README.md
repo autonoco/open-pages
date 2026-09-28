@@ -4,6 +4,8 @@ Web pages as React components. Each page lives under `pages/<id>/index.tsx` and 
 
 ```
 pages/            one folder per page
+emails/           one folder per email template (react-email)
+components/email/ emailcn sections, themes, blocks (npx shadcn add @emailcn/...)
 ui/               all shadcn/ui components (import from @/ui/*)
 lib/utils.ts      cn()
 hooks/            use-mobile
@@ -28,7 +30,7 @@ Then open `http://localhost:5173`, edit `pages/getting-started/index.tsx`, or cr
 | --- | --- |
 | `npm run dev` | Start the dev server with live preview and hot reload. |
 | `npm run build` | Build the whole workspace viewer as a static site. |
-| `npm run export` | Build pages into `export/<id>/`, one deployable folder per page. |
+| `npm run export` | Build pages into `export/<id>/` and emails into `export/emails/<id>/`. |
 | `npm run preview` | Preview the built workspace locally. |
 | `npm run sync:skills` | Sync the bundled agent skills into the workspace. |
 | `npx open-pages sync:ui` | Update `ui/`, `lib/`, and `hooks/` to the installed runtime's set; files you edited are kept (`--force` to overwrite). |
@@ -60,6 +62,10 @@ export default function MyPage() {
 A page is a real web page: every shadcn component is importable from `@/ui/<name>`, Tailwind v4 utilities via `className` work out of the box (prefer the token classes: `bg-background`, `text-muted-foreground`, `bg-primary`), `import './styles.css'` for custom CSS, hooks and event handlers for interactivity. `npx shadcn@latest add <block>` still works for blocks and other registries. Put images and fonts under `pages/<id>/assets/` and import them; shared assets go in the root `assets/` folder and import via `@assets/...`.
 
 A folder holding an `index.html` (with sibling CSS/JS) instead of `index.tsx` works too. It is served as-is and exported the same way.
+
+## Authoring an email
+
+`emails/<id>/index.tsx` default-exports a [react-email](https://react.email) component with a `meta` export (`title`, `subject`, `createdAt`). The workspace renders it on the server, previews the HTML and the plain-text version at `http://localhost:5173/e/<id>`, and `npm run export` writes both files under `export/emails/<id>/`. Ask your agent to `/create-email`; it installs sections and themes from the emailcn registry with `npx shadcn@latest add @emailcn/react-email/<item>`.
 
 See [`AGENTS.md`](./AGENTS.md) for the rules your agent follows.
 

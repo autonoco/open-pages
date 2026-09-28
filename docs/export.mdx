@@ -19,7 +19,7 @@ npx open-pages export launch status-board
 npx open-pages export launch --out-dir dist/pages
 ```
 
-Page ids are the folder names under `pages/`, the same ids the preview uses. Passing an unknown id fails with the list of available pages. Each build prints with its kind and build time:
+Ids are the folder names under `pages/` and `emails/`, the same ids the preview uses. Passing an unknown id fails with the list of available ids. Each build prints with its kind and build time:
 
 ```text
 ok  export/launch/  react · 1240ms
@@ -31,7 +31,7 @@ Flags:
 
 | Flag | Meaning | Default |
 |------|---------|---------|
-| `[pages...]` | Page ids to export | all pages |
+| `[ids...]` | Page or email ids to export | all pages and emails |
 | `--out-dir <dir>` | Output directory, relative to the project root | `export` |
 
 ## What you get
@@ -51,6 +51,8 @@ export/launch/
 - **No inspector instrumentation.** The `data-op-loc` attributes that power click-to-source exist only in dev.
 
 HTML pages build straight from their folder: `index.html` plus whatever CSS and JS it references, bundled and hashed the same way.
+
+Emails land under `export/emails/<id>/` as `index.html` (inlined styles, no scripts) and `index.txt` (the plain-text part). They are not deployed; hand both files to whatever sends your mail. See [Emails](/authoring/emails).
 
 ## Deploying
 

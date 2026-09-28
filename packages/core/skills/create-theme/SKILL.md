@@ -1,21 +1,22 @@
 ---
 name: create-theme
-description: Use this skill when the user wants to create, draft, author, or extract a theme in this open-pages repo. Triggers on phrases like "create a theme", "make a theme called X", "extract a theme from <page>", "match our brand", "build a design system from these screenshots", "apply this shadcn preset". Produces a three-file bundle under `themes/` — `<id>.md` (direction, fonts, component notes, token table), `<id>.css` (the shadcn token overrides), and `<id>.demo.tsx` (a demo page composed from `ui/` components that the workspace's Themes panel previews live). Do NOT use for editing real pages — only for authoring the theme bundle.
+description: Use this skill when the user wants to create, draft, author, or extract a theme in this open-pages repo. Triggers on phrases like "create a theme", "make a theme called X", "extract a theme from <page>", "match our brand", "build a design system from these screenshots", "apply this shadcn preset", "email theme for X". Produces a bundle under `themes/` — `<id>.md` (direction, fonts, component notes, token table), `<id>.css` (the shadcn token overrides), and `<id>.demo.tsx` (a demo page composed from `ui/` components that the workspace's Themes panel previews live) — plus `components/email/theme-<id>.ts`, the same palette as an emailcn EmailTheme so emails match. Do NOT use for editing real pages — only for authoring the theme bundle.
 ---
 
 # Create a theme
 
 A theme is a **token set**. Every workspace ships the full shadcn/ui set under `ui/`, and every component reads its colors, radius, and fonts from the CSS variables in `styles/globals.css` (`--background`, `--primary`, `--radius`, …). A theme overrides those variables; every component and every token-styled page restyles at once. Nothing is copied into pages.
 
-The bundle is three files sharing one stem under `themes/`:
+The bundle is three files sharing one stem under `themes/`, plus one under `components/email/`:
 
 1. `themes/<id>.md` — agent-facing direction: aesthetic, fonts, how to use the components in this theme, and a table of token → value. This is what `create-page` reads when an author picks the theme.
 2. `themes/<id>.css` — **only** `:root { … }` and `.dark { … }` blocks overriding the shadcn tokens (plus an optional Google Fonts `@import url(…)` at the very top). No `@theme` block, no Tailwind import, no selectors beyond those two.
 3. `themes/<id>.demo.tsx` — a runnable page module (same shape as `pages/<id>/index.tsx`, **one default-exported component**) composed from `@/ui/*` components so the tokens are shown on real parts. The Themes panel renders it with `<id>.css` injected automatically; the demo does not set `meta.theme`.
+4. `components/email/theme-<id>.ts` — the same palette as an emailcn `EmailTheme` object (hex colors, px sizes, font stacks), generated from the CSS by a script (Step 6b). Mail clients cannot read CSS variables or `oklch()`, so this is how emails under `emails/` pick the theme up; the `create-email` skill consumes it.
 
-A page opts in with `meta.theme: '<id>'`; the runtime injects `themes/<id>.css` into that page's preview frame and into its export.
+A page opts in with `meta.theme: '<id>'`; the runtime injects `themes/<id>.css` into that page's preview frame and into its export. An email opts in by passing the exported theme object to `createEmailTailwindConfig` (or to a section's `theme` prop).
 
-You only write the three theme files. Never modify pages, `ui/`, `styles/globals.css`, or configuration. The token names and how pages consume them live in the **`page-authoring`** skill (`references/typography-and-color.md`) — read it first. Component props and variants: the **`shadcn`** skill.
+You only write these four files. Never modify pages, emails, `ui/`, `styles/globals.css`, or configuration. The token names and how pages consume them live in the **`page-authoring`** skill (`references/typography-and-color.md`) — read it first. Component props and variants: the **`shadcn`** skill.
 
 ## Step 1 — Identify the input source
 
@@ -150,6 +151,11 @@ Notes on how to use the `ui/` set so pages feel like this theme — which varian
 - Feedback: `<Alert>`, `sonner` toasts.
 - Avoid: gradients | shadows | more than one accent | … (whatever the theme forbids).
 
+## Email
+
+- `components/email/theme-<id>.ts` exports `<id>Theme`, generated from this CSS. Emails pass it to `createEmailTailwindConfig` or to a section's `theme` prop.
+- Any email-specific notes: which emailcn sections suit the brand, whether headings keep the serif via `<Font>`, what the footer must carry.
+
 ## Aesthetic
 
 One paragraph. What it feels like, the references it draws on, what to avoid. Commit to a single direction.
@@ -179,6 +185,21 @@ Contract:
 - Root element: `min-h-screen bg-background text-foreground` (with `dark` if the theme is dark by default). Everything token-styled — the demo is the proof that pages need no raw colors.
 - Realistic content, not lorem ipsum. Must look right at Mobile (390px) as well as Desktop. Self-contained: no page-local assets.
 
+## Step 6b — Generate `components/email/theme-<id>.ts`
+
+Emails are rendered by react-email with emailcn's `createEmailTailwindConfig(theme)`, which takes a plain `EmailTheme` object, not CSS variables. Derive it from the finished CSS with the script that ships with this skill:
+
+```bash
+# once per workspace, if components/email/email-theme.ts does not exist yet
+npx shadcn@latest add @emailcn/react-email/theme-default
+
+node .agents/skills/create-theme/references/email-theme-from-css.mjs themes/<id>.css <id> > components/email/theme-<id>.ts
+```
+
+The script reads the `:root` block (emails are light documents; the `.dark` block is not used), converts every color to hex, and maps roles by `references/email-theme.md`: `--background` → `colorBackground`, `--foreground` → `colorText`, `--muted` / `--muted-foreground` → `colorBackgroundMuted` / `colorTextMuted`, `--secondary` → `colorBackgroundSubtle`, `--primary` / `--primary-foreground` → `colorPrimary` / `colorPrimaryForeground` and the primary button, `--border` → `colorBorder` and the secondary button's border, `--destructive` → `colorDanger`, `--radius` → `borderRadius` in px, `--font-sans` / `--font-mono` → `fontFamily` / `fontFamilyMono` with `var()` entries dropped. Success, warning, the type scale, and spacing keep emailcn's defaults because the CSS has no opinion on them.
+
+Open the generated file and review it: a web font in `fontFamily` needs a web-safe fallback after it (the script keeps whatever fallbacks the CSS listed), and `colorPrimaryHover` / `colorTextSubtle` are shifted from their base tokens, so glance that they still read well. Do not restyle it by hand beyond that; re-run the script after changing the CSS so the two never drift.
+
 ## Step 7 — Self-review
 
 - [ ] `themes/<id>.css` overrides every shadcn token in both `:root` and `.dark`, in OKLCH, with only those two selectors (plus an optional font `@import`).
@@ -187,15 +208,17 @@ Contract:
 - [ ] Typography names only fonts the CSS loads (or the system stack).
 - [ ] "Components in this theme" gives variant guidance for buttons, cards, nav, data, feedback.
 - [ ] Demo `.tsx` default-exports one component, imports only `@/ui/*`, uses semantic tokens only, shows both modes, nothing overflows on mobile.
-- [ ] All three files written with the same stem. No page changes, no `ui/` changes, no `styles/globals.css` changes.
+- [ ] `components/email/theme-<id>.ts` generated from the CSS, exports `<id>Theme` typed as `EmailTheme`, hex colors only, and its font stacks end in a web-safe family.
+- [ ] All four files written with the same stem. No page or email changes, no `ui/` changes, no `styles/globals.css` changes.
 
 ## Step 8 — Hand off
 
 Tell the user:
 
-- The theme id and the three file paths.
+- The theme id and the four file paths.
 - That the Themes panel in the workspace (`http://localhost:5173/themes`) previews the demo live, and `/create-page` will list the theme as a picker option on its next run.
 - That any existing page can adopt it by setting `meta.theme: '<id>'` — no other change.
+- That emails adopt it by importing `<id>Theme` from `@/components/email/theme-<id>` and passing it to `createEmailTailwindConfig` (or to an emailcn section's `theme` prop); `/create-email` offers it whenever the file exists.
 - A one-line summary of the look (accent, mode, radius, fonts).
 
 Do not run the dev server. Do not modify real pages — the demo `.tsx` is the demonstration.
@@ -205,7 +228,8 @@ Do not run the dev server. Do not modify real pages — the demo `.tsx` is the d
 - ❌ Pasting token values into pages, or theme markdown full of `bg-[#hex]` snippets. Tokens live in the CSS; pages stay semantic.
 - ❌ `@theme inline`, `@import "tailwindcss"`, `@source`, or selectors other than `:root`/`.dark` in `themes/<id>.css`.
 - ❌ Editing `styles/globals.css` or running `npx shadcn apply` against the workspace — that silently rethemes every page.
-- ❌ Producing one or two of the three files. A theme is the **bundle** — `.md`, `.css`, `.demo.tsx`, every time.
+- ❌ Producing a subset of the files. A theme is the **bundle** — `.md`, `.css`, `.demo.tsx`, and `components/email/theme-<id>.ts`, every time.
+- ❌ Hand-typing hex values into the email theme. Generate it from the CSS with the script so the page and email palettes cannot disagree.
 - ❌ A demo with raw colors or hand-rolled buttons — it must prove the tokens carry the look through `ui/`.
 - ❌ Naming font families the CSS never loads.
 - ❌ Inventing values when the user supplied a preset, images, or an existing page. Extract, don't fabricate.

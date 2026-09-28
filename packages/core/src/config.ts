@@ -8,6 +8,7 @@ export type OpenPagesBuildConfig = {
 export type OpenPagesConfig = {
   base?: string;
   pagesDir?: string;
+  emailsDir?: string;
   themesDir?: string;
   assetsDir?: string;
   port?: number;

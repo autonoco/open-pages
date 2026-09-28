@@ -5,6 +5,7 @@ import { type InlineConfig, searchForWorkspaceRoot } from 'vite';
 import { apiPlugin } from './api-plugin.ts';
 import { currentPlugin } from './current-plugin.ts';
 import { designPlugin } from './design-plugin.ts';
+import { emailsPlugin } from './emails-plugin.ts';
 import { locTagsPlugin } from './loc-tags-plugin.ts';
 import { loadUserConfig, type OpenPagesConfig, openPagesPlugin } from './open-pages-plugin.ts';
 import { themesPlugin } from './themes-plugin.ts';
@@ -23,6 +24,7 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
   const userCwd = path.resolve(opts.userCwd);
   const config = opts.config ?? (await loadUserConfig(userCwd));
   const pagesDir = config.pagesDir ?? 'pages';
+  const emailsDir = config.emailsDir ?? 'emails';
   const themesDir = config.themesDir ?? 'themes';
   const assetsDir = config.assetsDir ?? 'assets';
   const pagesAbs = path.resolve(userCwd, pagesDir);
@@ -35,14 +37,15 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
     configFile: false,
     envDir: userCwd,
     plugins: [
-      locTagsPlugin({ userCwd, pagesDir }),
+      locTagsPlugin({ userCwd, pagesDir, emailsDir }),
       react(),
       tailwindcss(),
       openPagesPlugin({ userCwd, config, coreVersion: CORE_VERSION }),
       themesPlugin({ userCwd, config }),
+      emailsPlugin({ userCwd, config }),
       designPlugin({ userCwd }),
-      apiPlugin({ userCwd, pagesDir, assetsDir, coreVersion: CORE_VERSION }),
-      currentPlugin({ userCwd, pagesDir }),
+      apiPlugin({ userCwd, pagesDir, emailsDir, assetsDir, coreVersion: CORE_VERSION }),
+      currentPlugin({ userCwd, pagesDir, emailsDir }),
     ],
     resolve: {
       alias: {

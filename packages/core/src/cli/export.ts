@@ -4,7 +4,9 @@ import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import chalk from 'chalk';
-import { build as viteBuild } from 'vite';
+import { createServer, build as viteBuild } from 'vite';
+import { createViteConfig } from '../vite/config.ts';
+import { type EmailEntry, findEmails, renderEmail, stripLocTags } from '../vite/emails-plugin.ts';
 import {
   extractMeta,
   findPages,
@@ -15,7 +17,7 @@ import {
 } from '../vite/open-pages-plugin.ts';
 
 export interface ExportOptions {
-  /** Page ids to export. Empty/omitted = every page in the workspace. */
+  /** Page or email ids to export. Empty/omitted = everything in the workspace. */
   pages?: string[];
   /** Output directory, relative to the project root. Default: `export`. */
   outDir?: string;
@@ -131,29 +133,77 @@ function extractDescription(src: string): string | null {
   return body.match(META_DESCRIPTION_RE)?.[1] ?? null;
 }
 
+/**
+ * Render emails without a browser: a middleware-mode dev server loads each
+ * entry through Vite SSR, and `react-email` from the workspace renders it.
+ * Each email lands as `<outDir>/<id>/index.html` plus `index.txt`.
+ */
+export async function exportEmails(opts: {
+  userCwd: string;
+  config: OpenPagesConfig;
+  entries: EmailEntry[];
+  outDir: string;
+  onDone?: (entry: EmailEntry, target: string, ms: number) => void;
+}): Promise<void> {
+  const { userCwd, config, entries, outDir } = opts;
+  if (entries.length === 0) return;
+  const base = await createViteConfig({ userCwd, config, mode: 'serve' });
+  // Rendering only needs the SSR environment. A second optimizer on the dev
+  // server's cache dir would replace its deps folder mid-session and leave
+  // every open page requesting outdated chunks, so this server gets its own
+  // cache and never discovers or pre-bundles anything.
+  const server = await createServer({
+    ...base,
+    logLevel: 'error',
+    appType: 'custom',
+    cacheDir: path.join(userCwd, 'node_modules', '.open-pages', 'email-render'),
+    optimizeDeps: { noDiscovery: true, include: [] },
+    server: { ...base.server, middlewareMode: true, watch: null, hmr: false },
+  });
+  try {
+    for (const entry of entries) {
+      const started = performance.now();
+      const rendered = await renderEmail(server, userCwd, entry);
+      const target = path.join(outDir, entry.id);
+      await mkdir(target, { recursive: true });
+      await writeFile(path.join(target, 'index.html'), stripLocTags(rendered.html), 'utf8');
+      await writeFile(path.join(target, 'index.txt'), rendered.text, 'utf8');
+      opts.onDone?.(entry, target, Math.round(performance.now() - started));
+    }
+  } finally {
+    await server.close();
+  }
+}
+
 export async function exportPages(opts: ExportOptions = {}): Promise<void> {
   const userCwd = process.cwd();
   const config = await loadUserConfig(userCwd);
   const pagesDir = config.pagesDir ?? 'pages';
+  const emailsDir = config.emailsDir ?? 'emails';
   const outDir = path.resolve(userCwd, opts.outDir ?? 'export');
 
   const entries = await findPages(userCwd, pagesDir);
-  const idsOnDisk = entries.map((e) => e.id);
-  if (idsOnDisk.length === 0) {
-    throw new Error(`No pages found under ${pagesDir}/`);
+  const emailEntries = await findEmails(userCwd, emailsDir);
+  const pageIds = entries.map((e) => e.id);
+  const emailIds = emailEntries.map((e) => e.id);
+  if (pageIds.length === 0 && emailIds.length === 0) {
+    throw new Error(`No pages found under ${pagesDir}/ and no emails under ${emailsDir}/`);
   }
 
-  const requested = opts.pages && opts.pages.length > 0 ? opts.pages : idsOnDisk;
-  const unknown = requested.filter((id) => !idsOnDisk.includes(id));
+  const explicit = opts.pages && opts.pages.length > 0 ? opts.pages : null;
+  const unknown = (explicit ?? []).filter((id) => !pageIds.includes(id) && !emailIds.includes(id));
   if (unknown.length > 0) {
-    throw new Error(`Page not found: ${unknown.join(', ')} (available: ${idsOnDisk.join(', ')})`);
+    const available = [...pageIds, ...emailIds.map((id) => `${id} (email)`)].join(', ');
+    throw new Error(`Page not found: ${unknown.join(', ')} (available: ${available})`);
   }
+  const requestedPages = explicit ? pageIds.filter((id) => explicit.includes(id)) : pageIds;
+  const requestedEmails = explicit ? emailIds.filter((id) => explicit.includes(id)) : emailIds;
 
   const { readCoreVersion } = await import('../vite/version.ts');
   const coreVersion = readCoreVersion();
 
   await mkdir(outDir, { recursive: true });
-  for (const id of requested) {
+  for (const id of requestedPages) {
     const entry = entries.find((e) => e.id === id);
     if (!entry) continue;
     const started = performance.now();
@@ -165,8 +215,24 @@ export async function exportPages(opts: ExportOptions = {}): Promise<void> {
     );
   }
 
-  const n = requested.length;
-  process.stdout.write(
-    chalk.dim(`${n} ${n === 1 ? 'page' : 'pages'} → ${path.relative(userCwd, outDir)}/\n`),
-  );
+  await exportEmails({
+    userCwd,
+    config,
+    entries: emailEntries.filter((e) => requestedEmails.includes(e.id)),
+    outDir: path.join(outDir, 'emails'),
+    onDone: (_entry, target, ms) => {
+      process.stdout.write(
+        `${chalk.green('ok')}  ${path.relative(userCwd, target)}/  ${chalk.dim(`email · ${ms}ms`)}\n`,
+      );
+    },
+  });
+
+  const parts: string[] = [];
+  if (requestedPages.length > 0) {
+    parts.push(`${requestedPages.length} ${requestedPages.length === 1 ? 'page' : 'pages'}`);
+  }
+  if (requestedEmails.length > 0) {
+    parts.push(`${requestedEmails.length} ${requestedEmails.length === 1 ? 'email' : 'emails'}`);
+  }
+  process.stdout.write(chalk.dim(`${parts.join(', ')} → ${path.relative(userCwd, outDir)}/\n`));
 }

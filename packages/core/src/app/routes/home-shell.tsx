@@ -18,7 +18,14 @@ import { cn } from '~/lib/utils';
 import { CommandMenuTrigger } from '../components/command/command-menu';
 import { HomeCommandMenu } from '../components/command/home-command-menu';
 import { SystemViewIcon } from '../components/sidebar/folder-item';
-import { ALL_DOCS_ID, ASSETS_ID, Sidebar, THEMES_ID } from '../components/sidebar/sidebar';
+import {
+  ALL_DOCS_ID,
+  ASSETS_ID,
+  EMAILS_ID,
+  Sidebar,
+  THEMES_ID,
+} from '../components/sidebar/sidebar';
+import { emailIds } from '../lib/emails';
 import { pageIds } from '../lib/pages';
 import type { FoldersManifest } from '../lib/sdk';
 import { themes as themeRegistry } from '../lib/themes';
@@ -28,7 +35,7 @@ export type HomeOutletContext = {
   loading: boolean;
   draftDocs: string[];
   docsByFolder: Record<string, string[]>;
-  /** Selected view id: ALL_DOCS_ID, DRAFT_ID, a folder id, THEMES_ID, or ASSETS_ID. */
+  /** Selected view id: ALL_DOCS_ID, DRAFT_ID, a folder id, THEMES_ID, ASSETS_ID, or EMAILS_ID. */
   selectedId: string;
   selectFolder: (id: string) => void;
   reportTitle: (pageId: string, title: string) => void;
@@ -42,6 +49,7 @@ export type HomeOutletContext = {
 function pathToSelectedId(pathname: string, search: URLSearchParams): string {
   if (pathname === '/themes' || pathname.startsWith('/themes/')) return THEMES_ID;
   if (pathname === '/assets') return ASSETS_ID;
+  if (pathname === '/emails') return EMAILS_ID;
   return search.get('f') ?? ALL_DOCS_ID;
 }
 
@@ -81,6 +89,7 @@ export function HomeShell() {
     (id: string) => {
       if (id === THEMES_ID) navigate('/themes', { replace: true });
       else if (id === ASSETS_ID) navigate('/assets', { replace: true });
+      else if (id === EMAILS_ID) navigate('/emails', { replace: true });
       else if (id === ALL_DOCS_ID) navigate('/', { replace: true });
       else navigate(`/?f=${encodeURIComponent(id)}`, { replace: true });
     },
@@ -151,6 +160,7 @@ export function HomeShell() {
           allCount={pageIds.length}
           themesCount={themeRegistry.length}
           assetsCount={globalAssets.length}
+          emailsCount={emailIds.length}
           selectedId={selectedId}
           onSelect={selectFolder}
           onCreate={(name, icon) => create(name, icon)}
@@ -215,6 +225,7 @@ export function HomeShell() {
                     className={cn(
                       selectedId !== THEMES_ID &&
                         selectedId !== ASSETS_ID &&
+                        selectedId !== EMAILS_ID &&
                         'bg-muted text-foreground',
                     )}
                   >
@@ -231,6 +242,14 @@ export function HomeShell() {
                     <span className="folio">
                       {themeRegistry.length.toString().padStart(2, '0')}
                     </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => selectFolder(EMAILS_ID)}
+                    className={cn(selectedId === EMAILS_ID && 'bg-muted text-foreground')}
+                  >
+                    <SystemViewIcon kind="emails" className="text-muted-foreground" />
+                    <span className="flex-1 truncate">{t.home.emails}</span>
+                    <span className="folio">{emailIds.length.toString().padStart(2, '0')}</span>
                   </DropdownMenuItem>
                   {import.meta.env.DEV && (
                     <DropdownMenuItem

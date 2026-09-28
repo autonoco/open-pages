@@ -9,19 +9,33 @@ import {
   parseMarkers,
 } from '../../editing/comments.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
-import { type ApiContext, json, readBody, resolvePageEntryPath } from './context.ts';
+import {
+  type ApiContext,
+  type CommentTarget,
+  json,
+  readBody,
+  resolveCommentEntryPath,
+} from './context.ts';
 
-// GET    /__comments        list markers for ?pageId=…
-// POST   /__comments/add    add marker { pageId, line, column?, text, hint? }
-// DELETE /__comments/:id    remove marker
+// GET    /__comments        list markers for ?pageId=…[&target=email]
+// POST   /__comments/add    add marker { pageId, target?, line, column?, text, hint? }
+// DELETE /__comments/:id    remove marker (?pageId=…[&target=email])
+//
+// `target` defaults to `page`; `email` addresses `emails/<id>/index.tsx` with
+// the same id rules and marker format.
 
 type AddCommentBody = {
   pageId?: string;
+  target?: string;
   line?: number;
   column?: number;
   text?: string;
   hint?: string;
 };
+
+function parseTarget(raw: unknown): CommentTarget {
+  return raw === 'email' ? 'email' : 'page';
+}
 
 export function registerCommentRoutes(server: ViteDevServer, ctx: ApiContext): void {
   server.middlewares.use('/__comments', async (req, res, next) => {
@@ -31,7 +45,11 @@ export function registerCommentRoutes(server: ViteDevServer, ctx: ApiContext): v
     try {
       if (method === 'GET' && url.pathname === '/') {
         const pageId = url.searchParams.get('pageId') ?? '';
-        const file = resolvePageEntryPath(ctx, pageId);
+        const file = resolveCommentEntryPath(
+          ctx,
+          pageId,
+          parseTarget(url.searchParams.get('target')),
+        );
         if (!file) return json(res, 400, { error: 'invalid pageId' });
         let source: string;
         try {
@@ -49,7 +67,7 @@ export function registerCommentRoutes(server: ViteDevServer, ctx: ApiContext): v
         }
         const body = (await readBody(req)) as AddCommentBody;
         const pageId = body.pageId ?? '';
-        const file = resolvePageEntryPath(ctx, pageId);
+        const file = resolveCommentEntryPath(ctx, pageId, parseTarget(body.target));
         if (!file) return json(res, 400, { error: 'invalid pageId' });
         if (!body.line || body.line < 1) return json(res, 400, { error: 'invalid line' });
         if (!body.text || typeof body.text !== 'string') {
@@ -91,7 +109,11 @@ export function registerCommentRoutes(server: ViteDevServer, ctx: ApiContext): v
         const id = url.pathname.slice(1);
         if (!/^c-[a-f0-9]+$/.test(id)) return json(res, 400, { error: 'invalid id' });
         const pageId = url.searchParams.get('pageId') ?? '';
-        const file = resolvePageEntryPath(ctx, pageId);
+        const file = resolveCommentEntryPath(
+          ctx,
+          pageId,
+          parseTarget(url.searchParams.get('target')),
+        );
         if (!file) return json(res, 400, { error: 'invalid pageId' });
 
         let source: string;

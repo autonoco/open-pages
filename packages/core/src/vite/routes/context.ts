@@ -8,6 +8,8 @@ export type ApiContext = {
   userCwd: string;
   pagesDir: string;
   pagesRoot: string;
+  emailsDir: string;
+  emailsRoot: string;
   globalAssetsRoot: string;
   manifestPath: string;
   coreVersion: string;
@@ -16,6 +18,7 @@ export type ApiContext = {
 export type ApiPluginOptions = {
   userCwd: string;
   pagesDir?: string;
+  emailsDir?: string;
   assetsDir?: string;
   coreVersion: string;
 };
@@ -23,14 +26,18 @@ export type ApiPluginOptions = {
 export function makeContext(opts: ApiPluginOptions): ApiContext {
   const userCwd = opts.userCwd;
   const pagesDir = opts.pagesDir ?? 'pages';
+  const emailsDir = opts.emailsDir ?? 'emails';
   const assetsDir = opts.assetsDir ?? 'assets';
   const pagesRoot = path.resolve(userCwd, pagesDir);
+  const emailsRoot = path.resolve(userCwd, emailsDir);
   const globalAssetsRoot = path.resolve(userCwd, assetsDir);
   const manifestPath = foldersManifestPath(pagesRoot);
   return {
     userCwd,
     pagesDir,
     pagesRoot,
+    emailsDir,
+    emailsRoot,
     globalAssetsRoot,
     manifestPath,
     coreVersion: opts.coreVersion,
@@ -70,4 +77,15 @@ export function resolvePagePath(userCwd: string, pagesDir: string, pageId: strin
 
 export function resolvePageEntryPath(ctx: ApiContext, pageId: string): string | null {
   return resolvePagePath(ctx.userCwd, ctx.pagesDir, pageId);
+}
+
+export type CommentTarget = 'page' | 'email';
+
+/** The `index.tsx` a comment marker lands in: a page entry, or an email entry. */
+export function resolveCommentEntryPath(
+  ctx: ApiContext,
+  id: string,
+  target: CommentTarget,
+): string | null {
+  return resolvePagePath(ctx.userCwd, target === 'email' ? ctx.emailsDir : ctx.pagesDir, id);
 }
