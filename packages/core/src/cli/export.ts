@@ -148,11 +148,17 @@ export async function exportEmails(opts: {
   const { userCwd, config, entries, outDir } = opts;
   if (entries.length === 0) return;
   const base = await createViteConfig({ userCwd, config, mode: 'serve' });
+  // Rendering only needs the SSR environment. A second optimizer on the dev
+  // server's cache dir would replace its deps folder mid-session and leave
+  // every open page requesting outdated chunks, so this server gets its own
+  // cache and never discovers or pre-bundles anything.
   const server = await createServer({
     ...base,
     logLevel: 'error',
     appType: 'custom',
-    server: { ...base.server, middlewareMode: true, watch: null },
+    cacheDir: path.join(userCwd, 'node_modules', '.open-pages', 'email-render'),
+    optimizeDeps: { noDiscovery: true, include: [] },
+    server: { ...base.server, middlewareMode: true, watch: null, hmr: false },
   });
   try {
     for (const entry of entries) {

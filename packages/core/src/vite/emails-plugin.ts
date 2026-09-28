@@ -334,12 +334,18 @@ export function emailsPlugin(opts: EmailsPluginOptions): Plugin {
       const next = aliasEmailThemeModule(code);
       return next === null ? null : { code: next, map: null };
     },
+    // Email modules live only in the SSR graph, where Vite's own propagation
+    // finds no accepting boundary and falls back to a full client reload.
+    // The viewer re-renders the frame on the custom event instead, so the
+    // update is consumed here.
     hotUpdate({ file, modules, server }) {
       if (this.environment.name !== 'ssr') return;
       const ids = emailsImporting(modules);
       const direct = emailIdForFile(file);
       if (direct) ids.add(direct);
-      if (ids.size > 0) queueEmailChanged(server, ids);
+      if (ids.size === 0) return;
+      queueEmailChanged(server, ids);
+      return [];
     },
     configureServer(server) {
       let reloadTimer: ReturnType<typeof setTimeout> | null = null;
