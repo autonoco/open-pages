@@ -7,6 +7,7 @@ export default function GalleryCapture() {
   const [title, setTitle] = useState(id ?? '');
   const [error, setError] = useState<string | null>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
+  const [src, setSrc] = useState<string>();
   const [metadataReady, setMetadataReady] = useState(false);
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
@@ -50,11 +51,12 @@ export default function GalleryCapture() {
         });
     };
     window.addEventListener('message', receive);
+    if (id) setSrc(frameUrl({ pageId: id, kind: pageKinds[id] }));
     return () => {
       active = false;
       window.removeEventListener('message', receive);
     };
-  }, []);
+  }, [id]);
   if (!id)
     return (
       <div data-document-index={JSON.stringify({ version: 1, kind: 'pages', ids: pageIds })} />
@@ -71,15 +73,29 @@ export default function GalleryCapture() {
         ref={frameRef}
         title={title}
         className="h-full w-full"
-        src={frameUrl({ pageId: id, kind: pageKinds[id] })}
+        src={src}
         onLoad={(event) => {
-          if (pageKinds[id] !== 'html') return;
-          const frame = event.currentTarget.contentDocument;
-          if (!frame) {
-            setError('Page preview unavailable');
-            return;
+          if (pageKinds[id] !== 'html' || !src) return;
+          const iframe = event.currentTarget;
+          try {
+            const frame = iframe.contentDocument;
+            if (frame?.URL === 'about:blank') return;
+            if (!frame || frame.URL !== new URL(src, window.location.href).href)
+              throw new Error('Page preview navigation failed');
+            const navigation = iframe.contentWindow?.performance.getEntriesByType(
+              'navigation',
+            )[0] as PerformanceNavigationTiming | undefined;
+            const status = navigation?.responseStatus;
+            if (status === undefined || (status !== 304 && (status < 200 || status >= 300)))
+              throw new Error(`Page preview navigation failed (HTTP ${status ?? 'unknown'})`);
+            frame.fonts.ready
+              .then(() => {
+                if (iframe.contentDocument === frame) setLoaded(true);
+              })
+              .catch((cause) => setError(String(cause)));
+          } catch (cause) {
+            setError(String(cause));
           }
-          frame.fonts.ready.then(() => setLoaded(true)).catch((cause) => setError(String(cause)));
         }}
       />
     </div>
