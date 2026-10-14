@@ -1,3 +1,4 @@
+import previews from 'virtual:open-pages/previews';
 import { useEffect, useRef, useState } from 'react';
 import { type FrameSource, frameUrl } from './frame';
 
@@ -8,7 +9,7 @@ const THUMB_VIEWPORT = 1280;
  * desktop width and scaled down to fit. Inert — pointer events go to the
  * card, and the frame never takes focus.
  */
-export function PageThumb({
+function LivePageThumb({
   source,
   title,
   viewport = THUMB_VIEWPORT,
@@ -51,4 +52,20 @@ export function PageThumb({
       )}
     </div>
   );
+}
+
+export function PageThumb(props: { source: FrameSource; title: string; viewport?: number }) {
+  if ('pageId' in props.source && Object.hasOwn(previews, props.source.pageId)) {
+    const src = previews[props.source.pageId];
+    return src ? (
+      <img
+        src={src}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className="h-full w-full object-cover object-top"
+      />
+    ) : null;
+  }
+  return <LivePageThumb {...props} />;
 }
