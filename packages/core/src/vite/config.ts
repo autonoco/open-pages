@@ -8,6 +8,7 @@ import { designPlugin } from './design-plugin.ts';
 import { emailsPlugin } from './emails-plugin.ts';
 import { locTagsPlugin } from './loc-tags-plugin.ts';
 import { loadUserConfig, type OpenPagesConfig, openPagesPlugin } from './open-pages-plugin.ts';
+import { publishedPreviewsPlugin } from './published-previews-plugin.ts';
 import { themesPlugin } from './themes-plugin.ts';
 
 import { APP_ROOT, PKG_ROOT, readCoreVersion } from './version.ts';
@@ -37,6 +38,7 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
     configFile: false,
     envDir: userCwd,
     plugins: [
+      publishedPreviewsPlugin(path.join(pagesAbs, '.documents')),
       locTagsPlugin({ userCwd, pagesDir, emailsDir }),
       react(),
       tailwindcss(),

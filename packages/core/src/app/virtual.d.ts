@@ -65,3 +65,8 @@ declare module 'virtual:open-pages/themes' {
   }>;
   export function demoImportUrl(id: string): string;
 }
+
+declare module 'virtual:open-pages/previews' {
+  const previews: Record<string, string | null>;
+  export default previews;
+}
