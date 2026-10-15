@@ -8,16 +8,26 @@ import { buildPage, exportEmails } from './export.ts';
 import { createCliLogger, printHeader } from './ui.ts';
 
 export interface BuildOptions {
+  base?: string;
+  assetsDir?: string;
   outDir?: string;
 }
 
 export async function build(opts: BuildOptions = {}): Promise<void> {
   printHeader('building for production');
   const userCwd = process.cwd();
-  const config = await loadUserConfig(userCwd);
+  const config = {
+    ...(await loadUserConfig(userCwd)),
+    ...(opts.base !== undefined ? { base: opts.base } : {}),
+  };
   const outDir = path.resolve(userCwd, opts.outDir ?? 'dist');
   const base = await createViteConfig({ userCwd, config, mode: 'build' });
-  await viteBuild(mergeConfig(base, { customLogger: createCliLogger(), build: { outDir } }));
+  await viteBuild(
+    mergeConfig(base, {
+      customLogger: createCliLogger(),
+      build: { outDir, ...(opts.assetsDir !== undefined ? { assetsDir: opts.assetsDir } : {}) },
+    }),
+  );
 
   // HTML pages are served verbatim in dev; a static build gets each one
   // built into the spot the viewer's frame URL points at.

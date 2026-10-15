@@ -18,6 +18,11 @@ export type FrameSource =
   | { emailId: string };
 
 const BASE = import.meta.env.BASE_URL;
+function frameEditorQuery(separator: '?' | '&' = '&') {
+  return new URLSearchParams(window.location.search).get('edit') === '1'
+    ? `${separator}edit=1`
+    : '';
+}
 
 /**
  * URL the workspace loads into an iframe for a page, a theme demo, or an
@@ -26,11 +31,12 @@ const BASE = import.meta.env.BASE_URL;
  * build); emails are rendered on the server under `__email/`.
  */
 export function frameUrl(source: FrameSource): string {
-  if ('themeId' in source) return `${BASE}frame.html?theme=${encodeURIComponent(source.themeId)}`;
+  if ('themeId' in source)
+    return `${BASE}frame.html?theme=${encodeURIComponent(source.themeId)}${frameEditorQuery()}`;
   if ('emailId' in source) return emailUrl(source.emailId, 'html');
   if (source.kind === 'html')
-    return `${BASE}__page/${encodeURIComponent(source.pageId)}/index.html`;
-  return `${BASE}frame.html?page=${encodeURIComponent(source.pageId)}`;
+    return `${BASE}__page/${encodeURIComponent(source.pageId)}/index.html${frameEditorQuery('?')}`;
+  return `${BASE}frame.html?page=${encodeURIComponent(source.pageId)}${frameEditorQuery()}`;
 }
 
 /** The rendered email document, its plain-text alternative, or its render report. */

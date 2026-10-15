@@ -17,6 +17,7 @@ import { Button, buttonVariants } from '~/components/ui/button';
 import { readLastHomeLocation } from '~/lib/last-home-location';
 import { cn } from '~/lib/utils';
 import { type FrameMessage, frameUrl, isFrameMessage, type WorkspaceMessage } from '../lib/frame';
+import { hasHostedEditor, switchHostedEditor } from '../lib/hosted-editor';
 import { pageChangeIncludes, pageIds, pageKinds } from '../lib/pages';
 import { usePageModule } from '../lib/use-page-module';
 
@@ -80,7 +81,12 @@ export function PageView() {
     } catch {}
   };
 
-  const [inspecting, setInspecting] = useState(false);
+  const [inspecting, setInspecting] = useState(
+    () => new URLSearchParams(window.location.search).get('edit') === '1',
+  );
+  const toggleInspecting = useCallback(() => {
+    if (!switchHostedEditor(!inspecting)) setInspecting(!inspecting);
+  }, [inspecting]);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [note, setNote] = useState('');
   const [savingNote, setSavingNote] = useState(false);
@@ -113,24 +119,24 @@ export function PageView() {
         setSelection({ loc: msg.loc, tag: msg.tag, text: msg.text });
         setNote('');
       } else if (msg.type === 'op:key') {
-        if (msg.key === 'i') setInspecting((v) => !v);
+        if (msg.key === 'i') toggleInspecting();
         if (msg.key === 'Escape') setSelection(null);
       }
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [inspecting, send]);
+  }, [inspecting, send, toggleInspecting]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if (e.key === 'i') setInspecting((v) => !v);
+      if (e.key === 'i') toggleInspecting();
       if (e.key === 'Escape') setSelection(null);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [toggleInspecting]);
 
   useEffect(() => {
     if (kind !== 'html' || !import.meta.hot) return;
@@ -183,7 +189,7 @@ export function PageView() {
   }, [selection, note, pageId]);
 
   const src = useMemo(() => (known ? frameUrl({ pageId, kind }) : ''), [known, pageId, kind]);
-  const canInspect = kind === 'react' && import.meta.env.DEV;
+  const canInspect = kind === 'react' && (import.meta.env.DEV || hasHostedEditor);
 
   return (
     <div className="flex h-screen flex-col bg-muted/40 text-foreground">
@@ -241,7 +247,7 @@ export function PageView() {
               <Button
                 variant={inspecting ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setInspecting((v) => !v)}
+                onClick={toggleInspecting}
                 disabled={!ready || !!error}
                 aria-pressed={inspecting}
                 title="Inspect elements (i) — click any element to select it or leave a comment"
