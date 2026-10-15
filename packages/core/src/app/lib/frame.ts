@@ -18,8 +18,10 @@ export type FrameSource =
   | { emailId: string };
 
 const BASE = import.meta.env.BASE_URL;
-function frameEditorQuery() {
-  return new URLSearchParams(window.location.search).get('edit') === '1' ? '&edit=1' : '';
+function frameEditorQuery(separator: '?' | '&' = '&') {
+  return new URLSearchParams(window.location.search).get('edit') === '1'
+    ? `${separator}edit=1`
+    : '';
 }
 
 /**
@@ -33,7 +35,7 @@ export function frameUrl(source: FrameSource): string {
     return `${BASE}frame.html?theme=${encodeURIComponent(source.themeId)}${frameEditorQuery()}`;
   if ('emailId' in source) return emailUrl(source.emailId, 'html');
   if (source.kind === 'html')
-    return `${BASE}__page/${encodeURIComponent(source.pageId)}/index.html${frameEditorQuery().replace('&', '?')}`;
+    return `${BASE}__page/${encodeURIComponent(source.pageId)}/index.html${frameEditorQuery('?')}`;
   return `${BASE}frame.html?page=${encodeURIComponent(source.pageId)}${frameEditorQuery()}`;
 }
 
